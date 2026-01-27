@@ -52,7 +52,7 @@ def main():
     st.sidebar.header("Settings")
     model_name = st.sidebar.selectbox(
         "Model",
-        ["gemini-3-flash", "gemini-3-pro"]
+        ["gemini-3-flash-preview", "gemini-3-pro-preview"]
     )
     st.sidebar.divider()
     st.sidebar.info("Tip: 동일 코드는 캐싱됩니다.")
