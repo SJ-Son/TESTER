@@ -46,8 +46,7 @@ def check_rate_limit() -> tuple[bool, str]:
     return True, ""
 
 def main():
-    st.title("🧪 QA Test Code Generator")
-    st.markdown("### Python Code to Test Code")
+    st.title("Test Code Generator")
     
     # Sidebar
     st.sidebar.header("Settings")
