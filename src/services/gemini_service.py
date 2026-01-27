@@ -9,15 +9,18 @@ class GeminiService:
     Google Gemini API와 상호작용하여 콘텐츠를 생성하는 서비스 클래스입니다.
     """
 
-    def __init__(self):
+    def __init__(self, model_name: str = "gemini-1.5-flash"):
         """
         GeminiService 초기화 메서드.
         API Key를 설정하고 로거를 초기화합니다.
+        
+        Args:
+            model_name (str): 사용할 Gemini 모델 이름 (기본값: "gemini-1.5-flash")
         """
         self.logger = get_logger(__name__)
         self._configure_api()
         self.model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash", 
+            model_name=model_name, 
             system_instruction=SYSTEM_INSTRUCTION
         )
 
