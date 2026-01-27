@@ -1,10 +1,17 @@
 import sys
 import os
+from streamlit.web import cli as stcli
 
-# 현재 디렉토리를 sys.path에 추가 (모듈 로딩 문제 해결)
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from src.app import main
+def main():
+    """
+    애플리케이션 진입점 (Entry Point).
+    Streamlit CLI를 통해 애플리케이션을 실행합니다.
+    """
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+    
+    # Streamlit 실행 명령 구성
+    sys.argv = ["streamlit", "run", "src/app.py"]
+    sys.exit(stcli.main())
 
 if __name__ == "__main__":
     main()
