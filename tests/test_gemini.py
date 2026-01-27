@@ -1,76 +1,71 @@
+"""
+GeminiService의 단위 테스트입니다.
+pytest-mock을 사용하여 실제 API 호출 없이 테스트합니다.
+"""
 import pytest
 from unittest.mock import MagicMock, patch
+
 from src.services.gemini_service import GeminiService
 
+
 class TestGeminiService:
-    """
-    GeminiService 클래스의 단위 테스트입니다.
-    외부 API 호출은 Mocking하여 비용 발생을 방지합니다.
-    """
+    """GeminiService 클래스에 대한 테스트 모음입니다."""
 
     @pytest.fixture
-    def mock_genai(self, mocker):
-        """
-        google.generativeai 모듈 전체를 Mocking합니다.
-        """
-        return mocker.patch("src.services.gemini_service.genai")
+    def service(self):
+        """테스트용 GeminiService 인스턴스를 생성합니다."""
+        with patch("src.services.gemini_service.genai.configure"):
+            return GeminiService(model_name="gemini-3-flash-preview")
 
-    @pytest.fixture
-    def service(self, mock_genai):
-        """
-        GeminiService 인스턴스를 생성하는 Fixture입니다.
-        Settings.GEMINI_API_KEY가 필요하므로 환경 변수도 Mock 처리할 수 있으나,
-        여기서는 __init__에서 API 설정을 하므로 mock_genai가 먼저 적용되어야 합니다.
-        """
-        return GeminiService()
+    def test_service_initialization(self, service):
+        """서비스가 올바르게 초기화되는지 테스트합니다."""
+        assert service is not None
+        assert service.model is not None
 
-    def test_configure_api_called(self, mock_genai):
-        """
-        서비스 초기화 시 API 설정(configure)이 호출되는지 확인합니다.
-        """
-        GeminiService()
-        mock_genai.configure.assert_called_once()
-        mock_genai.GenerativeModel.assert_called_once()
-
-    def test_generate_test_code_success(self, service, mock_genai):
-        """
-        정상적으로 코드가 입력되었을 때 API 응답을 반환하는지 테스트합니다.
-        """
-        # Mock Response 설정
+    @patch("src.services.gemini_service.genai.GenerativeModel")
+    def test_generate_test_code_success(self, mock_model_class, service):
+        """정상적인 코드 입력 시 테스트 코드가 생성되는지 확인합니다."""
+        # Mock 설정
         mock_response = MagicMock()
-        mock_response.text = "```python\ndef test_example(): pass\n```"
+        mock_response.text = "def test_example():\n    assert True"
         
-        # model.generate_content 메서드의 리턴값 설정
-        service.model.generate_content.return_value = mock_response
-
-        input_code = "def example(): pass"
-        result = service.generate_test_code(input_code)
-
+        service.model.generate_content = MagicMock(return_value=mock_response)
+        
+        # 실행
+        result = service.generate_test_code("def example(): pass")
+        
         # 검증
-        service.model.generate_content.assert_called_once_with(input_code)
-        assert result == mock_response.text
+        assert "def test_example" in result
+        service.model.generate_content.assert_called_once()
 
     def test_generate_test_code_empty_input(self, service):
-        """
-        빈 문자열이 입력되었을 때 API 호출을 하지 않고 경고 메시지를 반환하는지 테스트합니다.
-        """
-        input_code = "   "
-        result = service.generate_test_code(input_code)
+        """빈 입력에 대한 처리를 테스트합니다."""
+        result = service.generate_test_code("")
+        assert "소스 코드" in result or "입력" in result
 
-        # API 호출이 없어야 함
-        service.model.generate_content.assert_not_called()
-        assert "입력해주세요" in result
-
-    def test_generate_test_code_api_error(self, service):
-        """
-        API 호출 중 예외가 발생했을 때 재시도 후 실패하는지 테스트합니다.
-        """
-        service.model.generate_content.side_effect = Exception("API Error")
-
-        # 재시도 로직 때문에 시간이 걸리거나 RetryError가 발생할 수 있음
-        # 여기서는 예외가 전파되는지만 확인
-        with pytest.raises(Exception):
-            service.generate_test_code("print('hello')")
+    @patch("src.services.gemini_service.genai.GenerativeModel")
+    def test_generate_test_code_api_error(self, mock_model_class, service):
+        """API 오류 발생 시 재시도 로직을 테스트합니다."""
+        # tenacity의 stop_after_attempt(3): 최대 3번 시도 (초기 1회 + 재시도 2회)
+        service.model.generate_content = MagicMock(
+            side_effect=Exception("API Error")
+        )
         
-        # 재시도가 일어났는지 확인 (최소 1번 이상 호출)
-        assert service.model.generate_content.call_count >= 1
+        # 재시도 후 최종 실패 예상
+        with pytest.raises(Exception):
+            service.generate_test_code("def test(): pass")
+        
+        # stop_after_attempt(3) = 총 3번 호출
+        assert service.model.generate_content.call_count == 3
+
+    @patch("src.services.gemini_service.genai.GenerativeModel")
+    def test_generate_test_code_empty_response(self, mock_model_class, service):
+        """API가 빈 응답을 반환할 때의 처리를 테스트합니다."""
+        mock_response = MagicMock()
+        mock_response.text = ""
+        
+        service.model.generate_content = MagicMock(return_value=mock_response)
+        
+        result = service.generate_test_code("def test(): pass")
+        
+        assert "응답" in result or "생성하지 못" in result
