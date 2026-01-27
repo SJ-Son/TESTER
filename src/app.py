@@ -31,9 +31,9 @@ def main():
     st.sidebar.header("설정 (Configuration)")
     model_name = st.sidebar.selectbox(
         "사용할 모델 선택",
-        options=["gemini-2.0-flash", "gemini-2.5-pro"],
+        options=["gemini-2.0-flash-exp", "gemini-flash-latest"],
         index=0,
-        help="Flash: 빠름/경제적 (v2.0), Pro: 고성능 추론 (v2.5)"
+        help="Flash Exp: 무료/실험적 (v2.0), Latest: 최신 안정 버전"
     )
     st.sidebar.markdown("---")
     st.sidebar.info("💡 동일한 코드는 캐싱된 결과를 빠르게 반환합니다.")
