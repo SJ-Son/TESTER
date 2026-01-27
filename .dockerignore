@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# Python/Environment
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+venv
+.env
+.devcontainer
+
+# Testing
+tests/
+.pytest_cache/
+pytest.ini
+
+# IDE
+.vscode
+.idea
+
+# Streamlit
+.streamlit/secrets.toml
