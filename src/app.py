@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import ast
 from src.services.gemini_service import GeminiService
 from src.utils.logger import get_logger
 
@@ -42,7 +43,8 @@ def main():
     try:
         service = get_gemini_service(model_name)
     except Exception as e:
-        st.error(f"서비스 초기화 오류: {e}")
+        st.error("AI 서비스를 초기화하는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        logger.error(f"서비스 초기화 오류: {e}")
         return
 
     # [메인] Split View
@@ -62,9 +64,33 @@ def main():
         st.subheader("💻 Test Code Result")
         
         if generate_btn:
+            # 1. 입력 검증 (Empty check)
             if not code_input.strip():
                 st.warning("코드를 입력해주세요.")
                 return
+
+            # 2. 입력 검증 (Length check)
+            if len(code_input) > 3000:
+                st.error("입력 코드가 너무 깁니다. (3000자 제한)")
+                return
+
+            # 3. 입력 검증 (AST Parsing)
+            try:
+                ast.parse(code_input)
+            except SyntaxError:
+                st.warning("유효한 파이썬 코드가 아닙니다. 문법을 확인해주세요.")
+                return
+
+            # 4. 속도 제한 (Rate Limiting)
+            if 'last_req_time' not in st.session_state:
+                st.session_state['last_req_time'] = 0
+            
+            current_time = time.time()
+            if current_time - st.session_state['last_req_time'] < 5:
+                st.warning("요청이 너무 빠릅니다. 잠시 후 다시 시도해주세요.")
+                return
+            
+            st.session_state['last_req_time'] = current_time
 
             with st.spinner("테스트 코드 작성 중..."):
                 try:
@@ -75,7 +101,7 @@ def main():
                     st.success(f"생성 완료 ({elapsed:.2f}s)")
                     st.code(result, language="python")
                 except Exception as e:
-                    st.error(f"오류 발생: {e}")
+                    st.error("AI 서버가 혼잡합니다. 잠시 후 다시 시도해주세요.")
                     logger.error(f"생성 실패: {e}")
         else:
             st.info("코드를 입력하고 버튼을 눌러주세요.")
