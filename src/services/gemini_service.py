@@ -7,7 +7,7 @@ from src.utils.prompts import SYSTEM_INSTRUCTION
 class GeminiService:
     """Google Gemini API 연동 서비스."""
 
-    def __init__(self, model_name: str = "gemini-2.0-flash-exp"):
+    def __init__(self, model_name: str = "gemini-3-flash-preview"):
         """API 설정 및 모델 초기화."""
         self.logger = get_logger(__name__)
         self._configure_api()
