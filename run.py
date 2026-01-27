@@ -1,13 +1,10 @@
 import sys
-from streamlit.web import cli as stcli
+import os
 
-def main():
-    """
-    Streamlit 애플리케이션의 진입점입니다.
-    src/app.py를 실행합니다.
-    """
-    sys.argv = ["streamlit", "run", "src/app.py"]
-    sys.exit(stcli.main())
+# 프로젝트 루트를 sys.path에 추가하여 모듈 임포트가 원활하게 작동하도록 함
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from src.app import main
 
 if __name__ == "__main__":
     main()
