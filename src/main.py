@@ -88,7 +88,7 @@ async def generate_code(req: GenerateRequest):
         # Send an error fragment
         error_html = f'<div id="output-area" class="bg-red-900/20 border border-red-500 text-red-200 p-4 rounded-lg">{msg}</div>'
         return StreamingResponse(
-            event_generator("datastar-merge-fragments", error_html),
+            event_generator("datastar-patch-elements", error_html),
             media_type="text/event-stream"
         )
 
@@ -101,7 +101,7 @@ async def generate_code(req: GenerateRequest):
         ui_lang = strategy.get_syntax_name()
         
         # Initial Loading State
-        yield format_sse("datastar-merge-fragments", 
+        yield format_sse("datastar-patch-elements", 
              f'<div id="output-area" class="bg-gray-800 p-4 rounded-lg border border-gray-700 animate-pulse">Thinking...</div>')
 
         try:
@@ -113,7 +113,7 @@ async def generate_code(req: GenerateRequest):
             )
             
             if req.use_reflection:
-                 yield format_sse("datastar-merge-fragments", 
+                 yield format_sse("datastar-patch-elements", 
                      f'<div id="output-area" class="bg-blue-900/20 border border-blue-500 text-blue-200 p-4 rounded-lg">Strict Syntax Nazi is reviewing your code... 🧐</div>')
 
 
@@ -132,7 +132,7 @@ async def generate_code(req: GenerateRequest):
                         <pre class="flex-1 p-4 overflow-auto font-mono text-sm text-gray-200 leading-relaxed custom-scrollbar"><code class="language-{ui_lang}">{full_response}</code></pre>
                     </div>
                     '''
-                    yield format_sse("datastar-merge-fragments", html_content)
+                    yield format_sse("datastar-patch-elements", html_content)
                     await asyncio.sleep(0.01) # Yield control
             
             # Final Success State (optional toast or class change)
@@ -145,9 +145,15 @@ async def generate_code(req: GenerateRequest):
     return StreamingResponse(generate_stream(), media_type="text/event-stream")
 
 def format_sse(event: str, data: str) -> str:
-    """Formats an SSE message for Datastar."""
+    """Formats an SSE message for Datastar v1.0.x."""
+    prefix = ""
+    if event == "datastar-patch-elements":
+        prefix = "elements "
+    elif event == "datastar-patch-signals":
+        prefix = "signals "
+    
     lines = data.split('\n')
-    formatted_data = "\n".join([f"data: {line}" for line in lines])
+    formatted_data = "\n".join([f"data: {prefix if i==0 else ''}{line}" for i, line in enumerate(lines)])
     return f"event: {event}\n{formatted_data}\n\n"
 
 async def event_generator(event, data):

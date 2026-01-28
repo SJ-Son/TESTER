@@ -53,7 +53,8 @@ def test_generate_code_api(mock_service):
             content += line + "\n"
         
         # Verify Datastar Event
-        assert "event: datastar-merge-fragments" in content
+        assert "event: datastar-patch-elements" in content
+        assert "data: elements <div id=\"output-area\"" in content
         
         # Verify Loading State
         assert "Thinking..." in content
