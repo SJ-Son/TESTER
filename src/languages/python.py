@@ -42,5 +42,5 @@ class PythonStrategy(LanguageStrategy):
     def get_placeholder(self) -> str:
         return "def add(a, b):\n    return a + b"
 
-    def get_streamlit_language(self) -> str:
+    def get_syntax_name(self) -> str:
         return "python"
