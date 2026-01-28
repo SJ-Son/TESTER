@@ -93,7 +93,7 @@ onMounted(() => {
     <aside class="w-80 border-r border-gray-800 bg-gray-900 flex flex-col p-6 space-y-8">
       <div class="flex items-center space-x-3 text-blue-400">
         <Sparkles class="w-8 h-8" />
-        <h1 class="text-xl font-bold tracking-tight text-white">QA Genie V2</h1>
+        <h1 class="text-xl font-bold tracking-tight text-white">TESTER</h1>
       </div>
 
       <!-- Strategy Config -->
