@@ -21,8 +21,7 @@ const languages = [
 ]
 
 const models = [
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast)' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Brainy)' }
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast)' }
 ]
 
 // --- Streaming Logic ---
