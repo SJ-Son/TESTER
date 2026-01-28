@@ -1,88 +1,53 @@
-# LLM 기반 단위 테스트 자동 생성 시스템 (TESTER)
+# 🤖 AI 기반 테스트 코드 자동 생성기: TESTER
 
-## 1. 개요 (Overview)
-본 프로젝트는 개발 생산성 향상과 코드 품질 보증을 위한 다국어 단위 테스트 자동 생성 시스템입니다. LLM(Gemini 2.0/3.0)의 강력한 추론 능력을 활용하되, 생성된 데이터의 신뢰성을 확보하기 위해 **자가 수정(Self-Correction) 아키텍처**와 **엄격한 구문 검증(Syntax Validation)** 레이어를 결합한 엔지니어링 솔루션입니다.
+## 1. 프로젝트 소개
+**"개발자가 비즈니스 로직에만 집중할 수 있도록!"**  
+코드를 입력하면 AI(Gemini)가 분석하여 **가장 적합한 단위 테스트 코드를 자동으로 생성**해주는 도구입니다.
 
-단순한 코드 생성을 넘어, 생성된 결과물의 실행 가능성을 보장하고 언어별 문법적 특성을 유지하는 데 초점을 맞춘 QA 엔지니어링 관점의 결과물입니다.
+단순히 AI에게 물어보는 수준을 넘어, **생성된 코드가 문법적으로 완벽한지 스스로 검사하고 수정**하는 기능을 더해 신뢰도를 높였습니다.
 
-## 2. 기술 스택 (Tech Stack)
-- **Frontend:** Vue.js 3, Vite, Tailwind CSS v4, Lucide Icons, Highlight.js
-- **Backend:** Python 3.12, FastAPI (Asynchronous SSE Streaming), Pydantic (Data Validation)
-- **AI/LLM:** Google Gemini API (Flash/Pro 모델군)
-- **Testing & Verification:** Pytest, Custom Chaos Testing Suite
-- **Infrastructure:** Docker (Multi-stage build), Google Cloud Run (CI/CD 연동)
+## 2. 왜 이 프로젝트를 만들었나요? (QA 관점)
+신입 QA 엔지니어로서 **"어떻게 하면 AI가 만드는 코드의 오류를 줄이고 안정적으로 서비스할 수 있을까?"**라는 고민에서 시작했습니다.
+- **정확성:** AI가 엉뚱한 코드를 짜지 않게 두 번 검사(Reflection)합니다.
+- **범용성:** Python, Java, JavaScript 등 다양한 언어를 하나의 구조로 지원합니다.
+- **견고함:** 이상한 값이 들어와도 서버가 죽지 않도록 카오스 테스트를 수행했습니다.
 
-## 3. 시스템 아키텍처 (Architecture)
-본 시스템은 언어별 확장성과 생성 로직의 독립성을 보장하기 위해 모듈화된 아키텍처로 설계되었습니다.
+## 3. 핵심 기술 및 해결 과정
+### ✅ "AI가 짠 코드를 믿을 수 있을까?" -> 2단계 검증 (Reflection)
+1. **1단계(생성):** AI가 입력된 코드를 보고 테스트 코드를 한 번 짭니다.
+2. **2단계(검토):** 생성된 코드를 다시 AI가 엄격하게 리뷰하여 문법 오류나 빠진 라이브러리(Import)가 있는지 확인하고 수정합니다.
 
-### 전략 패턴 (Strategy Pattern) 적용
-Python, Java, JavaScript 등 다양한 프로그래밍 언어를 유연하게 지원하기 위해 `LanguageStrategy` 인터페이스를 구현했습니다.
-- **언어별 독립성:** 각 언어 전략 객체는 고유의 문법 검증 로직, 시스템 인스트럭션, 에러 보정 프롬프트를 캡슐화합니다.
-- **동적 해결:** `LanguageFactory`를 통해 런타임에 사용자 요청에 맞는 전략 객체를 주입받아 처리합니다.
+### ✅ "새로운 언어를 추가하기 쉽도록" -> 전략 패턴 (Strategy)
+- 언어별로 검증 로직이 다르기 때문에, 각 언어를 부품처럼 갈아 끼울 수 있는 구조로 설계했습니다. 덕분에 나중에 C++이나 Go 같은 언어도 쉽게 추가할 수 있습니다.
 
-### 2-Pass Reflection (자가 수정) 데이터 흐름
-1. **요청 수신:** Vue.js 클라이언트로부터 소스 코드 및 설정값을 FastAPI로 전달.
-2. **사전 검증:** 선택된 `LanguageStrategy`를 통해 입력 코드의 기본 유효성 검사 수행.
-3. **초안 생성 (Pass 1):** `GeminiService`를 통해 1차 단위 테스트 코드 생성.
-4. **자가 성찰 (Pass 2):** 생성된 초안을 "Strict Syntax Reviewer" 페르소나를 가진 LLM에 재투입하여 Import 누락, 언어 혼용, 문법 오류를 검토하고 필요시 수정.
-5. **실시간 스트리밍:** 최종 정제된 코드를 SSE(Server-Sent Events)를 통해 클라이언트에 실시간으로 전달.
+### ✅ "어떤 공격에도 끄떡없도록" -> 카오스 테스트 (Chaos Test)
+- 여러 언어가 섞인 코드, 주석만 있는 코드, 명령어를 무시하라는 식의 공격적인 입력에도 서버가 오류 없이 정상적으로 대응하는지 확인하는 자가 진단 스크립트를 직접 개발했습니다.
 
-## 4. 핵심 기능 및 구현 상세 (Key Features)
-- **다국어 문법 가드레일:** Java 코드 결과물에 Python 문법이 섞이는 등의 '언어 오염'을 방지하기 위한 정규식 기반 검증 로직 탑재.
-- **비동기 스트리밍 처리:** Python의 `asyncio`와 FastAPI의 `StreamingResponse`를 활용하여 대규모 코드 생성 시에도 끊김 없는 사용자 경험 제공.
-- **구문 성찰 피드백 루프:** 생성된 코드가 해당 언어의 표준 라이브러리와 컨벤션을 준수하는지 AI가 스스로 재검토하는 로직 구현.
+## 4. 사용 기술 (Tech Stack)
+### 🌐 Frontend
+- **Vue.js 3:** 빠르고 현대적인 사용자 인터페이스 구현
+- **Tailwind CSS v4:** 깔끔하고 반응이 빠른 디자인 적용
 
-## 5. 안정성 및 QA 검증 (Robustness & Verification)
-### 카오스 테스트 스위트 (Chaos Testing Suite)
-시스템의 회복 탄력성(Resilience)과 가드레일 작동 여부를 검증하기 위해 비정상 입력을 주입하는 자동화 스크립트(`tests/chaos_runner.py`)를 구축했습니다.
-- **The Chimera Case:** 다국어 혼종 코드를 주입하여 언어 특정 및 거절 로직 검증.
-- **The Fragment Case:** 문맥 없는 파편화된 코드를 주입하여 추론 및 보정 능력 확인.
-- **The Trap Case:** 실행 코드가 없는 주석 덩어리를 주입하여 환각(Hallucination) 억제력 검증.
-- **The Injection Case:** 시스템 프롬프트를 우회하려는 탈옥(Prompt Injection) 시도에 대한 방어력 검증.
+### ⚙️ Backend
+- **FastAPI (Python):** 비동기 처리를 통해 끊김 없는 실시간 결과 스트리밍 제공
+- **Gemini API:** 구글의 최신 AI 모델을 활용한 코드 분석
 
-### 자동화 평가 도구
-`backend/tests/` 내의 `auto_evaluator.py` 등을 통해 CI/CD 파이프라인에서 생성 성공률을 정량적으로 측정할 수 있는 환경을 마련했습니다.
+### 🚀 Infrastructure
+- **Docker:** 어디서나 동일하게 실행되는 환경 구축
+- **Google Cloud Run:** 안정적인 클라우드 배포 및 운영
 
-## 6. 프로젝트 구조 (Project Structure)
+## 5. 프로젝트 구조
 ```text
-.
-├── backend/                # FastAPI 백엔드 서비스
-│   ├── src/
-│   │   ├── languages/      # 전략 패턴 기반 언어별 로직
-│   │   ├── services/       # 코어 LLM 연동 및 Reflection 로직
-│   │   └── main.py         # API 엔트리 포인트
-│   └── tests/              # 단위 및 통합 테스트 코드
-├── frontend/               # Vue.js 3 SPA 프론트엔드
-│   ├── src/
-│   │   ├── App.vue         # 메인 인터랙티브 UI
-│   │   └── style.css       # Tailwind v4 스타일 정의
-│   └── vite.config.ts      # 빌드 설정
-├── tests/                  # 시스템 통합 카오스 테스트
-├── Dockerfile              # 멀티스테이지 컨테이너 정의
-└── README.md               # 기술 문서 (본 파일)
+├── backend/                # 똑똑한 두뇌 (FastAPI, AI 로직)
+│   ├── src/languages/      # 언어별 검증 규칙들
+│   └── src/services/       # AI 연동 및 자가 수정 로직
+├── frontend/               # 예쁜 얼굴 (Vue.js 화면)
+├── tests/                  # 보안 및 안정성 테스트 스크립트
+└── Dockerfile              # 원클릭 실행 설정
 ```
 
-## 7. 설치 및 실행 가이드 (Setup & Execution)
-### 사전 요구사항
-- Python 3.12 이상, Node.js 20 이상
-- Google Gemini API Key
-
-### 로컬 백엔드 실행
-```bash
-cd backend
-pip install -r requirements.txt
-export GEMINI_API_KEY=your_key_here
-python src/main.py
-```
-
-### 로컬 프론트엔드 실행
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### 카오스 테스트 수행
-```bash
-python tests/chaos_runner.py
-```
+## 6. 시작하기 (Quick Start)
+1. **API 키 설정:** `.env` 파일에 Gemini API 키를 넣습니다.
+2. **백엔드 실행:** `cd backend && python src/main.py`
+3. **프론트엔드 실행:** `cd frontend && npm run dev`
+4. **안정성 확인:** `python tests/chaos_runner.py`로 시스템 내구성 테스트!
