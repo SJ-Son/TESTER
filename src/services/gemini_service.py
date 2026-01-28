@@ -138,6 +138,4 @@ class GeminiService:
             self.logger.warning(f"Self-Reflection Failed: {e}")
             return draft_code
                 
-        except Exception as e:
-            self.logger.error(f"API 호출 오류: {e}")
-            raise
+
