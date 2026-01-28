@@ -51,6 +51,14 @@ def main():
         "Model",
         ["gemini-3-flash-preview", "gemini-3-pro-preview"]
     )
+    
+    # [V3] Self-Correction Toggle
+    use_reflection = st.sidebar.checkbox(
+        "Enable Self-Correction",
+        value=False,
+        help="AI가 생성된 코드를 스스로 검토하고 수정합니다. (속도가 느려질 수 있습니다)"
+    )
+    
     st.sidebar.divider()
     st.sidebar.info("Tip: 동일 코드는 캐싱됩니다.")
     
@@ -100,8 +108,12 @@ def main():
                     stream_generator = service.generate_test_code(
                         code_input, 
                         system_instruction=strategy.get_system_instruction(),
-                        stream=True
+                        stream=True,
+                        use_reflection=use_reflection
                     )
+                    
+                    if use_reflection:
+                        response_placeholder.info("Thinking & Reflecting... (이 과정은 시간이 조금 걸립니다)")
                     
                     for chunk in stream_generator:
                         full_response += chunk
