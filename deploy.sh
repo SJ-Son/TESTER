@@ -4,10 +4,10 @@
 set -e
 
 # Configuration
-PROJECT_ID="ygen-lang-client-0355642569"
-SERVICE_NAME="tester-vue"
+PROJECT_ID="gen-lang-client-0355642569"
+SERVICE_NAME="tester"
 REGION="asia-northeast3"
-REPO_NAME="tester-repo" # Artifact Registry repository name
+REPO_NAME="tester" # Artifact Registry repository name
 
 if [ "$PROJECT_ID" == "your-project-id" ]; then
     echo "❌ Error: Please set your PROJECT_ID in line 7 of deploy.sh"

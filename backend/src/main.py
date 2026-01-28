@@ -105,22 +105,39 @@ async def health_check():
 
 # --- Static File Serving (Production) ---
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # Root of /backend
-FRONTEND_DIST = os.path.join(os.path.dirname(BASE_DIR), "frontend", "dist")
+# We use absolute paths based on /app in container
+# Structure: /app/backend/src/main.py
+#           /app/frontend/dist/index.html
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
+FRONTEND_DIST = "/app/frontend/dist"
 
 if os.path.exists(FRONTEND_DIST):
-    logger.info(f"Serving production frontend from {FRONTEND_DIST}")
-    # Mount assets
+    logger.info(f"✅ Found frontend at {FRONTEND_DIST}")
+    # Mount assets (common in Vite build)
     assets_dir = os.path.join(FRONTEND_DIST, "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
-    # Serve index.html for all other routes (SPA)
+    # Serve index.html for SPA
     @app.get("/{rest_of_path:path}")
     async def serve_frontend(rest_of_path: str):
-        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+        # Don't intercept /api routes
+        if rest_of_path.startswith("api/"):
+             raise HTTPException(status_code=404)
+        
+        index_file = os.path.join(FRONTEND_DIST, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return {"error": "index.html not found in dist"}
 else:
-    logger.warning("Frontend dist directory not found. Serving API only.")
+    logger.warning(f"❌ Frontend dist not found at {FRONTEND_DIST}. Serving API only.")
     @app.get("/")
     async def root():
         return {"message": "Gemini API Server is running. Frontend dist not found."}
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8080))
+    logger.info(f"🚀 Starting server on port {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
+

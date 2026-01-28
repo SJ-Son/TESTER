@@ -4,6 +4,9 @@ jinja2
 python-multipart
 google-generativeai
 python-dotenv
+pydantic
+pydantic-settings
+httpx
 tenacity
 pytest
 pytest-mock
