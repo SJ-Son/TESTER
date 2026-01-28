@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 # Configuration
 PROJECT_ID="your-project-id" # Replace with your GCP Project ID
 SERVICE_NAME="qa-test-generator-vue"
