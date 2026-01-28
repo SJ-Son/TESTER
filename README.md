@@ -32,9 +32,16 @@
 - **FastAPI (Python):** 비동기 처리를 통해 끊김 없는 실시간 결과 스트리밍 제공
 - **Gemini API:** 구글의 최신 AI 모델을 활용한 코드 분석
 
-### 🚀 Infrastructure
+### 🚀 Infrastructure & DevOps
 - **Docker:** 어디서나 동일하게 실행되는 환경 구축
 - **Google Cloud Run:** 안정적인 클라우드 배포 및 운영
+- **GitHub Actions:** CI/CD 파이프라인을 통한 자동 배포 환경 구축 (Zero-Touch Deployment)
+
+## 5. CI/CD 파이프라인
+프로젝트의 생산성을 높이기 위해 GitHub Actions를 이용한 자동 배포를 구축했습니다. `main` 브랜치에 코드를 `push`하면 다음과 같은 과정이 자동으로 수행됩니다.
+1. **Build:** GitHub Actions 서버에서 Docker 이미지를 빌드합니다.
+2. **Push:** 빌드된 이미지를 Google Artifact Registry로 업로드합니다.
+3. **Deploy:** Cloud Run에 새로운 버전으로 자동 배포합니다.
 
 ## 5. 프로젝트 구조
 ```text
