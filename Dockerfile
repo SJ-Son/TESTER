@@ -1,35 +1,37 @@
-# Base Image: Lightweight Python 3.12 (Matches Project Env)
-FROM python:3.12-slim
+# Stage 1: Build Vue.js Frontend
+FROM node:20-slim AS build-stage
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
-# Set working directory
-# Set working directory
+# Stage 2: Serve with FastAPI Backend
+FROM python:3.12-slim
 WORKDIR /app
 
-# Prevent Python from writing pyc files to disc and buffering stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PORT=8080
-
-# Install system dependencies (minimal)
-# curl is added for HEALTHCHECK
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/requirements.txt ./backend/
+RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Copy only necessary source code (Strict Copy)
-COPY src/ ./src/
+# Copy source code
+COPY backend ./backend
 
+# Copy Built Frontend from Stage 1
+COPY --from=build-stage /app/frontend/dist ./frontend/dist
 
-# Expose Streamlit port (Cloud Run default is 8080)
+# Environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
+
+# Expose port
 EXPOSE 8080
 
-# Healthcheck for Cloud Run
-HEALTHCHECK CMD curl --fail http://localhost:8080/ || exit 1
-
-# Start Streamlit on port 8080
-# Start FastAPI with Uvicorn
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start FastAPI
+# Note: Root is /app, so module path is backend.src.main:app
+CMD ["uvicorn", "backend.src.main:app", "--host", "0.0.0.0", "--port", "8080"]
