@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy only necessary source code (Strict Copy)
 COPY src/ ./src/
-COPY run.py .
+
 
 # Expose Streamlit port (Cloud Run default is 8080)
 EXPOSE 8080
