@@ -20,3 +20,7 @@ coverage.xml
 # IDE
 .vscode/
 .idea/
+
+# Accidental Directory
+Y/
+google-cloud-sdk/
