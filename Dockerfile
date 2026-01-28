@@ -18,11 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY run.py .
 
-# Expose Streamlit port
-EXPOSE 8501
+# Expose Streamlit port (Cloud Run default is 8080)
+EXPOSE 8080
 
 # Healthcheck for Cloud Run
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+HEALTHCHECK CMD curl --fail http://localhost:8080/_stcore/health || exit 1
 
-# Start Streamlit
-ENTRYPOINT ["streamlit", "run", "run.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Start Streamlit on port 8080
+ENTRYPOINT ["streamlit", "run", "run.py", "--server.port=8080", "--server.address=0.0.0.0"]
