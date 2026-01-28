@@ -1,5 +1,5 @@
 import re
-from src.languages.base import LanguageStrategy
+from backend.src.languages.base import LanguageStrategy
 
 class JavaScriptStrategy(LanguageStrategy):
     def validate_code(self, code: str) -> tuple[bool, str]:
