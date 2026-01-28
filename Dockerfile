@@ -22,7 +22,8 @@ COPY run.py .
 EXPOSE 8080
 
 # Healthcheck for Cloud Run
-HEALTHCHECK CMD curl --fail http://localhost:8080/_stcore/health || exit 1
+HEALTHCHECK CMD curl --fail http://localhost:8080/ || exit 1
 
 # Start Streamlit on port 8080
-ENTRYPOINT ["streamlit", "run", "run.py", "--server.port=8080", "--server.address=0.0.0.0"]
+# Start FastAPI with Uvicorn
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
