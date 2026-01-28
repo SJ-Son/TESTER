@@ -1,60 +1,49 @@
-# 🤖 AI 기반 테스트 코드 자동 생성기: TESTER
+# LLM 기반 단위 테스트 자동 생성 시스템: TESTER
 
-## 1. 프로젝트 소개
-**"개발자가 비즈니스 로직에만 집중할 수 있도록!"**  
-코드를 입력하면 AI(Gemini)가 분석하여 **가장 적합한 단위 테스트 코드를 자동으로 생성**해주는 도구입니다.
+## 1. 프로젝트 개요
+소스 코드를 분석하여 실행 가능한 단위 테스트 코드를 자동 생성하는 도구입니다. LLM 기반 생성 과정에서 발생할 수 있는 환각 현상(Hallucination)과 문법 오류를 제어하기 위한 검증 시스템 구현에 초점을 맞췄습니다.
 
-단순히 AI에게 물어보는 수준을 넘어, **생성된 코드가 문법적으로 완벽한지 스스로 검사하고 수정**하는 기능을 더해 신뢰도를 높였습니다.
+## 2. 주요 해결 과제 (QA Engineering)
 
-## 2. 왜 이 프로젝트를 만들었나요? (QA 관점)
-신입 QA 엔지니어로서 **"어떻게 하면 AI가 만드는 코드의 오류를 줄이고 안정적으로 서비스할 수 있을까?"**라는 고민에서 시작했습니다.
-- **정확성:** AI가 엉뚱한 코드를 짜지 않게 두 번 검사(Reflection)합니다.
-- **범용성:** Python, Java, JavaScript 등 다양한 언어를 하나의 구조로 지원합니다.
-- **견고함:** 이상한 값이 들어와도 서버가 죽지 않도록 카오스 테스트를 수행했습니다.
+### 정확성 보장을 위한 2단계 검증 (Reflection)
+1. **Pass 1 (Draft):** 입력된 소스 코드에 기반한 1차 테스트 코드 생성.
+2. **Pass 2 (Refinement):** 생성된 코드를 다시 분석하여 문법 오류, 라이브러리 누락(Import), 언어 혼용 여부를 스스로 검토하고 보정하는 피드백 루프를 구현했습니다.
 
-## 3. 핵심 기술 및 해결 과정
-### ✅ "AI가 짠 코드를 믿을 수 있을까?" -> 2단계 검증 (Reflection)
-1. **1단계(생성):** AI가 입력된 코드를 보고 테스트 코드를 한 번 짭니다.
-2. **2단계(검토):** 생성된 코드를 다시 AI가 엄격하게 리뷰하여 문법 오류나 빠진 라이브러리(Import)가 있는지 확인하고 수정합니다.
+### 유연한 확장을 위한 전략 패턴 (Strategy Pattern)
+- 언어별로 상이한 문법 검증 로직과 프롬프트를 모듈화했습니다.
+- 인터페이스화를 통해 Python, Java, JavaScript 외 추가 언어 지원 시 기존 코드의 수정 없이 확장이 가능하도록 설계했습니다.
 
-### ✅ "새로운 언어를 추가하기 쉽도록" -> 전략 패턴 (Strategy)
-- 언어별로 검증 로직이 다르기 때문에, 각 언어를 부품처럼 갈아 끼울 수 있는 구조로 설계했습니다. 덕분에 나중에 C++이나 Go 같은 언어도 쉽게 추가할 수 있습니다.
+### 시스템 안정성 검증 (Chaos Testing)
+- 비정상 입력(혼종 코드, 파편화된 코드, 프롬프트 주입 공격 등)에 대한 시스템의 예외 처리 및 회복 탄력성을 확인하는 자동화 테스트 스위트를 구축했습니다.
 
-### ✅ "어떤 공격에도 끄떡없도록" -> 카오스 테스트 (Chaos Test)
-- 여러 언어가 섞인 코드, 주석만 있는 코드, 명령어를 무시하라는 식의 공격적인 입력에도 서버가 오류 없이 정상적으로 대응하는지 확인하는 자가 진단 스크립트를 직접 개발했습니다.
+## 3. 기술 스택
+- **Frontend:** Vue.js 3, Vite, Tailwind CSS v4
+- **Backend:** Python 3.12, FastAPI (Async SSE Streaming)
+- **Infrastructure:** Docker (Multi-stage build), GitHub Actions (CI/CD), Cloud Run
 
-## 4. 사용 기술 (Tech Stack)
-### 🌐 Frontend
-- **Vue.js 3:** 빠르고 현대적인 사용자 인터페이스 구현
-- **Tailwind CSS v4:** 깔끔하고 반응이 빠른 디자인 적용
-
-### ⚙️ Backend
-- **FastAPI (Python):** 비동기 처리를 통해 끊김 없는 실시간 결과 스트리밍 제공
-- **Gemini API:** 구글의 최신 AI 모델을 활용한 코드 분석
-
-### 🚀 Infrastructure & DevOps
-- **Docker:** 어디서나 동일하게 실행되는 환경 구축
-- **Google Cloud Run:** 안정적인 클라우드 배포 및 운영
-- **GitHub Actions:** CI/CD 파이프라인을 통한 자동 배포 환경 구축 (Zero-Touch Deployment)
-
-## 5. CI/CD 파이프라인
-프로젝트의 생산성을 높이기 위해 GitHub Actions를 이용한 자동 배포를 구축했습니다. `main` 브랜치에 코드를 `push`하면 다음과 같은 과정이 자동으로 수행됩니다.
-1. **Build:** GitHub Actions 서버에서 Docker 이미지를 빌드합니다.
-2. **Push:** 빌드된 이미지를 Google Artifact Registry로 업로드합니다.
-3. **Deploy:** Cloud Run에 새로운 버전으로 자동 배포합니다.
+## 4. CI/CD 파이프라인
+GitHub `main` 브랜치 Push 시 다음 과정이 자동 수행됩니다.
+1. Docker Buildx를 활용한 멀티 스테이지 빌드 및 레이어 캐싱.
+2. Google Artifact Registry 이미지 업로드.
+3. Google Cloud Run 최신 리비전 배포.
 
 ## 5. 프로젝트 구조
 ```text
-├── backend/                # 똑똑한 두뇌 (FastAPI, AI 로직)
-│   ├── src/languages/      # 언어별 검증 규칙들
-│   └── src/services/       # AI 연동 및 자가 수정 로직
-├── frontend/               # 예쁜 얼굴 (Vue.js 화면)
-├── tests/                  # 보안 및 안정성 테스트 스크립트
-└── Dockerfile              # 원클릭 실행 설정
+├── backend/            # API 서버 및 LLM Reflection 로직
+├── frontend/           # Vue.js 기반 인터랙티브 UI
+├── tests/              # 고립/강건성(Chaos) 테스트 스크립트
+└── Dockerfile          # 컨테이너화/배포 설정
 ```
 
-## 6. 시작하기 (Quick Start)
-1. **API 키 설정:** `.env` 파일에 Gemini API 키를 넣습니다.
-2. **백엔드 실행:** `cd backend && python src/main.py`
-3. **프론트엔드 실행:** `cd frontend && npm run dev`
-4. **안정성 확인:** `python tests/chaos_runner.py`로 시스템 내구성 테스트!
+## 6. 실행 방법
+```bash
+# Backend
+cd backend && pip install -r requirements.txt
+python src/main.py
+
+# Frontend
+cd frontend && npm install && npm run dev
+
+# Tests
+python tests/chaos_runner.py
+```
