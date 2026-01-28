@@ -12,7 +12,7 @@ from backend.src.utils.logger import get_logger
 class GeminiService:
     """Gemini API를 통한 테스트 코드 생성 서비스"""
 
-    def __init__(self, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, model_name: str = "gemini-3-flash-preview"):
         self.logger = get_logger(__name__)
         self.model_name = model_name
         self.logger = get_logger(__name__)
