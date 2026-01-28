@@ -1,45 +1,24 @@
-# Version Control
+# Git
 .git
 .gitignore
 
-# Environment Variables (CRITICAL)
-.env
-.env.local
-.env.*
-
-# Python
+# Python/Environment
 __pycache__
 *.py[cod]
 *$py.class
 *.so
-venv/
-.venv/
-env/
+venv
+.env
+.devcontainer
 
-# Testing & CI
+# Testing
 tests/
 .pytest_cache/
 pytest.ini
-.github/
-.circleci/
 
-# IDE & Editor
-.vscode/
-.idea/
-*.swp
-.DS_Store
+# IDE
+.vscode
+.idea
 
-# Streamlit config (if contains secrets)
+# Streamlit
 .streamlit/secrets.toml
-
-# Documentation
-*.md
-docs/
-
-# Deployment Scripts
-deploy.sh
-DEPLOY.md
-
-# Accidental Directory
-Y/
-google-cloud-sdk/
