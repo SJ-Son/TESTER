@@ -27,11 +27,11 @@ COPY --from=build-stage /app/frontend/dist ./frontend/dist
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 ENV PORT=8080
 
 # Expose port
 EXPOSE 8080
 
-# Start FastAPI
-# Note: Root is /app, so module path is backend.src.main:app
-CMD ["uvicorn", "backend.src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start FastAPI using shell form to ensure $PORT is evaluated
+CMD uvicorn backend.src.main:app --host 0.0.0.0 --port $PORT
