@@ -10,6 +10,7 @@ env:
   REGION: ${{ secrets.GCP_REGION }}
   SERVICE_NAME: tester
   REPO_NAME: tester
+  IMAGE_URL: ""
 
 jobs:
   deploy:
@@ -41,7 +42,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image $IMAGE_URL \
+            --image ${{ env.IMAGE_URL }} \
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
