@@ -27,6 +27,10 @@ gemini_service = GeminiService(model_name="gemini-3-flash-preview")
 async def read_root(request: Request):
     return templates.TemplateResponse(request, "index.html")
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return HTMLResponse("")
+
 from pydantic import BaseModel
 
 class GenerateRequest(BaseModel):
