@@ -1,5 +1,5 @@
 import ast
-from src.languages.base import LanguageStrategy
+from backend.src.languages.base import LanguageStrategy
 
 class PythonStrategy(LanguageStrategy):
     def validate_code(self, code: str) -> tuple[bool, str]:

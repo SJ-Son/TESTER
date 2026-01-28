@@ -4,15 +4,15 @@ Gemini API 연동 서비스.
 import google.generativeai as genai
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from src.config.settings import settings
-from src.utils.logger import get_logger
-# from src.utils.prompts import SYSTEM_INSTRUCTION
+from backend.src.config.settings import settings
+from backend.src.utils.logger import get_logger
+# from backend.src.utils.prompts import SYSTEM_INSTRUCTION
 
 
 class GeminiService:
     """Gemini API를 통한 테스트 코드 생성 서비스"""
 
-    def __init__(self, model_name: str = "gemini-3-flash-preview"):
+    def __init__(self, model_name: str = "gemini-1.5-flash"):
         self.logger = get_logger(__name__)
         self.model_name = model_name
         self.logger = get_logger(__name__)

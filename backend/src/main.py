@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, Query, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from .services.gemini_service import GeminiService
-from .languages.factory import LanguageFactory
+from backend.src.services.gemini_service import GeminiService
+from backend.src.languages.factory import LanguageFactory
 import json
 import asyncio
 import os
