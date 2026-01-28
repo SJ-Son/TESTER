@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 from src.config.settings import settings
 from src.utils.logger import get_logger
-from src.utils.prompts import SYSTEM_INSTRUCTION
+# from src.utils.prompts import SYSTEM_INSTRUCTION
 
 
 class GeminiService:
@@ -14,11 +14,9 @@ class GeminiService:
 
     def __init__(self, model_name: str = "gemini-3-flash-preview"):
         self.logger = get_logger(__name__)
+        self.model_name = model_name
+        self.logger = get_logger(__name__)
         self._configure_api()
-        self.model = genai.GenerativeModel(
-            model_name=model_name,
-            system_instruction=SYSTEM_INSTRUCTION
-        )
 
     def _configure_api(self) -> None:
         try:
@@ -35,10 +33,11 @@ class GeminiService:
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type(Exception)
     )
-    def generate_test_code(self, source_code: str, stream: bool = True):
+    def generate_test_code(self, source_code: str, system_instruction: str = None, stream: bool = True):
         """
         Args:
-            source_code: 테스트할 파이썬 소스 코드
+            source_code: 테스트할 소스 코드
+            system_instruction: 언어별 시스템 프롬프트
             stream: 스트리밍 여부 (True: Generator, False: str)
         """
         if not source_code.strip():
@@ -49,7 +48,12 @@ class GeminiService:
             return msg
 
         try:
-            response = self.model.generate_content(source_code, stream=stream)
+            # 동적으로 모델 인스턴스 생성 (시스템 프롬프트 적용을 위해)
+            model = genai.GenerativeModel(
+                model_name=self.model_name,
+                system_instruction=system_instruction
+            )
+            response = model.generate_content(source_code, stream=stream)
             
             if stream:
                 for chunk in response:

@@ -2,9 +2,9 @@
 QA 테스트 코드 생성기 UI.
 """
 import time
-import ast
 import streamlit as st
 
+from src.languages.factory import LanguageFactory
 from src.services.gemini_service import GeminiService
 from src.utils.logger import get_logger
 
@@ -21,18 +21,7 @@ st.set_page_config(
 def get_service(model_name: str) -> GeminiService:
     return GeminiService(model_name=model_name)
 
-def validate_code(code: str) -> tuple[bool, str]:
-    if not code.strip():
-        return False, "코드를 입력해주세요."
-    
-    if len(code) > 3000:
-        return False, "입력 코드가 너무 깁니다. (최대 3000자)"
-    
-    try:
-        ast.parse(code)
-        return True, ""
-    except SyntaxError:
-        return False, "유효한 파이썬 코드가 아닙니다."
+
 
 def check_rate_limit() -> tuple[bool, str]:
     cooldown = 5
@@ -50,6 +39,14 @@ def main():
     
     # Sidebar
     st.sidebar.header("Settings")
+    
+    # Language Selector
+    language = st.sidebar.selectbox(
+        "Language",
+        LanguageFactory.get_supported_languages()
+    )
+    strategy = LanguageFactory.get_strategy(language)
+    
     model_name = st.sidebar.selectbox(
         "Model",
         ["gemini-3-flash-preview", "gemini-3-pro-preview"]
@@ -69,9 +66,9 @@ def main():
     with col1:
         st.subheader("Input")
         code_input = st.text_area(
-            "Python Code",
+            f"{language} Code",
             height=400,
-            placeholder="def add(a, b):\n    return a + b",
+            placeholder=strategy.get_placeholder(),
             key="user_input",
             label_visibility="collapsed"
         )
@@ -81,7 +78,7 @@ def main():
         st.subheader("Output")
         
         if btn_gen:
-            valid, msg = validate_code(code_input)
+            valid, msg = strategy.validate_code(code_input)
             if not valid:
                 st.warning(msg)
                 return
@@ -91,7 +88,7 @@ def main():
                 st.warning(limit_msg)
                 return
             
-            with st.spinner("Generating..."):
+            with st.spinner(f"Generating {language} Test Code..."):
                 try:
                     start = time.time()
                     
@@ -100,12 +97,18 @@ def main():
                     full_response = ""
                     
                     # GeminiService는 이제 Generator를 반환 (stream=True 기본)
-                    stream_generator = service.generate_test_code(code_input, stream=True)
+                    stream_generator = service.generate_test_code(
+                        code_input, 
+                        system_instruction=strategy.get_system_instruction(),
+                        stream=True
+                    )
                     
                     for chunk in stream_generator:
                         full_response += chunk
                         # 실시간 렌더링 (Markdown Code Block 유지)
-                        response_placeholder.markdown(full_response)
+                        # 전략에서 UI 언어 코드 가져오기
+                        ui_lang = strategy.get_streamlit_language()
+                        response_placeholder.markdown(f"```{ui_lang}\n{full_response}\n```")
                         
                     elapsed = time.time() - start
                     st.success(f"Done! ({elapsed:.2f}s)")
