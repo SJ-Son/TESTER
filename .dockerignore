@@ -1,24 +1,32 @@
-# Git
-.git
+# --- Security (Critical) ---
+.env
+.env.*
+.streamlit/secrets.toml
+
+# --- Version Control ---
+.git/
 .gitignore
 
-# Python/Environment
-__pycache__
+# --- Python & Virtual Env ---
+__pycache__/
 *.py[cod]
 *$py.class
-*.so
-venv
-.env
-.devcontainer
+venv/
+.venv/
+env/
 
-# Testing
+# --- Testing (Not needed in Prod) ---
 tests/
 .pytest_cache/
 pytest.ini
 
-# IDE
-.vscode
-.idea
+# --- Documentation & IDE ---
+README.md
+.vscode/
+.idea/
+.devcontainer/
 
-# Streamlit
-.streamlit/secrets.toml
+# --- Temp/Misc ---
+*.log
+*.swp
+.DS_Store
