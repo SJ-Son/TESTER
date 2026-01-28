@@ -6,4 +6,4 @@ google-generativeai
 python-dotenv
 tenacity
 pytest
-pytest-mock==3.14.0
+pytest-mock
