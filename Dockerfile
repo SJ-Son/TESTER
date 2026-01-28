@@ -2,7 +2,13 @@
 FROM python:3.12-slim
 
 # Set working directory
+# Set working directory
 WORKDIR /app
+
+# Prevent Python from writing pyc files to disc and buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
 
 # Install system dependencies (minimal)
 # curl is added for HEALTHCHECK

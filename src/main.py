@@ -8,7 +8,40 @@ import json
 import asyncio
 import os
 
+import logging
+import time
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+# Setup Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
 app = FastAPI()
+
+# Step 3: CORS Setup
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Step 5: Logging Middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        logger.info(f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s")
+        return response
+    except Exception as e:
+        logger.error(f"Request Failed: {e}")
+        return HTMLResponse(content=f"Internal Server Error: {str(e)}", status_code=500)
 
 # Setup Templates
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,8 +53,14 @@ if not os.path.exists(TEMPLATES_DIR):
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
-# Initialize Service
-gemini_service = GeminiService(model_name="gemini-3-flash-preview")
+# Initialize Service (Step 4: Env Check)
+try:
+    if not os.getenv("GEMINI_API_KEY"):
+        logger.warning("GEMINI_API_KEY not found in env. Service might fail.")
+    gemini_service = GeminiService(model_name="gemini-3-flash-preview")
+except Exception as e:
+    logger.error(f"Failed to initialize GeminiService: {e}")
+    gemini_service = None
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
