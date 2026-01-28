@@ -119,7 +119,7 @@ def main():
                         full_response += chunk
                         # 실시간 렌더링 (Markdown Code Block 유지)
                         # 전략에서 UI 언어 코드 가져오기
-                        ui_lang = strategy.get_streamlit_language()
+                        ui_lang = strategy.get_syntax_name()
                         response_placeholder.markdown(f"```{ui_lang}\n{full_response}\n```")
                         
                     elapsed = time.time() - start

@@ -66,5 +66,5 @@ class ... {
     def get_placeholder(self) -> str:
         return "public class Calculator {\n    public int add(int a, int b) {\n        return a + b;\n    }\n}"
 
-    def get_streamlit_language(self) -> str:
+    def get_syntax_name(self) -> str:
         return "java"

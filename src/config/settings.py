@@ -1,4 +1,3 @@
-import streamlit as st
 import os
 from dotenv import load_dotenv
 
@@ -11,12 +10,8 @@ class Settings:
     def GEMINI_API_KEY(self) -> str:
         """
         Gemini API 키를 반환합니다.
-        우선순위: st.secrets > os.getenv
+        우선순위: os.getenv (.env 또는 시스템 환경변수)
         """
-        try:
-            return st.secrets.get("GEMINI_API_KEY")
-        except (FileNotFoundError, AttributeError):
-            pass
         return os.getenv("GEMINI_API_KEY", "")
 
     def validate(self):

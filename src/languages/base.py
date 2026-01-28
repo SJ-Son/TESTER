@@ -31,9 +31,9 @@ class LanguageStrategy(ABC):
         pass
     
     @abstractmethod
-    def get_streamlit_language(self) -> str:
+    def get_syntax_name(self) -> str:
         """
-        Streamlit의 st.code(language=...)에 사용할 언어 식별자를 반환합니다.
+        Syntax Highlighting에 사용할 언어 식별자를 반환합니다.
         예: 'python', 'javascript', 'java'
         """
         pass
