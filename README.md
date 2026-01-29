@@ -20,6 +20,19 @@
 
 1. **Staging (사전 검증):** `develop` 브랜치에 Push 시 `tester-staging` 서비스로 자동 배포됩니다.
 2. **Production (상용 배포):** Git Release Tag (`v*`) 생성 시 `tester-prod` 서비스로 배포됩니다. (수동 승인 효과)
+```bash
+git add .
+git commit -m "메세지"
+git push origin develop
+
+git checkout main
+git merge develop
+git push origin main
+
+git tag v1.0.0-test
+git push origin v1.0.0-test
+```
+
 
 ## 5. 프로젝트 구조
 ```text
