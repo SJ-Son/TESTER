@@ -14,9 +14,11 @@ const isGenerating = ref(false)
 const error = ref('')
 const streamEnded = ref(false)
 const isCopied = ref(false)
+const isCopied = ref(false)
 const userToken = ref(localStorage.getItem('tester_token') || '')
 const userInfo = ref<any>(null)
 const isLoggedIn = computed(() => !!userToken.value)
+const isSdkLoading = ref(true)
 
 const languages = [
   { id: 'python', name: 'Python', icon: 'py' },
@@ -159,8 +161,11 @@ onMounted(() => {
     // @ts-ignore
     google.accounts.id.renderButton(
       document.getElementById("google-login-btn"),
-      { theme: "outline", size: "large", width: "100%" }
+      { theme: "outline", size: "large", width: 320 } // Fixed width to match sidebar
     )
+    isSdkLoading.value = false
+  } else {
+    isSdkLoading.value = false
   }
 })
 </script>
@@ -177,7 +182,10 @@ onMounted(() => {
       <!-- Auth Section -->
       <div class="space-y-4">
         <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Authentication</label>
-        <div v-if="!isLoggedIn" id="google-login-btn" class="w-full min-h-[44px] bg-white rounded-lg overflow-hidden"></div>
+        <div v-if="!isLoggedIn">
+          <div v-if="isSdkLoading" class="w-full h-[44px] bg-gray-800 animate-pulse rounded-lg border border-gray-700"></div>
+          <div id="google-login-btn" class="w-full min-h-[44px] rounded-lg overflow-hidden transition-opacity duration-500" :class="{ 'opacity-0': isSdkLoading, 'opacity-100': !isSdkLoading }"></div>
+        </div>
         <div v-else class="flex items-center justify-between p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl">
           <div class="flex items-center space-x-3">
             <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
