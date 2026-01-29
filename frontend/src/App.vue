@@ -175,6 +175,8 @@ const initGoogleLogin = () => {
         shape: "rectangular"
       }
     )
+    // @ts-ignore
+    google.accounts.id.prompt()
     isSdkLoading.value = false
   } else {
     // Retry if script not yet available
@@ -218,7 +220,7 @@ onMounted(() => {
             </div>
             
             <!-- 2. 실제 구글 버튼 (투명하게 오버레이되어 클릭을 가로챔) -->
-            <div id="google-login-btn" class="absolute inset-0 opacity-0 overflow-hidden scale-110 origin-center z-10"></div>
+            <div id="google-login-btn" class="absolute inset-0 opacity-[0.01] overflow-hidden scale-[1.5] origin-center z-20"></div>
           </div>
         </div>
         <div v-else class="flex items-center justify-between p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl">
