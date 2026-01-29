@@ -36,7 +36,10 @@ const generateTestCode = async () => {
   try {
     const response = await fetch('/api/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-TESTER-KEY': import.meta.env.VITE_TESTER_INTERNAL_SECRET || 'default-secret-change-me'
+      },
       body: JSON.stringify({
         input_code: inputCode.value,
         language: selectedLanguage.value,
