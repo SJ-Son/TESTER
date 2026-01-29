@@ -7,6 +7,7 @@ from backend.src.config.settings import settings
 import json
 import asyncio
 import os
+from datetime import timedelta
 
 import logging
 import time
@@ -17,6 +18,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.security import APIKeyHeader
+from backend.src.auth import (
+    create_access_token, 
+    verify_google_token, 
+    get_current_user, 
+    verify_recaptcha,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
+from pydantic import BaseModel
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
@@ -36,9 +45,33 @@ app.add_middleware(
 )
 
 # Step 4: Rate Limiting Setup
-limiter = Limiter(key_func=get_remote_address)
+def get_user_identifier(request: Request):
+    # 인증된 사용이면 user id, 아니면 IP 기반
+    user = getattr(request.state, "user", None)
+    if user:
+        return f"user_{user['id']}"
+    return get_remote_address(request)
+
+limiter = Limiter(key_func=get_user_identifier)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.middleware("http")
+async def attach_user_to_state(request: Request, call_next):
+    # Authorization 헤더가 있으면 user 정보를 state에 저장 (Rate Limit에서 사용)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            from backend.src.auth import jwt, ALGORITHM
+            payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[ALGORITHM])
+            request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
+        except:
+            request.state.user = None
+    else:
+        request.state.user = None
+    response = await call_next(request)
+    return response
 
 # Step 5: Security - Internal API Key
 API_KEY_NAME = "X-TESTER-KEY"
@@ -52,6 +85,22 @@ async def verify_api_key(api_key: str = Depends(api_key_header)):
             detail="Unauthorized: Invalid Internal API Key"
         )
     return api_key
+
+# Step 6: Auth Endpoints
+class TokenRequest(BaseModel):
+    id_token: str
+
+@app.post("/api/auth/google")
+async def google_auth(data: TokenRequest):
+    user_info = verify_google_token(data.id_token)
+    if not user_info:
+        raise HTTPException(status_code=401, detail="Invalid Google Token")
+    
+    access_token = create_access_token(
+        data={"sub": user_info["sub"], "email": user_info["email"]},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # Step 5: Logging Middleware
 @app.middleware("http")
@@ -77,44 +126,49 @@ except Exception as e:
 
 # --- API Endpoints ---
 
-from pydantic import BaseModel
 
 class GenerateRequest(BaseModel):
-    input_code: str = Field(..., max_length=10000, description="테스트할 소스 코드 (최대 10,000자)")
+    input_code: str
     language: str
-    model: str
+    model: str = "gemini-3-flash-preview"
     use_reflection: bool = False
+    recaptcha_token: str = Field(..., description="reCAPTCHA v3 token")
 
 @app.post("/api/generate")
 @limiter.limit("5/minute")
-async def generate_code(req: GenerateRequest, request: Request, _auth=Depends(verify_api_key)):
+async def generate_test(
+    request: Request, 
+    data: GenerateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    # 1. reCAPTCHA Verify
+    if not await verify_recaptcha(data.recaptcha_token):
+        raise HTTPException(status_code=403, detail="reCAPTCHA verification failed (Bot detected)")
+
+    # 2. Logic starts...
     """Streams generated code as raw text (SSE)."""
     # 1. Validation
-    strategy = LanguageFactory.get_strategy(req.language)
-    valid, msg = strategy.validate_code(req.input_code)
+    strategy = LanguageFactory.get_strategy(data.language)
+    valid, msg = strategy.validate_code(data.input_code)
     
     if not valid:
         return StreamingResponse(iter([f"ERROR: {msg}"]), media_type="text/plain")
 
     # 2. Setup System Instruction
     system_instruction = strategy.get_system_instruction()
-    gemini_service.model_name = req.model
+    gemini_service.model_name = data.model
 
     async def generate_stream():
         try:
             generator = gemini_service.generate_test_code(
-                req.input_code, 
+                data.input_code, 
                 system_instruction=system_instruction, 
                 stream=True,
-                use_reflection=req.use_reflection
+                use_reflection=data.use_reflection
             )
             
-            # Simple metadata headers if needed (optional)
-            # yield "data: [START]\n\n"
-
             for chunk in generator:
                 if chunk:
-                    # Pure text streaming for Vue to consume
                     yield chunk
                     await asyncio.sleep(0.01)
             
