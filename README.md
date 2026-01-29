@@ -19,7 +19,7 @@
 운영 안정성을 위해 다단계 배포 프로세스를 채택하고 있습니다.
 
 1. **Staging (사전 검증):** `develop` 브랜치에 Push 시 `tester-staging` 서비스로 자동 배포됩니다.
-2. **Production (상용 배포):** Git Release Tag (`v*`) 생성 시 `tester-prod` 서비스로 배포됩니다 (수동 승인 효과).
+2. **Production (상용 배포):** Git Release Tag (`v*`) 생성 시 `tester-prod` 서비스로 배포됩니다. (수동 승인 효과)
 
 ## 5. 프로젝트 구조
 ```text
