@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
-import { Code, Languages, Sparkles, AlertCircle, RefreshCcw, Send, CheckCircle2, Copy, Check, Info } from 'lucide-vue-next'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { Code, Languages, Sparkles, AlertCircle, RefreshCcw, Send, CheckCircle2, Copy, Check, Info, LogOut, User } from 'lucide-vue-next'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/tokyo-night-dark.css'
 
@@ -14,6 +14,9 @@ const isGenerating = ref(false)
 const error = ref('')
 const streamEnded = ref(false)
 const isCopied = ref(false)
+const userToken = ref(localStorage.getItem('tester_token') || '')
+const userInfo = ref<any>(null)
+const isLoggedIn = computed(() => !!userToken.value)
 
 const languages = [
   { id: 'python', name: 'Python', icon: 'py' },
@@ -27,7 +30,7 @@ const models = [
 
 // --- Streaming Logic ---
 const generateTestCode = async () => {
-  if (!inputCode.value.trim()) return
+  if (!inputCode.value.trim() || !isLoggedIn.value) return
   
   error.value = ''
   generatedCode.value = ''
@@ -35,17 +38,33 @@ const generateTestCode = async () => {
   streamEnded.value = false
 
   try {
+    // 1. Get reCAPTCHA token
+    const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+    if (!siteKey) throw new Error('reCAPTCHA Site Key is not configured')
+    
+    // @ts-ignore
+    const recaptchaToken = await new Promise<string>((resolve) => {
+      // @ts-ignore
+      grecaptcha.ready(() => {
+        // @ts-ignore
+        grecaptcha.execute(siteKey, { action: 'generate' }).then((token: string) => {
+           resolve(token)
+        })
+      })
+    })
+
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'X-TESTER-KEY': import.meta.env.VITE_TESTER_INTERNAL_SECRET || 'default-secret-change-me'
+        'Authorization': `Bearer ${userToken.value}`
       },
       body: JSON.stringify({
         input_code: inputCode.value,
         language: selectedLanguage.value,
         model: selectedModel.value,
-        use_reflection: useReflection.value
+        use_reflection: useReflection.value,
+        recaptcha_token: recaptchaToken
       })
     })
 
@@ -101,8 +120,48 @@ watch(generatedCode, () => {
   }
 })
 
+// --- Auth Logic ---
+const handleGoogleLogin = async (response: any) => {
+  try {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_token: response.credential })
+    })
+    
+    if (!res.ok) throw new Error('Login failed')
+    
+    const data = await res.json()
+    userToken.value = data.access_token
+    localStorage.setItem('tester_token', data.access_token)
+    // token에서 email 등 추출 가능하지만 생략
+  } catch (err: any) {
+    error.value = '로그인에 실패했습니다: ' + err.message
+  }
+}
+
+const logout = () => {
+  userToken.value = ''
+  localStorage.removeItem('tester_token')
+}
+
 onMounted(() => {
   if (codeBlock.value) hljs.highlightElement(codeBlock.value)
+
+  // Initialize Google Login
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  if (clientId) {
+    // @ts-ignore
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: handleGoogleLogin
+    })
+    // @ts-ignore
+    google.accounts.id.renderButton(
+      document.getElementById("google-login-btn"),
+      { theme: "outline", size: "large", width: "100%" }
+    )
+  }
 })
 </script>
 
@@ -113,6 +172,23 @@ onMounted(() => {
       <div class="flex items-center space-x-3 text-blue-400">
         <Sparkles class="w-8 h-8" />
         <h1 class="text-xl font-bold tracking-tight text-white">TESTER</h1>
+      </div>
+
+      <!-- Auth Section -->
+      <div class="space-y-4">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Authentication</label>
+        <div v-if="!isLoggedIn" id="google-login-btn" class="w-full min-h-[44px] bg-white rounded-lg overflow-hidden"></div>
+        <div v-else class="flex items-center justify-between p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+              <User class="w-4 h-4" />
+            </div>
+            <span class="text-xs font-medium text-blue-100 italic">Signed In</span>
+          </div>
+          <button @click="logout" class="p-2 text-gray-400 hover:text-white transition-colors" title="Logout">
+            <LogOut class="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <!-- Strategy Config -->
@@ -206,10 +282,13 @@ onMounted(() => {
               :disabled="isGenerating || !inputCode.trim()"
               class="absolute bottom-6 right-6 px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-xl shadow-2xl shadow-blue-900/20 transition-all flex items-center space-x-2 group-focus-within:scale-105 active:95"
             >
-              <Send v-if="!isGenerating" class="w-4 h-4" />
+               <Send v-if="!isGenerating" class="w-4 h-4" />
                <RefreshCcw v-else class="w-4 h-4 animate-spin" />
-              <span class="font-semibold">{{ isGenerating ? 'Thinking' : 'Generate' }}</span>
+              <span class="font-semibold">{{ isGenerating ? 'Thinking' : (isLoggedIn ? 'Generate' : 'Login to Start') }}</span>
             </button>
+            <div v-if="!isLoggedIn" class="absolute inset-0 bg-gray-950/40 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
+               <p class="text-xs font-medium text-white bg-blue-600 px-4 py-2 rounded-full shadow-xl">Please Login First</p>
+            </div>
             <p class="absolute -bottom-6 right-2 text-[9px] text-gray-600 font-medium">
               Rate Limit: 5 requests / min per IP
             </p>
