@@ -10,3 +10,4 @@ httpx
 tenacity
 pytest
 pytest-mock
+slowapi==0.1.9

@@ -14,6 +14,11 @@ class Settings:
         """
         return os.getenv("GEMINI_API_KEY", "")
 
+    @property
+    def TESTER_INTERNAL_SECRET(self) -> str:
+        """내부 API 인증을 위한 시크릿 키 (Frontend <> Backend 공유)"""
+        return os.getenv("TESTER_INTERNAL_SECRET", "default-secret-change-me")
+
     def validate(self):
         if not self.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY 설정이 필요합니다 (.env 또는 secrets.toml)")
