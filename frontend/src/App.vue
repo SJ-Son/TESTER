@@ -198,6 +198,8 @@ onMounted(() => {
       </div>
 
       <!-- Auth Section -->
+      <div class="space-y-4">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Authentication</label>
         <div v-if="!isLoggedIn" class="relative">
           <div v-if="isSdkLoading" class="w-full h-[44px] bg-gray-800 animate-pulse rounded-xl border border-gray-700"></div>
           
