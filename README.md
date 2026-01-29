@@ -7,6 +7,7 @@
 
 ### 왜 Gemini Advanced 대신 TESTER인가?
 - **신뢰의 자동화 (2-Pass Reflection):** 생성된 코드를 즉시 실행하고 문법/논리적 오류를 스스로 보정하는 피드백 루프를 통해 "바로 실행 가능한" 코드를 보장합니다.
+- **철저한 보안 레이어:** API Key 인증, IP당 횟수 제한(Rate Limit), 입력 길이 제한 등 상용 수준의 보안 정책이 적용되어 있습니다.
 - **강건성 검증 (Chaos Testing):** 단순한 성공 케이스(Happy Path)를 넘어, 비정상 입력 및 프롬프트 주입 공격 등에 대한 방어력을 실시간으로 검증합니다.
 - **표준화된 품질:** 전략 패턴(Strategy Pattern)을 통해 개발자별 편차 없이 프로젝트 표준에 부합하는 테스트 코드를 생성합니다.
 
@@ -52,6 +53,7 @@ python src/main.py
 # Frontend
 cd frontend && npm install && npm run dev
 
-# Tests
-python tests/chaos_runner.py
+# Zero-Cost Security Tests (Recommended)
+export PYTHONPATH=$PYTHONPATH:.
+python3 -m pytest backend/tests/test_security_hardening.py
 ```
