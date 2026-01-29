@@ -14,6 +14,7 @@ const isGenerating = ref(false)
 const error = ref('')
 const streamEnded = ref(false)
 const isCopied = ref(false)
+const isReflecting = ref(false)
 const userToken = ref(localStorage.getItem('tester_token') || '')
 const userInfo = ref<any>(null)
 const isLoggedIn = computed(() => !!userToken.value)
@@ -44,13 +45,20 @@ const generateTestCode = async () => {
     if (!siteKey) throw new Error('reCAPTCHA Site Key is not configured')
     
     // @ts-ignore
-    const recaptchaToken = await new Promise<string>((resolve) => {
+    const recaptchaToken = await new Promise<string>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('reCAPTCHA timeout')), 8000)
+      // @ts-ignore
+      if (typeof grecaptcha === 'undefined') {
+        reject(new Error('reCAPTCHA not loaded'))
+        return
+      }
       // @ts-ignore
       grecaptcha.ready(() => {
         // @ts-ignore
         grecaptcha.execute(siteKey, { action: 'generate' }).then((token: string) => {
+           clearTimeout(timeout)
            resolve(token)
-        })
+        }).catch(reject)
       })
     })
 
@@ -81,6 +89,13 @@ const generateTestCode = async () => {
       if (done) break
       
       const chunk = decoder.decode(value, { stream: true })
+      
+      if (chunk === 'REFLECTING_START') {
+        isReflecting.value = true
+        continue
+      }
+      
+      isReflecting.value = false
       
       // Check for ERROR prefix from backend
       if (chunk.startsWith('ERROR:')) {
@@ -291,7 +306,7 @@ onMounted(() => {
             >
                <Send v-if="!isGenerating" class="w-4 h-4" />
                <RefreshCcw v-else class="w-4 h-4 animate-spin" />
-              <span class="font-semibold">{{ isGenerating ? 'Thinking' : (isLoggedIn ? 'Generate' : 'Login to Start') }}</span>
+              <span class="font-semibold">{{ isGenerating ? (isReflecting ? 'Reflecting...' : 'Thinking...') : (isLoggedIn ? 'Generate' : 'Login to Start') }}</span>
             </button>
             <div v-if="!isLoggedIn" class="absolute inset-0 bg-gray-950/40 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
                <p class="text-xs font-medium text-white bg-blue-600 px-4 py-2 rounded-full shadow-xl">Please Login First</p>
