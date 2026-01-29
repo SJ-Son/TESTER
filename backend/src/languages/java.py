@@ -39,9 +39,9 @@ class JavaStrategy(LanguageStrategy):
 5. 오직 `JUnit 5` 및 `Mockito` 기반의 순수 테스트 클래스만 코드 블록으로 출력합니다.
 
 [출력 형식]
-- 형식: ```java
-[테스트 코드]
-```
+- **[CRITICAL]**: 마크다운 코드 블록(```java ... ```)을 절대 사용하지 마십시오.
+- 어떠한 마크다운 형식도 없이 오직 순수한 원본 코드(Raw Text)만 출력합니다.
+- 예: import org.junit.jupiter.api.Test; ... (백틱 없이 바로 시작)
 """
 
     def get_placeholder(self) -> str:
