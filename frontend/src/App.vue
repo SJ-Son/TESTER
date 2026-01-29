@@ -231,16 +231,6 @@ onMounted(() => {
           </select>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-xl border border-gray-800">
-          <div class="space-y-1">
-            <p class="text-sm font-medium text-gray-200">Self-Correction</p>
-            <p class="text-[10px] text-gray-500">2-Pass Reflection Mode</p>
-          </div>
-          <input 
-            type="checkbox" 
-            v-model="useReflection"
-            class="w-5 h-5 rounded border-gray-700 bg-gray-900 text-blue-600 focus:ring-blue-500"
-          >
         </div>
       </div>
 
@@ -296,7 +286,7 @@ onMounted(() => {
             >
                <Send v-if="!isGenerating" class="w-4 h-4" />
                <RefreshCcw v-else class="w-4 h-4 animate-spin" />
-              <span class="font-semibold">{{ isGenerating ? (isReflecting ? 'Reflecting...' : 'Thinking...') : (isLoggedIn ? 'Generate' : 'Login to Start') }}</span>
+              <span class="font-semibold">{{ isGenerating ? 'Thinking...' : (isLoggedIn ? 'Generate' : 'Login to Start') }}</span>
             </button>
             <div v-if="!isLoggedIn" class="absolute inset-0 bg-gray-950/40 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
                <p class="text-xs font-medium text-white bg-blue-600 px-4 py-2 rounded-full shadow-xl">Please Login First</p>
