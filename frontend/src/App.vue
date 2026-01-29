@@ -166,7 +166,8 @@ const initGoogleLogin = () => {
       callback: (res) => {
         console.log("Google Login Result:", res);
         handleGoogleLogin(res);
-      }
+      },
+      use_fedcm_for_prompt: true
     })
     // @ts-ignore
     google.accounts.id.renderButton(
