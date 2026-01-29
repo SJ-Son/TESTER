@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
-import { Code, Languages, Sparkles, AlertCircle, RefreshCcw, Send, CheckCircle2 } from 'lucide-vue-next'
+import { Code, Languages, Sparkles, AlertCircle, RefreshCcw, Send, CheckCircle2, Copy, Check } from 'lucide-vue-next'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/tokyo-night-dark.css'
 
@@ -13,6 +13,7 @@ const generatedCode = ref('')
 const isGenerating = ref(false)
 const error = ref('')
 const streamEnded = ref(false)
+const isCopied = ref(false)
 
 const languages = [
   { id: 'python', name: 'Python', icon: 'py' },
@@ -74,6 +75,21 @@ const generateTestCode = async () => {
   } finally {
     isGenerating.value = false
     streamEnded.value = true
+  }
+}
+
+// --- Copy Logic ---
+const copyToClipboard = async () => {
+  if (!generatedCode.value) return
+  
+  try {
+    await navigator.clipboard.writeText(generatedCode.value)
+    isCopied.value = true
+    setTimeout(() => {
+      isCopied.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('Failed to copy:', err)
   }
 }
 
@@ -211,8 +227,19 @@ onMounted(() => {
             :class="{ 'animate-pulse border-blue-500/20': isGenerating && !generatedCode }"
           >
              <div class="bg-gray-800/50 px-6 py-3 border-b border-gray-800 flex items-center justify-between">
-                <span class="text-[10px] font-mono text-gray-500 uppercase">{{ selectedLanguage }} suite</span>
-                <span v-if="generatedCode" class="text-[10px] text-gray-400">Real-time rendering active</span>
+                <div class="flex items-center space-x-2">
+                  <span class="text-[10px] font-mono text-gray-500 uppercase">{{ selectedLanguage }} suite</span>
+                  <span v-if="generatedCode" class="text-[10px] text-gray-400">• Real-time rendering</span>
+                </div>
+                <button 
+                  v-if="generatedCode"
+                  @click="copyToClipboard"
+                  class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all text-[10px] font-semibold"
+                  :class="{ 'text-green-400': isCopied }"
+                >
+                  <component :is="isCopied ? Check : Copy" class="w-3 h-3" />
+                  <span>{{ isCopied ? 'Copied!' : 'Copy Code' }}</span>
+                </button>
              </div>
              <div class="flex-1 overflow-auto p-4 custom-scrollbar">
                <pre v-if="generatedCode" class="m-0"><code ref="codeBlock" :class="'language-' + selectedLanguage">{{ generatedCode }}</code></pre>
