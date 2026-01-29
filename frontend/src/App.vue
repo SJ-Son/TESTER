@@ -163,7 +163,10 @@ const initGoogleLogin = () => {
     // @ts-ignore
     google.accounts.id.initialize({
       client_id: clientId,
-      callback: handleGoogleLogin
+      callback: (res) => {
+        console.log("Google Login Result:", res);
+        handleGoogleLogin(res);
+      }
     })
     // @ts-ignore
     google.accounts.id.renderButton(
@@ -205,7 +208,7 @@ onMounted(() => {
         <div v-if="!isLoggedIn" class="relative">
           <div v-if="isSdkLoading" class="w-full h-[44px] bg-gray-800 animate-pulse rounded-xl border border-gray-700"></div>
           
-          <div v-else class="relative group cursor-pointer">
+          <div v-else class="relative overflow-hidden rounded-xl">
             <!-- 1. 담백한 커스텀 UI (실제 사용자에게 보이는 것) -->
             <div class="w-full h-[44px] flex items-center justify-center space-x-3 bg-gray-800 border border-gray-700 rounded-xl group-hover:bg-gray-700 group-hover:border-gray-600 transition-all duration-200">
               <div class="w-5 h-5 flex items-center justify-center bg-white rounded-full">
@@ -220,7 +223,7 @@ onMounted(() => {
             </div>
             
             <!-- 2. 실제 구글 버튼 (투명하게 오버레이되어 클릭을 가로챔) -->
-            <div id="google-login-btn" class="absolute inset-0 opacity-[0.01] overflow-hidden scale-[1.5] origin-center z-20"></div>
+            <div id="google-login-btn" class="absolute inset-0 opacity-0 z-10 pointer-events-auto"></div>
           </div>
         </div>
         <div v-else class="flex items-center justify-between p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl">
