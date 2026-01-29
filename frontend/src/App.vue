@@ -230,8 +230,6 @@ onMounted(() => {
             <option v-for="m in models" :value="m.id">{{ m.name }}</option>
           </select>
         </div>
-
-        </div>
       </div>
 
       <div class="flex-1"></div>
