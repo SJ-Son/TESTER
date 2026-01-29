@@ -1,38 +1,33 @@
 # LLM 기반 단위 테스트 자동 생성 시스템: TESTER
 
 ## 1. 프로젝트 개요
-소스 코드를 분석하여 실행 가능한 단위 테스트 코드를 자동 생성하는 도구입니다. LLM 기반 생성 과정에서 발생할 수 있는 환각 현상(Hallucination)과 문법 오류를 제어하기 위한 검증 시스템 구현에 초점을 맞췄습니다.
+소스 코드를 분석하여 실행 가능한 단위 테스트 코드를 자동 생성하는 도구입니다. 단순한 코드 생성을 넘어, LLM의 환각 현상을 제어하고 시스템 강건성을 검증하는 **엔지니어링 신뢰성** 확보에 초점을 맞췄습니다.
 
-## 2. 주요 해결 과제 (QA Engineering)
+## 2. 핵심 경쟁 우위 (USP)
 
-### 정확성 보장을 위한 2단계 검증 (Reflection)
-1. **Pass 1 (Draft):** 입력된 소스 코드에 기반한 1차 테스트 코드 생성.
-2. **Pass 2 (Refinement):** 생성된 코드를 다시 분석하여 문법 오류, 라이브러리 누락(Import), 언어 혼용 여부를 스스로 검토하고 보정하는 피드백 루프를 구현했습니다.
-
-### 유연한 확장을 위한 전략 패턴 (Strategy Pattern)
-- 언어별로 상이한 문법 검증 로직과 프롬프트를 모듈화했습니다.
-- 인터페이스화를 통해 Python, Java, JavaScript 외 추가 언어 지원 시 기존 코드의 수정 없이 확장이 가능하도록 설계했습니다.
-
-### 시스템 안정성 검증 (Chaos Testing)
-- 비정상 입력(혼종 코드, 파편화된 코드, 프롬프트 주입 공격 등)에 대한 시스템의 예외 처리 및 회복 탄력성을 확인하는 자동화 테스트 스위트를 구축했습니다.
+### 왜 Gemini Advanced 대신 TESTER인가?
+- **신뢰의 자동화 (2-Pass Reflection):** 생성된 코드를 즉시 실행하고 문법/논리적 오류를 스스로 보정하는 피드백 루프를 통해 "바로 실행 가능한" 코드를 보장합니다.
+- **강건성 검증 (Chaos Testing):** 단순한 성공 케이스(Happy Path)를 넘어, 비정상 입력 및 프롬프트 주입 공격 등에 대한 방어력을 실시간으로 검증합니다.
+- **표준화된 품질:** 전략 패턴(Strategy Pattern)을 통해 개발자별 편차 없이 프로젝트 표준에 부합하는 테스트 코드를 생성합니다.
 
 ## 3. 기술 스택
 - **Frontend:** Vue.js 3, Vite, Tailwind CSS v4
 - **Backend:** Python 3.12, FastAPI (Async SSE Streaming)
-- **Infrastructure:** Docker (Multi-stage build), GitHub Actions (CI/CD), Cloud Run
+- **Infrastructure:** Docker (Multi-stage build), GitHub Actions, Google Cloud Run (Staging/Prod)
 
-## 4. CI/CD 파이프라인
-GitHub `main` 브랜치 Push 시 다음 과정이 자동 수행됩니다.
-1. Docker Buildx를 활용한 멀티 스테이지 빌드 및 레이어 캐싱.
-2. Google Artifact Registry 이미지 업로드.
-3. Google Cloud Run 최신 리비전 배포.
+## 4. 고도화된 CI/CD 파이프라인
+운영 안정성을 위해 다단계 배포 프로세스를 채택하고 있습니다.
+
+1. **Staging (사전 검증):** `develop` 브랜치에 Push 시 `tester-staging` 서비스로 자동 배포됩니다.
+2. **Production (상용 배포):** Git Release Tag (`v*`) 생성 시 `tester-prod` 서비스로 배포됩니다 (수동 승인 효과).
 
 ## 5. 프로젝트 구조
 ```text
 ├── backend/            # API 서버 및 LLM Reflection 로직
 ├── frontend/           # Vue.js 기반 인터랙티브 UI
 ├── tests/              # 고립/강건성(Chaos) 테스트 스크립트
-└── Dockerfile          # 컨테이너화/배포 설정
+├── .github/workflows/  # Staging/Prod 분리된 배포 파이프라인
+└── Dockerfile          # 컨테이너화 설정
 ```
 
 ## 6. 실행 방법
