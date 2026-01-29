@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
-import { Code, Languages, Sparkles, AlertCircle, RefreshCcw, Send, CheckCircle2, Copy, Check } from 'lucide-vue-next'
+import { Code, Languages, Sparkles, AlertCircle, RefreshCcw, Send, CheckCircle2, Copy, Check, Info } from 'lucide-vue-next'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/tokyo-night-dark.css'
 
@@ -158,11 +158,17 @@ onMounted(() => {
 
       <div class="flex-1"></div>
 
-      <!-- Status Footer -->
-      <div class="pt-6 border-t border-gray-800">
-         <div class="flex items-center space-x-2 text-[10px] text-gray-500">
-           <div class="w-2 h-2 rounded-full" :class="isGenerating ? 'bg-green-500 animate-pulse' : 'bg-gray-700'"></div>
-           <span>{{ isGenerating ? 'System Active' : 'System Idle' }}</span>
+       <!-- Status Footer -->
+      <div class="pt-6 border-t border-gray-800 space-y-4">
+         <div class="flex items-center justify-between">
+           <div class="flex items-center space-x-2 text-[10px] text-gray-500">
+             <div class="w-2 h-2 rounded-full" :class="isGenerating ? 'bg-green-500 animate-pulse' : 'bg-gray-700'"></div>
+             <span>{{ isGenerating ? 'System Active' : 'System Idle' }}</span>
+           </div>
+           <div class="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[9px] font-bold text-blue-400 uppercase tracking-tighter">
+             <Info class="w-2.5 h-2.5" />
+             <span>5 req/min</span>
+           </div>
          </div>
       </div>
     </aside>
@@ -198,12 +204,15 @@ onMounted(() => {
             <button 
               @click="generateTestCode"
               :disabled="isGenerating || !inputCode.trim()"
-              class="absolute bottom-6 right-6 px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-xl shadow-2xl shadow-blue-900/20 transition-all flex items-center space-x-2 group-focus-within:scale-105 active:scale-95"
+              class="absolute bottom-6 right-6 px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-xl shadow-2xl shadow-blue-900/20 transition-all flex items-center space-x-2 group-focus-within:scale-105 active:95"
             >
               <Send v-if="!isGenerating" class="w-4 h-4" />
-              <RefreshCcw v-else class="w-4 h-4 animate-spin" />
+               <RefreshCcw v-else class="w-4 h-4 animate-spin" />
               <span class="font-semibold">{{ isGenerating ? 'Thinking' : 'Generate' }}</span>
             </button>
+            <p class="absolute -bottom-6 right-2 text-[9px] text-gray-600 font-medium">
+              Rate Limit: 5 requests / min per IP
+            </p>
           </div>
         </section>
 
