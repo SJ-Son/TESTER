@@ -168,7 +168,13 @@ const initGoogleLogin = () => {
     // @ts-ignore
     google.accounts.id.renderButton(
       document.getElementById("google-login-btn"),
-      { theme: "outline", size: "large", width: 272 } // Adjusted for padding (320 - 48)
+      { 
+        theme: "filled_blue", 
+        size: "large", 
+        width: 272,
+        shape: "rectangular",
+        logo_alignment: "left"
+      }
     )
     isSdkLoading.value = false
   } else {
