@@ -108,6 +108,8 @@ async def log_requests(request: Request, call_next):
     start_time = time.time()
     try:
         response = await call_next(request)
+        # Google OAuth/GSI requires allow-popups if COOP is active
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         process_time = time.time() - start_time
         logger.info(f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s")
         return response

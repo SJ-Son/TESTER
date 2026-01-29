@@ -8,8 +8,8 @@
     <title>Tester</title>
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Google reCAPTCHA v3 (Site key will be injected via App.vue) -->
-    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+    <!-- Google reCAPTCHA v3 (Vite will inject the site key at build time) -->
+    <script src="https://www.google.com/recaptcha/api.js?render=%VITE_RECAPTCHA_SITE_KEY%" async defer></script>
 </head>
 
 <body class="bg-gray-950 text-gray-100">
