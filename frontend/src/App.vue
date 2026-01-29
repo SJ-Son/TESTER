@@ -163,7 +163,7 @@ const initGoogleLogin = () => {
     // @ts-ignore
     google.accounts.id.initialize({
       client_id: clientId,
-      callback: (res) => {
+      callback: (res: any) => {
         console.log("Google Login Result:", res);
         handleGoogleLogin(res);
       },
