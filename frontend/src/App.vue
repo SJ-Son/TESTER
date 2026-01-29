@@ -203,7 +203,7 @@ onMounted(() => {
         <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Authentication</label>
         <div v-if="!isLoggedIn">
           <div v-if="isSdkLoading" class="w-full h-[44px] bg-gray-800 animate-pulse rounded-lg border border-gray-700"></div>
-          <div id="google-login-btn" class="w-full min-h-[44px] rounded-lg overflow-hidden transition-opacity duration-500" :class="{ 'opacity-0': isSdkLoading, 'opacity-100': !isSdkLoading }"></div>
+          <div id="google-login-btn" class="w-full min-h-[44px] bg-gray-900 rounded-lg overflow-hidden transition-opacity duration-500" :class="{ 'opacity-0': isSdkLoading, 'opacity-100': !isSdkLoading }"></div>
         </div>
         <div v-else class="flex items-center justify-between p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl">
           <div class="flex items-center space-x-3">
@@ -359,6 +359,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+#google-login-btn {
+  color-scheme: dark;
+}
+
 pre {
   background: transparent !important;
   padding: 0 !important;
