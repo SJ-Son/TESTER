@@ -169,11 +169,10 @@ const initGoogleLogin = () => {
     google.accounts.id.renderButton(
       document.getElementById("google-login-btn"),
       { 
-        theme: "filled_blue", 
+        theme: "outline", 
         size: "large", 
         width: 272,
-        shape: "rectangular",
-        logo_alignment: "left"
+        shape: "rectangular"
       }
     )
     isSdkLoading.value = false
