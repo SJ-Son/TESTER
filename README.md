@@ -12,17 +12,11 @@
 
 ### 🔍 LLM 답변의 정확도 향상 (입력 검증 및 프롬프트 제어)
 AI가 엉뚱한 코드를 생성하거나 문법 오류를 내는 것을 방지하기 위해 다음과 같은 장치를 마련했습니다.
-
-![TESTER UI Screenshot](/Users/sonseongjun/.gemini/antigravity/brain/583b212c-9bf3-4dbe-bfc7-6064c5958b4b/tester_hero_ui_1769685067425.png)
-
 - **언어 적합성 검사**: 사용자가 선택한 언어(Python, Java 등)와 실제 코드가 일치하는지 정규표현식으로 먼저 확인합니다. 엉뚱한 입력으로 인한 API 비용 낭비를 줄였습니다.
 - **역할 정의(System Instruction)**: AI에게 '전문 QA 엔지니어'라는 역할을 부여하고, 결과물에 불필요한 설명 없이 순수 코드만 출력하도록 지침을 세밀하게 조정했습니다.
 
 ### 🛡️ 서비스 보안 및 사용자 인증
 공개된 서비스에서 발생할 수 있는 남용 사례를 방지하기 위해 기본적인 보안 체계를 구축했습니다.
-
-![Authentication and Security Feature](/Users/sonseongjun/.gemini/antigravity/brain/583b212c-9bf3-4dbe-bfc7-6064c5958b4b/tester_feature_security_1769685085572.png)
-
 - **구글 로그인 연동**: Google OAuth 2.0과 JWT(JSON Web Token)를 이용하여 검증된 사용자만 기능을 사용할 수 있게 했습니다.
 - **봇 차단 (reCAPTCHA v3)**: 사용자가 불편함을 느끼지 않으면서도, 비정상적인 자동화 도구(봇)의 접근을 차단했습니다.
 - **호출 횟수 제한 (Rate Limit)**: 특정 사용자가 짧은 시간에 너무 많은 요청을 보내 서버와 API에 부하가 걸리는 것을 방지했습니다.
@@ -40,6 +34,7 @@ graph LR
 ```
 
 - **Staging/Production 분리**: 테스트용 서버와 실제 운영 서버를 나누어 배포합니다. 새로운 기능이 운영 서버에 바로 영향을 주지 않도록 관리합니다.
+- **배포 최적화 (Efficiency)**: `README.md`나 이미지 파일만 수정되었을 때는 불필요한 빌드와 배포가 발생하지 않도록 **CI/CD 트리거 조건(`paths-ignore`)**을 설정하여 자원 낭비를 줄였습니다.
 - **컨테이너화 (Docker)**: 어떤 환경에서도 동일하게 실행될 수 있도록 Docker를 활용해 애플리케이션을 패키징했습니다.
 
 ---
