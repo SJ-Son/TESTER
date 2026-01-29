@@ -43,6 +43,8 @@ jobs:
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }}
 
       - name: Set Image URL for Deployment
         run: |
@@ -55,5 +57,5 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=staging" \
+            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=staging,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }}" \
             --port 8080

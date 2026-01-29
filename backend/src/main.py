@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request, Query, HTTPException
+from fastapi import FastAPI, Request, Query, HTTPException, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from backend.src.services.gemini_service import GeminiService
 from backend.src.languages.factory import LanguageFactory
+from backend.src.config.settings import settings
 import json
 import asyncio
 import os
@@ -11,6 +12,11 @@ import logging
 import time
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from pydantic import Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi.security import APIKeyHeader
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +34,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Step 4: Rate Limiting Setup
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Step 5: Security - Internal API Key
+API_KEY_NAME = "X-TESTER-KEY"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+async def verify_api_key(api_key: str = Depends(api_key_header)):
+    if not api_key or api_key != settings.TESTER_INTERNAL_SECRET:
+        logger.warning(f"Unauthorized access attempt with key: {api_key}")
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: Invalid Internal API Key"
+        )
+    return api_key
 
 # Step 5: Logging Middleware
 @app.middleware("http")
@@ -56,13 +80,14 @@ except Exception as e:
 from pydantic import BaseModel
 
 class GenerateRequest(BaseModel):
-    input_code: str
+    input_code: str = Field(..., max_length=10000, description="테스트할 소스 코드 (최대 10,000자)")
     language: str
     model: str
     use_reflection: bool = False
 
 @app.post("/api/generate")
-async def generate_code(req: GenerateRequest):
+@limiter.limit("5/minute")
+async def generate_code(req: GenerateRequest, request: Request, _auth=Depends(verify_api_key)):
     """Streams generated code as raw text (SSE)."""
     # 1. Validation
     strategy = LanguageFactory.get_strategy(req.language)
