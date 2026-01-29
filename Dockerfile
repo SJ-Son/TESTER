@@ -4,6 +4,8 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ .
+ARG VITE_TESTER_INTERNAL_SECRET
+ENV VITE_TESTER_INTERNAL_SECRET=$VITE_TESTER_INTERNAL_SECRET
 RUN npm run build
 
 # Stage 2: Serve with FastAPI Backend
