@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - develop
+    paths-ignore:
+      - 'README.md'
+      - '**.png'
+      - '**.jpg'
+      - '**.md'
+      - 'docs/**'
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
