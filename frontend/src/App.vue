@@ -151,12 +151,15 @@ const logout = () => {
   localStorage.removeItem('tester_token')
 }
 
-onMounted(() => {
-  if (codeBlock.value) hljs.highlightElement(codeBlock.value)
-
-  // Initialize Google Login
+const initGoogleLogin = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-  if (clientId) {
+  if (!clientId) {
+    isSdkLoading.value = false
+    return
+  }
+
+  // @ts-ignore
+  if (typeof google !== 'undefined' && google.accounts) {
     // @ts-ignore
     google.accounts.id.initialize({
       client_id: clientId,
@@ -165,12 +168,18 @@ onMounted(() => {
     // @ts-ignore
     google.accounts.id.renderButton(
       document.getElementById("google-login-btn"),
-      { theme: "outline", size: "large", width: 320 } // Fixed width to match sidebar
+      { theme: "outline", size: "large", width: 272 } // Adjusted for padding (320 - 48)
     )
     isSdkLoading.value = false
   } else {
-    isSdkLoading.value = false
+    // Retry if script not yet available
+    setTimeout(initGoogleLogin, 100)
   }
+}
+
+onMounted(() => {
+  if (codeBlock.value) hljs.highlightElement(codeBlock.value)
+  initGoogleLogin()
 })
 </script>
 
