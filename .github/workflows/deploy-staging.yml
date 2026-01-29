@@ -45,6 +45,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VITE_TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            VITE_RECAPTCHA_SITE_KEY=${{ secrets.RECAPTCHA_SITE_KEY }}
 
       - name: Set Image URL for Deployment
         run: |
@@ -57,5 +59,5 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=staging,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }}" \
+            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=staging,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},RECAPTCHA_SECRET_KEY=${{ secrets.RECAPTCHA_SECRET_KEY }},JWT_SECRET=${{ secrets.JWT_SECRET }}" \
             --port 8080

@@ -19,6 +19,18 @@ class Settings:
         """내부 API 인증을 위한 시크릿 키 (Frontend <> Backend 공유)"""
         return os.getenv("TESTER_INTERNAL_SECRET", "default-secret-change-me")
 
+    @property
+    def GOOGLE_CLIENT_ID(self) -> str:
+        return os.getenv("GOOGLE_CLIENT_ID", "")
+
+    @property
+    def JWT_SECRET(self) -> str:
+        return os.getenv("JWT_SECRET", "yoursecretkey-change-me-in-production")
+
+    @property
+    def RECAPTCHA_SECRET_KEY(self) -> str:
+        return os.getenv("RECAPTCHA_SECRET_KEY", "")
+
     def validate(self):
         if not self.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY 설정이 필요합니다 (.env 또는 secrets.toml)")
