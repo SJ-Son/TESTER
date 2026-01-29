@@ -176,7 +176,7 @@ const initGoogleLogin = () => {
         theme: "filled_black", 
         size: "large", 
         width: 272,
-        shape: "rectangular",
+        shape: "pill",
         logo_alignment: "left"
       }
     )
