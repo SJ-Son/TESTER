@@ -8,13 +8,11 @@ import 'highlight.js/styles/tokyo-night-dark.css'
 const inputCode = ref('')
 const selectedLanguage = ref('python')
 const selectedModel = ref('gemini-3-flash-preview')
-const useReflection = ref(false)
 const generatedCode = ref('')
 const isGenerating = ref(false)
 const error = ref('')
 const streamEnded = ref(false)
 const isCopied = ref(false)
-const isReflecting = ref(false)
 const userToken = ref(localStorage.getItem('tester_token') || '')
 const userInfo = ref<any>(null)
 const isLoggedIn = computed(() => !!userToken.value)
@@ -72,7 +70,6 @@ const generateTestCode = async () => {
         input_code: inputCode.value,
         language: selectedLanguage.value,
         model: selectedModel.value,
-        use_reflection: useReflection.value,
         recaptcha_token: recaptchaToken
       })
     })
@@ -89,13 +86,6 @@ const generateTestCode = async () => {
       if (done) break
       
       const chunk = decoder.decode(value, { stream: true })
-      
-      if (chunk === 'REFLECTING_START') {
-        isReflecting.value = true
-        continue
-      }
-      
-      isReflecting.value = false
       
       // Check for ERROR prefix from backend
       if (chunk.startsWith('ERROR:')) {

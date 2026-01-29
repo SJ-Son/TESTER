@@ -133,7 +133,6 @@ class GenerateRequest(BaseModel):
     input_code: str
     language: str
     model: str = "gemini-3-flash-preview"
-    use_reflection: bool = False
     recaptcha_token: str = Field(..., description="reCAPTCHA v3 token")
 
 @app.post("/api/generate")
@@ -165,8 +164,7 @@ async def generate_test(
             generator = gemini_service.generate_test_code(
                 data.input_code, 
                 system_instruction=system_instruction, 
-                stream=True,
-                use_reflection=data.use_reflection
+                stream=True
             )
             
             for chunk in generator:
