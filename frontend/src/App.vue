@@ -149,6 +149,11 @@ const handleGoogleLogin = async (response: any) => {
 const logout = () => {
   userToken.value = ''
   localStorage.removeItem('tester_token')
+  isSdkLoading.value = true
+  // DOM이 업데이트되어 로그인 버튼 컨테이너가 다시 나타난 후 초기화
+  setTimeout(() => {
+    initGoogleLogin()
+  }, 100)
 }
 
 const initGoogleLogin = () => {
@@ -163,13 +168,17 @@ const initGoogleLogin = () => {
     // @ts-ignore
     google.accounts.id.initialize({
       client_id: clientId,
-      callback: handleGoogleLogin
+      callback: (res: any) => {
+        console.log("Google Login Result:", res);
+        handleGoogleLogin(res);
+      },
+      use_fedcm_for_prompt: false
     })
     // @ts-ignore
     google.accounts.id.renderButton(
       document.getElementById("google-login-btn"),
       { 
-        theme: "filled_blue", 
+        theme: "filled_black", 
         size: "large", 
         width: 272,
         shape: "rectangular",
@@ -201,9 +210,10 @@ onMounted(() => {
       <!-- Auth Section -->
       <div class="space-y-4">
         <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Authentication</label>
-        <div v-if="!isLoggedIn">
-          <div v-if="isSdkLoading" class="w-full h-[44px] bg-gray-800 animate-pulse rounded-lg border border-gray-700"></div>
-          <div id="google-login-btn" class="w-full min-h-[44px] rounded-lg overflow-hidden transition-opacity duration-500" :class="{ 'opacity-0': isSdkLoading, 'opacity-100': !isSdkLoading }"></div>
+        <div v-if="!isLoggedIn" class="relative">
+          <div v-if="isSdkLoading" class="w-full h-[44px] bg-gray-800 animate-pulse rounded-xl border border-gray-700"></div>
+          
+          <div id="google-login-btn" class="w-full h-[40px] bg-gray-900 rounded-lg overflow-hidden transition-opacity duration-500" :class="{ 'opacity-0': isSdkLoading, 'opacity-100': !isSdkLoading }"></div>
         </div>
         <div v-else class="flex items-center justify-between p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl">
           <div class="flex items-center space-x-3">
@@ -359,6 +369,19 @@ onMounted(() => {
 </template>
 
 <style scoped>
+#google-login-btn {
+  color-scheme: dark !important;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: #030712; /* bg-gray-950 */
+  color-scheme: dark;
+}
+
 pre {
   background: transparent !important;
   padding: 0 !important;
