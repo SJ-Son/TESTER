@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from backend.src.services.gemini_service import GeminiService
 from backend.src.languages.factory import LanguageFactory
+from backend.src.config.settings import settings
 import json
 import asyncio
 import os
