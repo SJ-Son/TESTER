@@ -38,66 +38,39 @@ const handleGenerate = async () => {
 </script>
 
 <template>
-  <div class="flex h-screen bg-[#0a0a0a] text-gray-200 font-sans selection:bg-blue-500/20 overflow-hidden relative">
-    <!-- Subtle Background Gradient -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-0 right-0 w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full"></div>
-      <div class="absolute bottom-0 left-0 w-[30%] h-[30%] bg-indigo-500/5 blur-[100px] rounded-full"></div>
-    </div>
-
+  <div class="flex h-screen bg-gray-950 text-gray-200 overflow-hidden font-sans selection:bg-blue-500/30">
     <!-- Sidebar -->
     <ControlPanel />
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col relative z-10 min-w-0">
-      <header class="h-14 border-b border-gray-800/60 flex items-center justify-between px-8 bg-black/10 backdrop-blur-sm">
-        <div class="flex items-center space-x-2">
-          <span class="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em]">Platform</span>
-          <span class="text-gray-800">/</span>
-          <span class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">Test Generator</span>
-          <span class="text-gray-800">/</span>
-          <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">{{ store.selectedLanguage }}</span>
+    <main class="flex-1 flex flex-col bg-gray-950">
+      <!-- Top header -->
+      <header class="h-16 border-b border-gray-800 px-8 flex items-center justify-between">
+        <div class="text-xs text-gray-400 font-mono">
+          TEST RUNNER > <span class="text-blue-400">{{ store.selectedLanguage.toUpperCase() }}</span>
+        </div>
+        <div v-if="store.isGenerating" class="flex items-center space-x-2 text-xs text-blue-400/80">
+          <RefreshCcw class="w-3 h-3 animate-spin" />
+          <span>Streaming response...</span>
         </div>
       </header>
 
-      <div class="flex-1 grid grid-cols-2 p-6 gap-6 overflow-hidden">
-        <!-- Editor Column -->
-        <div class="flex flex-col h-full bg-[#111111]/40 rounded-2xl border border-gray-800/50 shadow-sm overflow-hidden">
-          <CodeEditor @generate="handleGenerate" />
-        </div>
-        <!-- Result Column -->
-        <div class="flex flex-col h-full bg-[#111111]/40 rounded-2xl border border-gray-800/50 shadow-sm overflow-hidden">
-          <TestResult />
-        </div>
+      <div class="flex-1 grid grid-cols-2 p-8 gap-8 overflow-hidden">
+        <!-- Main Work Area -->
+        <CodeEditor @generate="handleGenerate" />
+        <TestResult />
       </div>
-      
-      <!-- Error Toast -->
-      <Transition name="slide-up">
-        <div v-if="store.error" class="absolute bottom-6 right-6 bg-gray-900 border border-red-500/30 px-5 py-3 rounded-xl flex items-center space-x-3 shadow-xl z-50">
-          <Info class="w-4 h-4 text-red-500" />
-          <span class="text-xs text-gray-300 font-medium">{{ store.error }}</span>
-          <button @click="store.error = null" class="ml-2 text-gray-500 hover:text-white transition-colors">
-            <X class="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </Transition>
     </main>
   </div>
 </template>
 
 <style>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.3s ease-out;
+/* Global styles to match main branch */
+html, body {
+  background-color: #030712; /* bg-gray-950 */
 }
 
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-/* Scrollbar */
+/* Custom Scrollbar for all */
 ::-webkit-scrollbar {
   width: 4px;
 }
