@@ -58,11 +58,12 @@ const initGoogleLogin = () => {
     google.accounts.id.renderButton(
       document.getElementById("google-login-btn"),
       { 
-        theme: "filled_black", 
-        size: "large", 
-        width: 272,
-        shape: "pill",
-        logo_alignment: "left"
+        theme: "outline", 
+        size: "medium", 
+        width: 224, // Matches sidebar width better
+        shape: "rectangular",
+        logo_alignment: "left",
+        text: "signin"
       }
     )
     isSdkLoading.value = false
@@ -77,38 +78,38 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside class="w-72 border-r border-gray-800/60 bg-[#0d0d0d] flex flex-col p-6 space-y-8 h-full relative z-10">
+  <aside class="w-64 border-r border-gray-800/40 bg-[#080808] flex flex-col p-5 space-y-8 h-full relative z-10 transition-all duration-300">
     <!-- Logo Section -->
-    <div class="flex items-center space-x-3 mb-2 group cursor-default">
-      <div class="p-2 bg-gray-900 rounded-lg border border-gray-800">
-        <Sparkles class="w-5 h-5 text-blue-500" />
+    <div class="flex items-center space-x-2.5 mb-2 group cursor-default px-1">
+      <div class="p-1.5 bg-gray-900/50 rounded-md border border-gray-800/50">
+        <Sparkles class="w-4 h-4 text-blue-500/80" />
       </div>
-      <h1 class="text-lg font-bold text-white tracking-tight">TESTER</h1>
+      <h1 class="text-sm font-bold text-gray-200 tracking-wide uppercase">Tester</h1>
     </div>
 
     <!-- Auth Section -->
     <div class="space-y-4">
       <div class="flex items-center justify-between px-1">
-        <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Identity</label>
-        <div v-if="store.isLoggedIn" class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+        <label class="text-[8px] font-bold text-gray-600 uppercase tracking-[0.2em]">Developer</label>
+        <div v-if="store.isLoggedIn" class="w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]"></div>
       </div>
       
-      <div v-if="!store.isLoggedIn" class="relative">
-        <div v-if="isSdkLoading" class="w-full h-[40px] bg-gray-900/50 animate-pulse rounded-lg border border-gray-800"></div>
-        <div id="google-login-btn" class="w-full transition-opacity duration-300" :class="{ 'opacity-0': isSdkLoading, 'opacity-100': !isSdkLoading }"></div>
+      <div v-if="!store.isLoggedIn" class="px-1">
+        <div v-if="isSdkLoading" class="w-full h-9 bg-gray-900/30 animate-pulse rounded-md border border-gray-800/30"></div>
+        <div id="google-login-btn" class="w-full transition-opacity duration-500" :class="{ 'opacity-0': isSdkLoading, 'opacity-80 hover:opacity-100': !isSdkLoading }"></div>
       </div>
       
-      <div v-else class="group relative p-3 bg-gray-900/50 border border-gray-800 rounded-xl hover:border-gray-700 transition-colors">
-        <button @click="logout" class="absolute top-2 right-2 p-1 rounded-md hover:bg-gray-800 text-gray-500 hover:text-white transition-colors">
-          <LogOut class="w-3 h-3" />
+      <div v-else class="group relative p-2.5 bg-[#111111] border border-gray-800/40 rounded-xl hover:border-gray-700/60 transition-all duration-300">
+        <button @click="logout" class="absolute top-2 right-2 p-1 rounded-md hover:bg-gray-800 text-gray-600 hover:text-gray-300 transition-colors">
+          <LogOut class="w-2.5 h-2.5" />
         </button>
-        <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center border border-gray-700">
-            <User class="w-4 h-4 text-blue-500" />
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center border border-gray-800 shadow-sm overflow-hidden">
+            <User class="w-3.5 h-3.5 text-blue-500/60" />
           </div>
           <div class="flex flex-col">
-            <span class="text-[11px] font-bold text-gray-200">Session Active</span>
-            <span class="text-[9px] text-gray-600 font-medium tracking-tight">Developer Mode</span>
+            <span class="text-[10px] font-bold text-gray-300">Active</span>
+            <span class="text-[8px] text-gray-600 font-bold uppercase tracking-tighter">Authorized</span>
           </div>
         </div>
       </div>
@@ -117,37 +118,37 @@ onMounted(() => {
     <!-- Strategy Config -->
     <div class="flex-1 space-y-8 overflow-y-auto custom-scrollbar pr-1">
       <div>
-        <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-4 px-1">Target Strategy</label>
-        <div class="grid grid-cols-1 gap-2">
+        <label class="text-[8px] font-bold text-gray-600 uppercase tracking-[0.2em] block mb-4 px-1">Target Strategy</label>
+        <div class="grid grid-cols-1 gap-1.5">
           <button 
             v-for="lang in languages" 
             :key="lang.id"
             @click="store.selectedLanguage = lang.id"
-            class="group relative flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-200"
+            class="group relative flex items-center justify-between px-3.5 py-2.5 rounded-lg border border-transparent transition-all duration-200"
             :class="store.selectedLanguage === lang.id 
-              ? 'bg-blue-500/5 border-blue-500/40 text-blue-400' 
-              : 'bg-transparent border-transparent text-gray-500 hover:text-gray-300 hover:bg-gray-900'"
+              ? 'bg-[#151515] border-gray-800 text-blue-400' 
+              : 'text-gray-500 hover:text-gray-300 hover:bg-gray-900/40'"
           >
             <div class="flex items-center space-x-3 relative z-10">
-              <Code class="w-3.5 h-3.5" :class="store.selectedLanguage === lang.id ? 'text-blue-500' : 'text-gray-600 group-hover:text-gray-500'" />
-              <span class="font-bold text-[11px] tracking-tight">{{ lang.name }}</span>
+              <Code class="w-3 h-3" :class="store.selectedLanguage === lang.id ? 'text-blue-500' : 'text-gray-700'" />
+              <span class="font-bold text-[10px] tracking-tight uppercase">{{ lang.name }}</span>
             </div>
-            <div v-if="store.selectedLanguage === lang.id" class="w-1 h-1 rounded-full bg-blue-500"></div>
+            <div v-if="store.selectedLanguage === lang.id" class="w-0.5 h-3 bg-blue-500 rounded-full"></div>
           </button>
         </div>
       </div>
 
       <div>
-        <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-4 px-1">Intelligence</label>
-        <div class="relative group">
+        <label class="text-[8px] font-bold text-gray-600 uppercase tracking-[0.2em] block mb-4 px-1">Engine</label>
+        <div class="relative px-1">
           <select 
             v-model="store.selectedModel"
-            class="w-full bg-gray-900 border border-gray-800 text-gray-300 text-[11px] font-bold rounded-xl p-3.5 pr-10 focus:ring-1 focus:ring-blue-500/40 outline-none appearance-none cursor-pointer transition-all"
+            class="w-full bg-[#111111] border border-gray-800/40 text-gray-400 text-[9px] font-bold uppercase rounded-lg p-2.5 pr-8 focus:ring-1 focus:ring-blue-500/20 outline-none appearance-none cursor-pointer transition-all"
           >
             <option v-for="m in models" :value="m.id">{{ m.name }}</option>
           </select>
-          <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-            <ChevronRight class="w-3.5 h-3.5 rotate-90" />
+          <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-700">
+            <ChevronRight class="w-3 h-3 rotate-90" />
           </div>
         </div>
       </div>

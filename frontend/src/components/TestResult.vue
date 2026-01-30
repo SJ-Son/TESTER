@@ -64,13 +64,11 @@ onMounted(() => {
     <div class="flex-1 relative overflow-auto custom-scrollbar">
       <!-- Empty State -->
       <Transition name="fade">
-        <div v-if="!store.generatedCode && !store.isGenerating" class="absolute inset-0 flex flex-col items-center justify-center p-12 text-center select-none opacity-50">
-          <div class="p-5 bg-gray-900/50 rounded-2xl border border-gray-800/50 mb-6">
-            <Zap class="w-8 h-8 text-gray-700" />
-          </div>
-          <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Awaiting Analysis</h3>
-          <p class="text-[10px] text-gray-600 max-w-[180px] leading-relaxed font-medium">
-            Generated unit tests will appear here once the intelligence engine completes its cycle.
+        <div v-if="!store.generatedCode && !store.isGenerating" class="absolute inset-0 flex flex-col items-center justify-center p-12 text-center select-none opacity-30">
+          <Zap class="w-6 h-6 text-gray-700 mb-4" />
+          <h3 class="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-1">Node Idle</h3>
+          <p class="text-[8px] text-gray-600 max-w-[140px] leading-relaxed font-bold uppercase tracking-tight">
+            Awaiting source analysis
           </p>
         </div>
       </Transition>
