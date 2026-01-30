@@ -66,8 +66,13 @@ const handleGenerate = async () => {
 
 <style>
 /* Global styles to match main branch */
+:root {
+  color-scheme: dark;
+}
+
 html, body {
   background-color: #030712; /* bg-gray-950 */
+  color-scheme: dark;
 }
 
 /* Custom Scrollbar for all */

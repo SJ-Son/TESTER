@@ -90,9 +90,8 @@ onMounted(() => {
     <div class="space-y-4">
       <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1">Account</label>
       
-      <div v-if="!store.isLoggedIn" class="relative">
-        <div v-if="isSdkLoading" class="w-full h-[40px] bg-gray-800 animate-pulse rounded-lg border border-gray-700"></div>
-        <div id="google-login-btn" class="w-full transition-opacity duration-300" :class="{ 'opacity-0': isSdkLoading, 'opacity-100': !isSdkLoading }"></div>
+      <div v-if="!store.isLoggedIn">
+        <div id="google-login-btn"></div>
       </div>
       
       <div v-else class="flex items-center justify-between p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl transition-all hover:bg-blue-600/15">
@@ -160,18 +159,6 @@ onMounted(() => {
     </div>
   </aside>
 </template>
-
-<style scoped>
-#google-login-btn {
-  color-scheme: dark !important;
-}
-
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-</style>
 
 <style scoped>
 #google-login-btn {
