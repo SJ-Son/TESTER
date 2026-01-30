@@ -35,10 +35,10 @@ load_dotenv()
 
 app = FastAPI(title="QA Test Code Generator API")
 
-# Step 3: CORS Setup - Allow frontend development server
+# Step 3: CORS Setup - Tightened security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, you might want to restrict this
+    allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -161,15 +161,16 @@ async def generate_test(
 
     async def generate_stream():
         try:
-            generator = gemini_service.generate_test_code(
+            # gemini_service.generate_test_code is now an async generator
+            async for chunk in gemini_service.generate_test_code(
                 data.input_code, 
                 system_instruction=system_instruction, 
                 stream=True
-            )
-            
-            for chunk in generator:
+            ):
                 if chunk:
                     yield chunk
+                    # No need for manual sleep if it's truly async streaming, 
+                    # but keeping it minimal if required for flow control.
                     await asyncio.sleep(0.01)
             
         except Exception as e:
