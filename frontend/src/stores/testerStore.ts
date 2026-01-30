@@ -8,7 +8,7 @@ export const useTesterStore = defineStore('tester', () => {
     const selectedLanguage = ref('python')
     const selectedModel = ref('gemini-3-flash-preview')
     const isGenerating = ref(false)
-    const error = ref('')
+    const error = ref<string | null>(null)
     const streamEnded = ref(false)
     const userToken = ref(localStorage.getItem('tester_token') || '')
 

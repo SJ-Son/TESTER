@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
-import { CheckCircle2, AlertCircle, Check, Copy, Code } from 'lucide-vue-next'
+import { Terminal, Copy, Check, Zap } from 'lucide-vue-next'
 import hljs from 'highlight.js'
 import debounce from 'lodash/debounce'
 
@@ -9,12 +9,12 @@ const store = useTesterStore()
 const isCopied = ref(false)
 const codeBlock = ref<HTMLElement | null>(null)
 
-// --- Highlighting Logic with Debounce ---
 const highlightCode = debounce(() => {
   if (codeBlock.value) {
+    // @ts-ignore
     hljs.highlightElement(codeBlock.value)
   }
-}, 150) // 150ms debounce as requested
+}, 150)
 
 watch(() => store.generatedCode, () => {
   highlightCode()
@@ -22,13 +22,10 @@ watch(() => store.generatedCode, () => {
 
 const copyToClipboard = async () => {
   if (!store.generatedCode) return
-  
   try {
     await navigator.clipboard.writeText(store.generatedCode)
     isCopied.value = true
-    setTimeout(() => {
-      isCopied.value = false
-    }, 2000)
+    setTimeout(() => { isCopied.value = false }, 2000)
   } catch (err) {
     console.error('Failed to copy:', err)
   }
@@ -36,52 +33,81 @@ const copyToClipboard = async () => {
 
 onMounted(() => {
   if (codeBlock.value && store.generatedCode) {
+    // @ts-ignore
     hljs.highlightElement(codeBlock.value)
   }
 })
 </script>
 
 <template>
-  <section class="flex flex-col space-y-4 overflow-hidden">
-    <h2 class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
-      <CheckCircle2 class="w-4 h-4 text-green-500" />
-      <span>Generated Quality Test Suite</span>
-    </h2>
-    
-    <div v-if="store.error" class="bg-red-900/20 border border-red-500/50 rounded-xl p-6 text-red-200 flex items-start space-x-4">
-      <AlertCircle class="w-5 h-5 flex-shrink-0" />
-      <div class="space-y-1">
-        <p class="text-sm font-bold">Generation Error</p>
-        <p class="text-xs opacity-80">{{ store.error }}</p>
+  <section class="flex flex-col h-full overflow-hidden">
+    <!-- Header Area -->
+    <div class="h-12 border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/10">
+      <div class="flex items-center space-x-2.5">
+        <div class="p-1 px-2 rounded-md bg-blue-500/5 border border-blue-500/10">
+          <Terminal class="w-3.5 h-3.5 text-blue-500" />
+        </div>
+        <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Test Suite</span>
       </div>
+      
+      <button 
+        v-if="store.generatedCode"
+        @click="copyToClipboard"
+        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 transition-all text-[10px] font-bold text-gray-400 hover:text-white"
+      >
+        <component :is="isCopied ? Check : Copy" class="w-3 h-3" :class="{ 'text-blue-500': isCopied }" />
+        <span>{{ isCopied ? 'Copied' : 'Copy All' }}</span>
+      </button>
     </div>
 
-    <div 
-      class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col"
-      :class="{ 'animate-pulse border-blue-500/20': store.isGenerating && !store.generatedCode }"
-    >
-      <div class="bg-gray-800/50 px-6 py-3 border-b border-gray-800 flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <span class="text-[10px] font-mono text-gray-500 uppercase">{{ store.selectedLanguage }} suite</span>
-          <span v-if="store.generatedCode" class="text-[10px] text-gray-400">• Real-time rendering</span>
+    <!-- Content Area -->
+    <div class="flex-1 relative overflow-auto custom-scrollbar">
+      <!-- Empty State -->
+      <Transition name="fade">
+        <div v-if="!store.generatedCode && !store.isGenerating" class="absolute inset-0 flex flex-col items-center justify-center p-12 text-center select-none opacity-50">
+          <div class="p-5 bg-gray-900/50 rounded-2xl border border-gray-800/50 mb-6">
+            <Zap class="w-8 h-8 text-gray-700" />
+          </div>
+          <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Awaiting Analysis</h3>
+          <p class="text-[10px] text-gray-600 max-w-[180px] leading-relaxed font-medium">
+            Generated unit tests will appear here once the intelligence engine completes its cycle.
+          </p>
         </div>
-        <button 
-          v-if="store.generatedCode"
-          @click="copyToClipboard"
-          class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all text-[10px] font-semibold"
-          :class="{ 'text-green-400': isCopied }"
-        >
-          <component :is="isCopied ? Check : Copy" class="w-3 h-3" />
-          <span>{{ isCopied ? 'Copied!' : 'Copy Code' }}</span>
-        </button>
-      </div>
-      <div class="flex-1 overflow-auto p-4 custom-scrollbar">
-        <pre v-if="store.generatedCode" class="m-0"><code ref="codeBlock" :class="'language-' + store.selectedLanguage">{{ store.generatedCode }}</code></pre>
-        <div v-else-if="!store.isGenerating" class="h-full flex flex-col items-center justify-center text-gray-600 space-y-3 opacity-30">
-          <Code class="w-12 h-12" />
-          <p class="text-xs font-medium">Ready for generation</p>
-        </div>
+      </Transition>
+
+      <div v-show="store.generatedCode || store.isGenerating" class="min-h-full font-mono text-[13px] leading-relaxed p-6 selection:bg-blue-500/10">
+        <pre class="m-0"><code ref="codeBlock" :class="'language-' + store.selectedLanguage" class="hljs p-0 bg-transparent">{{ store.generatedCode }}<span v-if="store.isGenerating" class="inline-block w-1.5 h-3.5 bg-blue-500/50 animate-pulse ml-1 rounded-sm"></span></code></pre>
       </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+.hljs {
+  background: transparent !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+:deep(.hljs) {
+  background: transparent !important;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+</style>

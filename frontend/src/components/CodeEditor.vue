@@ -4,12 +4,6 @@ import { Code, Languages, Send, RefreshCcw } from 'lucide-vue-next'
 
 const store = useTesterStore()
 
-const languages = [
-  { id: 'python', name: 'Python', icon: 'py' },
-  { id: 'javascript', name: 'JavaScript', icon: 'js' },
-  { id: 'java', name: 'Java', icon: 'java' }
-]
-
 const emit = defineEmits(['generate'])
 
 const handleGenerate = () => {
@@ -21,22 +15,9 @@ const handleGenerate = () => {
   <section class="flex flex-col space-y-4">
     <div class="flex items-center justify-between">
       <h2 class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
-        <Languages class="w-4 h-4" />
+        <Languages class="w-4 h-4 text-blue-500" />
         <span>Source Code</span>
       </h2>
-      
-      <!-- Quick Language Switcher for Mobile/Small views or just context -->
-      <div class="flex space-x-2">
-        <button 
-          v-for="lang in languages" 
-          :key="lang.id"
-          @click="store.selectedLanguage = lang.id"
-          class="px-2 py-1 rounded text-[10px] font-bold uppercase transition-colors"
-          :class="store.selectedLanguage === lang.id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500 hover:text-gray-300'"
-        >
-          {{ lang.name }}
-        </button>
-      </div>
     </div>
     
     <div class="flex-1 relative group">
