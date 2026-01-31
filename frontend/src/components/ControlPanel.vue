@@ -136,9 +136,6 @@ onMounted(() => {
           <div class="w-2 h-2 rounded-full" :class="store.isGenerating ? 'bg-green-500 animate-pulse' : 'bg-gray-700'"></div>
           <span>{{ store.isGenerating ? 'System Active' : 'System Idle' }}</span>
         </div>
-        <div class="flex items-center space-x-2 text-[10px] text-gray-500 italic">
-          <span>{{ store.isGenerating ? 'Processing...' : 'Ready for test generation' }}</span>
-        </div>
       </div>
     </div>
   </aside>
