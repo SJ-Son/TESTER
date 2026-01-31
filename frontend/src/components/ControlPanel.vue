@@ -109,30 +109,6 @@ onMounted(() => {
 
     <!-- Strategy Config -->
     <div class="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-1">
-      <!-- Release Note Section -->
-      <div class="space-y-4">
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Release Note</label>
-        <div class="p-4 bg-gray-950/50 border border-gray-800 rounded-xl space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-blue-400">v1.1.2</span>
-            <span class="text-[9px] text-gray-600 font-mono">2026.01.31</span>
-          </div>
-          <ul class="text-[11px] text-gray-400 space-y-2 leading-relaxed">
-            <li class="flex items-start space-x-2">
-              <span class="text-blue-500 mt-1">•</span>
-              <span>배포 파이프라인 최적화 및 자동화</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="text-blue-500 mt-1">•</span>
-              <span>전용 서비스 계정 도입으로 보안 강화</span>
-            </li>
-            <li class="flex items-start space-x-2">
-              <span class="text-blue-500 mt-1">•</span>
-              <span>UI 레이아웃 개선 (언어 선택 도구 이동)</span>
-            </li>
-          </ul>
-        </div>
-      </div>
 
       <div>
         <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-3">Model</label>

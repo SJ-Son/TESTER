@@ -15,9 +15,25 @@ const handleGenerate = () => {
   <section class="flex flex-col space-y-4 h-full">
     <div class="flex items-center justify-between">
       <h2 class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
-        <Languages class="w-4 h-4" />
+        <Languages class="w-4 h-4 text-blue-400" />
         <span>Source Code</span>
       </h2>
+      
+      <div class="flex items-center bg-gray-900 border border-gray-800 p-0.5 rounded-lg">
+        <button 
+          v-for="lang in [
+            { id: 'python', label: 'PY' },
+            { id: 'javascript', label: 'JS' },
+            { id: 'java', label: 'JAVA' }
+          ]" 
+          :key="lang.id"
+          @click="store.selectedLanguage = lang.id"
+          class="px-2 py-1 rounded-md text-[9px] font-black transition-all duration-200 tracking-tighter"
+          :class="store.selectedLanguage === lang.id ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-300'"
+        >
+          {{ lang.label }}
+        </button>
+      </div>
     </div>
     
     <div class="flex-1 relative group">
