@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { useTesterStore } from './stores/testerStore'
-import { Info, X, Sparkles } from 'lucide-vue-next'
+import { ref, onMounted } from 'vue'
+import { Info, X, Sparkles, RefreshCcw } from 'lucide-vue-next'
 import ControlPanel from './components/ControlPanel.vue'
 import CodeEditor from './components/CodeEditor.vue'
 import TestResult from './components/TestResult.vue'
 
 const store = useTesterStore()
+
+onMounted(() => {
+  store.loadHistory()
+})
 
 const handleGenerate = async () => {
   try {

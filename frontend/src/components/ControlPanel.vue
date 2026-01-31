@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
-import { Sparkles, User, LogOut, Code, Info, ChevronRight } from 'lucide-vue-next'
+import { Sparkles, User, LogOut, Code, Info, ChevronRight, History } from 'lucide-vue-next'
+import HistoryPanel from './HistoryPanel.vue'
 
 const store = useTesterStore()
 const isSdkLoading = ref(true)
@@ -138,6 +139,9 @@ onMounted(() => {
           </div>
         </div>
       </div>
+
+      <!-- History Section -->
+      <HistoryPanel />
     </div>
 
     <!-- Status Footer -->
