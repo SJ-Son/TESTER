@@ -7,20 +7,9 @@ class JavaScriptStrategy(LanguageStrategy):
             return False, "코드를 입력해주세요."
         
         # 1. Negative Check: 다른 언어(Python, Java 등)의 강력한 특징이 있는가?
-        # - Python: def 키워드 (JS에는 없으므로), import ... from ... (JS는 import ... from '...' 따옴표 필수지만 regex로 구분 힘듬, :로 끝나는 블록 등)
-        # - Java: public static void, String[] args, System.out.println
-        
-        # Python 의심 패턴
-        if re.search(r'^\s*def\s+\w+\s*\(.*\)\s*:', code, re.MULTILINE):
-            return False, "Python 코드로 감지됩니다. 언어 설정을 'Python'으로 변경해주세요."
-        if re.search(r'^\s*import\s+.*\s+from\s+', code, re.MULTILINE) and not re.search(r"['\"]", code): # 따옴표 없는 import (Python style)
-             return False, "Python 코드로 감지됩니다. (Import 구문)"
-
-        # Java 의심 패턴
-        if re.search(r'\bpublic\s+static\s+void\b', code):
-            return False, "Java 코드로 감지됩니다. 언어 설정을 'Java'로 변경해주세요."
-        if re.search(r'\bSystem\.out\.println\b', code):
-             return False, "Java 코드로 감지됩니다."
+        valid, msg = self.check_negative_patterns(code, "javascript")
+        if not valid:
+            return False, msg
 
         # 2. Positive Check: JS 키워드가 있는가?
         js_keywords = [r'\bfunction\b', r'\bconst\b', r'\blet\b', r'\bvar\b', r'=>', r'\bclass\b', r'\bconsole\.log\b']

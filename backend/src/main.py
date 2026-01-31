@@ -4,7 +4,6 @@ from fastapi.staticfiles import StaticFiles
 from backend.src.services.gemini_service import GeminiService
 from backend.src.languages.factory import LanguageFactory
 from backend.src.config.settings import settings
-import json
 import asyncio
 import os
 from datetime import timedelta
@@ -26,6 +25,8 @@ from backend.src.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from pydantic import BaseModel
+from jose import jwt
+from backend.src.auth import ALGORITHM
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
@@ -63,7 +64,6 @@ async def attach_user_to_state(request: Request, call_next):
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
-            from backend.src.auth import jwt, ALGORITHM
             payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[ALGORITHM])
             request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
         except:

@@ -6,18 +6,10 @@ class JavaStrategy(LanguageStrategy):
         if not code.strip():
             return False, "코드를 입력해주세요."
             
-        # 1. Negative Check
-        # Python 의심
-        if re.search(r'^\s*def\s+\w+\s*\(.*\)\s*:', code, re.MULTILINE):
-            return False, "Python 코드로 감지됩니다. 언어 설정을 'Python'으로 변경해주세요."
-        # JS 의심
-        if re.search(r'\bconsole\.log\b', code):
-            return False, "JavaScript 코드로 감지됩니다. 언어 설정을 'JavaScript'로 변경해주세요."
-        if re.search(r'\bfunction\s+\w+\s*\(', code):
-            return False, "JavaScript 코드로 감지됩니다."
-        if "=>" in code and not "->" in code: # JS Arrow function vs Java Lambda (Java uses ->)
-            # 화살표가 있다고 무조건 JS는 아니지만, => 가 있고 class가 없으면 강한 의심
-            pass 
+        # 1. Negative Check: 다른 언어(Python, JS 등)의 패턴 감지
+        valid, msg = self.check_negative_patterns(code, "java")
+        if not valid:
+            return False, msg
 
         # 2. Positive Check: Java 키워드
         java_keywords = [r'\bclass\b', r'\binterface\b', r'\bpublic\b', r'\bprivate\b', r'\bprotected\b', r'@Override']
