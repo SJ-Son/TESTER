@@ -1,31 +1,15 @@
 import pytest
-from fastapi.testclient import TestClient
-from backend.src.main import app
-from backend.src.auth import get_current_user, verify_recaptcha
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import patch
 
-client = TestClient(app)
-
-@pytest.fixture(autouse=True)
-def setup_overrides():
-    # Clear overrides before each test
-    app.dependency_overrides = {}
-    yield
-    app.dependency_overrides = {}
-
-def test_health_check():
+def test_health_check(client):
     """Verify the API health check."""
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
 
 @patch("backend.src.main.gemini_service")
-def test_generate_code_api(mock_service):
+def test_generate_code_api(mock_service, client, mock_user_auth, mock_recaptcha_success):
     """Verify the streaming API works and returns raw text."""
-    # Override dependencies
-    app.dependency_overrides[get_current_user] = lambda: {"id": "test_user", "email": "test@example.com"}
-    app.dependency_overrides[verify_recaptcha] = lambda: True
-
     # Mocking async generator
     async def mock_async_generator(*args, **kwargs):
         yield "public class "
@@ -47,11 +31,8 @@ def test_generate_code_api(mock_service):
         assert "public class Test {}" in content
 
 @patch("backend.src.main.gemini_service")
-def test_validation_error(mock_service):
+def test_validation_error(mock_service, client, mock_user_auth, mock_recaptcha_success):
     """Verify invalid code returns a raw error message."""
-    app.dependency_overrides[get_current_user] = lambda: {"id": "test_user", "email": "test@example.com"}
-    app.dependency_overrides[verify_recaptcha] = lambda: True
-
     payload = {
         "input_code": "Just some random text",
         "language": "Python",
