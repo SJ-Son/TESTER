@@ -65,6 +65,7 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
+            --service-account tester-runtime-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
             --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=production,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},RECAPTCHA_SECRET_KEY=${{ secrets.RECAPTCHA_SECRET_KEY }},JWT_SECRET=${{ secrets.JWT_SECRET }}" \
             --port 8080
 
