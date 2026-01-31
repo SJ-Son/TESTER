@@ -50,13 +50,16 @@ const handleGenerate = async () => {
     <!-- Main Content -->
     <main class="flex-1 flex flex-col bg-gray-950">
       <!-- Top header -->
-      <header class="h-16 border-b border-gray-800 px-8 flex items-center justify-between">
-        <div class="text-xs text-gray-400 font-mono">
-          TEST RUNNER > <span class="text-blue-400">{{ store.selectedLanguage.toUpperCase() }}</span>
-        </div>
-        <div v-if="store.isGenerating" class="flex items-center space-x-2 text-xs text-blue-400/80">
-          <RefreshCcw class="w-3 h-3 animate-spin" />
-          <span>Streaming response...</span>
+      <header class="h-16 border-b border-gray-800 px-8 flex items-center bg-gray-900/50 backdrop-blur-md sticky top-0 z-20">
+        <div class="flex items-center space-x-3 text-xs font-bold font-mono uppercase tracking-widest transition-all duration-300">
+          <span class="text-gray-500">Runner</span>
+          <span class="text-gray-700">></span>
+          <span class="text-blue-400 text-sm">{{ store.selectedLanguage.toUpperCase() }}</span>
+          
+          <div v-if="store.isGenerating" class="ml-4 flex items-center space-x-2 text-blue-500/60 animate-pulse">
+            <RefreshCcw class="w-3 h-3 animate-spin" />
+            <span class="text-[9px] lowercase italic">streaming...</span>
+          </div>
         </div>
       </header>
 
