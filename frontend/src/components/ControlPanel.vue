@@ -109,19 +109,28 @@ onMounted(() => {
 
     <!-- Strategy Config -->
     <div class="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-1">
-      <div>
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-3">Target Language</label>
-        <div class="grid grid-cols-1 gap-2">
-          <button 
-            v-for="lang in languages" 
-            :key="lang.id"
-            @click="store.selectedLanguage = lang.id"
-            class="flex items-center space-x-3 px-4 py-3 rounded-lg border transition-all duration-200"
-            :class="store.selectedLanguage === lang.id ? 'bg-blue-600/10 border-blue-500/50 text-blue-400' : 'bg-transparent border-gray-800 text-gray-400 hover:border-gray-700'"
-          >
-            <Code class="w-4 h-4" />
-            <span class="font-medium text-sm">{{ lang.name }}</span>
-          </button>
+      <!-- Release Note Section -->
+      <div class="space-y-4">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Release Note</label>
+        <div class="p-4 bg-gray-950/50 border border-gray-800 rounded-xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-blue-400">v1.1.2</span>
+            <span class="text-[9px] text-gray-600 font-mono">2026.01.31</span>
+          </div>
+          <ul class="text-[11px] text-gray-400 space-y-2 leading-relaxed">
+            <li class="flex items-start space-x-2">
+              <span class="text-blue-500 mt-1">•</span>
+              <span>배포 파이프라인 최적화 및 자동화</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-blue-500 mt-1">•</span>
+              <span>전용 서비스 계정 도입으로 보안 강화</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-blue-500 mt-1">•</span>
+              <span>UI 레이아웃 개선 (언어 선택 도구 이동)</span>
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -151,9 +160,8 @@ onMounted(() => {
           <div class="w-2 h-2 rounded-full" :class="store.isGenerating ? 'bg-green-500 animate-pulse' : 'bg-gray-700'"></div>
           <span>{{ store.isGenerating ? 'System Active' : 'System Idle' }}</span>
         </div>
-        <div class="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[9px] font-bold text-blue-400 uppercase tracking-tighter">
-          <Info class="w-2.5 h-2.5" />
-          <span>5 req/min</span>
+        <div class="flex items-center space-x-2 text-[10px] text-gray-500 italic">
+          <span>{{ store.isGenerating ? 'Processing...' : 'Ready for test generation' }}</span>
         </div>
       </div>
     </div>

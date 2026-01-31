@@ -50,13 +50,37 @@ const handleGenerate = async () => {
     <!-- Main Content -->
     <main class="flex-1 flex flex-col bg-gray-950">
       <!-- Top header -->
-      <header class="h-16 border-b border-gray-800 px-8 flex items-center justify-between">
-        <div class="text-xs text-gray-400 font-mono">
-          TEST RUNNER > <span class="text-blue-400">{{ store.selectedLanguage.toUpperCase() }}</span>
+      <header class="h-16 border-b border-gray-800 px-8 flex items-center justify-between bg-gray-900/50 backdrop-blur-md sticky top-0 z-20">
+        <div class="flex items-center space-x-6">
+          <div class="text-[10px] text-gray-500 font-mono tracking-widest uppercase">
+            Language
+          </div>
+          <div class="flex bg-gray-950/50 p-1 rounded-lg border border-gray-800">
+            <button 
+              v-for="lang in [
+                { id: 'python', name: 'Python' },
+                { id: 'javascript', name: 'JS' },
+                { id: 'java', name: 'Java' }
+              ]" 
+              :key="lang.id"
+              @click="store.selectedLanguage = lang.id"
+              class="px-3 py-1 rounded-md text-[11px] font-bold transition-all duration-200 uppercase tracking-tighter"
+              :class="store.selectedLanguage === lang.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:text-gray-300'"
+            >
+              {{ lang.name }}
+            </button>
+          </div>
         </div>
-        <div v-if="store.isGenerating" class="flex items-center space-x-2 text-xs text-blue-400/80">
-          <RefreshCcw class="w-3 h-3 animate-spin" />
-          <span>Streaming response...</span>
+
+        <div class="flex items-center space-x-4">
+          <div v-if="store.isGenerating" class="flex items-center space-x-2 text-[10px] text-blue-400/80 font-medium">
+            <RefreshCcw class="w-3 h-3 animate-spin" />
+            <span class="tracking-tight">Streaming response...</span>
+          </div>
+          <div class="h-4 w-[1px] bg-gray-800 mx-2"></div>
+          <div class="text-[10px] text-gray-400 font-mono uppercase">
+            Runner > <span class="text-blue-400">{{ store.selectedLanguage.toUpperCase() }}</span>
+          </div>
         </div>
       </header>
 
