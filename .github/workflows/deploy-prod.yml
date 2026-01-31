@@ -70,7 +70,7 @@ jobs:
             --port 8080
 
       - name: Prepare Firebase Public Directory
-        run: mkdir -p frontend/dist && touch frontend/dist/index.html
+        run: mkdir -p frontend/dist
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
