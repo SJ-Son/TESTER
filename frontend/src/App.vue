@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useTesterStore } from './stores/testerStore'
 import { ref, onMounted } from 'vue'
-import { Info, X, Sparkles, RefreshCcw } from 'lucide-vue-next'
+import { RefreshCcw } from 'lucide-vue-next'
 import ControlPanel from './components/ControlPanel.vue'
 import CodeEditor from './components/CodeEditor.vue'
 import TestResult from './components/TestResult.vue'

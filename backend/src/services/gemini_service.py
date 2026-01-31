@@ -1,8 +1,6 @@
-"""
-Gemini API 연동 서비스.
-"""
 import google.generativeai as genai
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from functools import lru_cache
 
 from backend.src.config.settings import settings
 from backend.src.utils.logger import get_logger
@@ -26,6 +24,14 @@ class GeminiService:
             self.logger.error(f"API 설정 실패: {e}")
             raise
 
+    @lru_cache(maxsize=10)
+    def _get_model(self, model_name: str, system_instruction: str = None):
+        """모델 인스턴스 생성을 캐싱하여 성능을 최적화합니다."""
+        return genai.GenerativeModel(
+            model_name=model_name,
+            system_instruction=system_instruction
+        )
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
@@ -44,11 +50,8 @@ class GeminiService:
             return
 
         try:
-            # 동적으로 모델 인스턴스 생성
-            model = genai.GenerativeModel(
-                model_name=self.model_name,
-                system_instruction=system_instruction
-            )
+            # 캐싱된 모델 인스턴스 사용
+            model = self._get_model(self.model_name, system_instruction)
             
             # 비동기 호출 (async API 사용)
             response = await model.generate_content_async(source_code, stream=stream)

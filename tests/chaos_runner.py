@@ -4,7 +4,7 @@ import time
 import sys
 
 # Configuration
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8080"
 API_ENDPOINT = f"{BASE_URL}/api/generate"
 
 # Chaos Scenarios
