@@ -67,3 +67,11 @@ jobs:
             --allow-unauthenticated \
             --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=production,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},RECAPTCHA_SECRET_KEY=${{ secrets.RECAPTCHA_SECRET_KEY }},JWT_SECRET=${{ secrets.JWT_SECRET }}" \
             --port 8080
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.GCP_CREDENTIALS }}
+          projectId: ${{ env.PROJECT_ID }}
+          channelId: live
