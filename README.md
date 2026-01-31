@@ -146,7 +146,18 @@ TESTER/
 
 ---
 ## TODO
-*   **같은질문 다른대답**    
+*   **같은질문 다른대답** (Cache Logic)
+
+### 🏗️ Engineering Excellence (기술적 고도화)
+*   **Reliability (안정성)**
+    *   [ ] **SSE 에러 핸들링 표준화**: `event: message` vs `event: error` 분리 및 HTTP 상태 코드 세분화
+    *   [ ] **Exception Handling**: 포괄적 예외 처리(`except Exception`) 지양 및 구체적 에러 정의
+*   **Observability (관측 가능성)**
+    *   [ ] **Structured Logging**: JSON 포맷 로깅 도입 (Cloud Logging 연동 준비)
+    *   [ ] **Request ID Tracing**: 요청별 고유 ID 부여로 트랜잭션 추적
+*   **Quality (코드 품질)**
+    *   [ ] **Strict Typing**: `mypy` 도입 및 타입 힌트 강제
+    *   [ ] **Linting & Formatting**: `ruff` 및 `pre-commit` 훅 적용    
 ---
 
 ## 📄 라이선스 (License)
