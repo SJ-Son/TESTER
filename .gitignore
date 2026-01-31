@@ -23,6 +23,8 @@ venv/
 !tsconfig.json
 !tsconfig.node.json
 !devcontainer.json
+!firebase.json
+!.firebaserc
 gcp-key.json
 
 # --- OS & IDE ---
