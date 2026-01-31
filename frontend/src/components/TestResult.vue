@@ -2,15 +2,16 @@
 import { ref, watch, onMounted } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Code, CheckCircle2, AlertCircle, Copy, Check } from 'lucide-vue-next'
-import hljs from 'highlight.js'
+// import hljs from 'highlight.js' // Lazy loaded instead
 import debounce from 'lodash/debounce'
 
 const store = useTesterStore()
 const isCopied = ref(false)
 const codeBlock = ref<HTMLElement | null>(null)
 
-const highlightCode = debounce(() => {
+const highlightCode = debounce(async () => {
   if (codeBlock.value) {
+    const hljs = (await import('highlight.js')).default
     // @ts-ignore
     hljs.highlightElement(codeBlock.value)
   }
@@ -31,8 +32,9 @@ const copyToClipboard = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (codeBlock.value && store.generatedCode) {
+    const hljs = (await import('highlight.js')).default
     // @ts-ignore
     hljs.highlightElement(codeBlock.value)
   }

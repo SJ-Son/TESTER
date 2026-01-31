@@ -1,6 +1,9 @@
 import google.generativeai as genai
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from functools import lru_cache
+from collections import OrderedDict
+import hashlib
+import asyncio
 
 from backend.src.config.settings import settings
 from backend.src.utils.logger import get_logger
@@ -8,6 +11,10 @@ from backend.src.utils.logger import get_logger
 
 class GeminiService:
     """Gemini API를 통한 테스트 코드 생성 서비스"""
+
+    # In-Memory Cache (Class Level)
+    _cache = OrderedDict()
+    _CACHE_LIMIT = 50
 
     def __init__(self, model_name: str = "gemini-3-flash-preview"):
         self.logger = get_logger(__name__)
@@ -49,24 +56,45 @@ class GeminiService:
             yield msg
             return
 
+        # 1. Generate Cache Key
+        key_input = f"{self.model_name}:{source_code}:{system_instruction}"
+        cache_key = hashlib.md5(key_input.encode()).hexdigest()
+
+        # 2. Check Cache (Hit)
+        if cache_key in self._cache:
+            self.logger.info(f"Cache Hit for key: {cache_key}")
+            self._cache.move_to_end(cache_key)  # Mark as recently used
+            yield self._cache[cache_key]
+            return
+
         try:
-            # 캐싱된 모델 인스턴스 사용
+            # 3. Cache Miss - Call API
             model = self._get_model(self.model_name, system_instruction)
             
             # 비동기 호출 (async API 사용)
             response = await model.generate_content_async(source_code, stream=stream)
+            
+            full_response_text = ""
         
             if stream:
                 async for chunk in response:
                     if chunk.text:
+                        full_response_text += chunk.text
                         yield chunk.text
             else:
                 if not response.text:
                     yield "# 응답 생성 실패"
                 else:
+                    full_response_text = response.text
                     yield response.text
-                return
-                
+            
+            # 4. Save to Cache
+            if full_response_text:
+                self._cache[cache_key] = full_response_text
+                # Enforce LRU Limit
+                if len(self._cache) > self._CACHE_LIMIT:
+                    self._cache.popitem(last=False)
+                    
         except Exception as e:
             self.logger.error(f"API 호출 오류: {e}")
             raise

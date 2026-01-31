@@ -45,6 +45,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.middleware.gzip import GZipMiddleware
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
 # Step 4: Rate Limiting Setup
 def get_user_identifier(request: Request):
     # 인증된 사용이면 user id, 아니면 IP 기반
