@@ -3,6 +3,12 @@
 이 프로젝트의 모든 중요한 변경 사항은 이 파일에 문서화됩니다.
 
 ## [Unreleased]
+## [0.1.1] - 2026-01-31
+
+### ⚡️ Performance (성능 최적화)
+- **Backend**: `In-Memory LRU Cache` 도입으로 중복 요청에 대한 응답 속도 및 API 비용 절감
+- **Backend**: `GzipMiddleware` 적용으로 API 응답 페이로드 크기 약 70% 감소
+- **Frontend**: `highlight.js` Lazy Loading(지연 로딩) 적용으로 초기 로딩 속도(FCP) 개선
 
 ## [0.1.0] - 2026-01-31
 
