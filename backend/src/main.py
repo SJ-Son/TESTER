@@ -59,45 +59,37 @@ async def attach_user_to_state(request: Request, call_next):
     return response
 
 
-# Middleware: Security Headers
+# Middleware: Security Headers & Logging
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-
-    # HSTS
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
-
-    # X-Content-Type-Options
-    response.headers["X-Content-Type-Options"] = "nosniff"
-
-    # X-Frame-Options
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-
-    # Referrer-Policy
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-
-    # Content-Security-Policy
-    csp_policy = (
-        "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
-        "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com; "
-        "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
-        "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com; "
-        "font-src 'self' https://fonts.gstatic.com data:; "
-        "connect-src 'self' https://accounts.google.com https://www.google.com https://challenges.cloudflare.com; "
-        "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com;"
-    )
-    response.headers["Content-Security-Policy"] = csp_policy
-
-    return response
-
-
-# Middleware: Logging
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def security_middleware(request: Request, call_next):
     start_time = time.time()
     try:
         response = await call_next(request)
-        response.headers["Cross-Origin-Opener-Policy"] = "unsafe-none"
+
+        # Security Headers
+        response.headers[
+            "Strict-Transport-Security"
+        ] = "max-age=31536000; includeSubDomains; preload"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+
+        # Content-Security-Policy
+        csp_policy = (
+            "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
+            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
+            "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "connect-src 'self' https://accounts.google.com https://www.google.com https://challenges.cloudflare.com; "
+            "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; "
+            "frame-ancestors 'self' https://accounts.google.com;"
+        )
+        response.headers["Content-Security-Policy"] = csp_policy
+
+        # Logging
         process_time = time.time() - start_time
         logger.info(
             f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s"
