@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, Code, Info, ChevronRight, History } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
+import * as authApi from '../api/auth'
 
 const store = useTesterStore()
 const isSdkLoading = ref(true)
@@ -19,15 +20,7 @@ const models = [
 
 const handleGoogleLogin = async (response: any) => {
   try {
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_token: response.credential })
-    })
-    
-    if (!res.ok) throw new Error('Login failed')
-    
-    const data = await res.json()
+    const data = await authApi.loginWithGoogle(response.credential)
     store.setToken(data.access_token)
   } catch (err: any) {
     store.error = '로그인에 실패했습니다: ' + err.message

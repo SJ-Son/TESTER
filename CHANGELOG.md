@@ -5,6 +5,14 @@
 ## [Unreleased]
 
 
+
+## [0.2.1] - 2026-02-01
+
+### ♻️ Refactoring (안정성 개선)
+- **SSE Error Handling**: 구조화된 이벤트 스트림(`event: error`) 도입 및 명확한 에러 전달
+- **Frontend API Layer**: Store 내 fetch 로직을 `src/api/` 모듈로 분리 (유지보수성 향상)
+- **Exception Handling**: 포괄적 예외 처리 개선 및 구체적 에러 타입 도입
+
 ## [0.2.0] - 2026-02-01
 
 ### ♻️ Refactoring (코드 구조 개선)
