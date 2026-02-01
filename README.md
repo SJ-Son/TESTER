@@ -152,18 +152,8 @@ TESTER/
 
 ---
 ## TODO
-### 🏗️ 로드맵
 
-#### 🥇 Phase 1: 구조 및 규칙 확립 (Foundation)
-*   [ ] **Backend Router Split**: `main.py`의 엔드포인트를 `api/v1/{auth, generator, users}.py`로 도메인별 분리 (확장성 확보)
-*   [ ] **Linting & Formatting**: `ruff` 및 `pre-commit` 훅 적용 (코드 스타일 통일 및 자동화)
-
-#### 🥈 Phase 2: 안정성 및 사용자 경험 (Stability)
-*   [ ] **SSE 에러 핸들링 표준화**: `event: message` vs `event: error` 분리 및 명확한 에러 원인 전달
-*   [ ] **Frontend API Layer**: Store 내 `fetch` 로직을 `src/api/` 서비스 모듈로 격리 (유지보수성)
-*   [ ] **Exception Handling**: 포괄적 예외 처리(`except Exception`) 지양 및 구체적 에러 정의
-
-#### 🥉 Phase 3: 최적화 및 고도화 (Optimization)
+### 최적화 및 고도화 (Optimization)
 *   [ ] **같은질문 다른대답 (Caching)**: 동일 요청에 대한 캐싱 로직 고도화 (비용 절감)
 *   [ ] **Structured Logging**: JSON 포맷 로깅 도입 및 Request ID 추적 (관측 가능성)
 *   [ ] **Strict Typing**: `mypy` 도입 및 타입 힌트 강제 (잠재 버그 예방)
