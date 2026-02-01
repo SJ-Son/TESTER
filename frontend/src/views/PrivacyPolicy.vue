@@ -29,7 +29,16 @@
         </section>
 
         <section>
-          <h2 class="text-lg font-semibold text-white mb-2">3. 개인정보의 파기</h2>
+          <h2 class="text-lg font-semibold text-white mb-2">3. 입력된 소스 코드의 처리 (중요)</h2>
+          <p>
+            사용자가 테스트 코드 생성을 위해 입력하는 <strong>소스 코드(Source Code)</strong>는 AI 분석 및 결과 생성을 위한 
+            일시적인 목적(RAM)으로만 사용되며, <strong>서버나 데이터베이스에 영구적으로 저장되지 않습니다.</strong>
+            생성이 완료되거나 세션이 종료되면 해당 데이터는 서버 메모리에서 즉시 파기됩니다.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-semibold text-white mb-2">4. 개인정보의 파기</h2>
           <p>
             이용자의 개인정보는 원칙적으로 개인정보의 수집 및 이용목적이 달성되면 지체 없이 파기합니다. 
             회원 탈퇴 시 또는 서비스 종료 시 즉시 파기됩니다.
@@ -37,7 +46,7 @@
         </section>
 
         <section>
-          <h2 class="text-lg font-semibold text-white mb-2">4. 개인정보 제3자 제공</h2>
+          <h2 class="text-lg font-semibold text-white mb-2">5. 개인정보 제3자 제공</h2>
           <p>서비스는 이용자의 동의 없이 개인정보를 외부에 제공하지 않습니다.</p>
         </section>
       </div>
