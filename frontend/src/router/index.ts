@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import PrivacyPolicy from '../views/PrivacyPolicy.vue'
 import TermsOfService from '../views/TermsOfService.vue'
 import ChangelogView from '../views/ChangelogView.vue'
@@ -10,7 +9,7 @@ const router = createRouter({
         {
             path: '/',
             name: 'home',
-            component: HomeView
+            component: { template: '' } // Renders nothing in RouterView, showing only background HomeView
         },
         {
             path: '/privacy',

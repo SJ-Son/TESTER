@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-950 text-gray-200 p-8 flex flex-col items-center">
-    <div class="max-w-3xl w-full bg-gray-900 border border-gray-800 rounded-xl p-8 shadow-2xl">
+  <div class="h-full overflow-y-auto px-4 py-8 custom-scrollbar">
+    <div class="max-w-3xl mx-auto bg-gray-900 border border-gray-800 rounded-xl p-8 shadow-2xl relative">
       <h1 class="text-3xl font-bold text-white mb-6 border-b border-gray-800 pb-4">이용약관</h1>
       
       <div class="space-y-6 text-sm text-gray-400 leading-relaxed">
