@@ -4,6 +4,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ .
+COPY CHANGELOG.md ../
 ARG VITE_TESTER_INTERNAL_SECRET
 ARG VITE_GOOGLE_CLIENT_ID
 ARG VITE_RECAPTCHA_SITE_KEY
