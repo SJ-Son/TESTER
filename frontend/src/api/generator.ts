@@ -27,10 +27,8 @@ export async function generateTestCode(
                 if (typeof errorData.detail === 'string') {
                     errorMessage = errorData.detail
                 } else if (errorData.detail.message) {
-                    // Custom ValidationError format
                     errorMessage = errorData.detail.message
                 } else if (Array.isArray(errorData.detail)) {
-                    // Standard FastAPI/Pydantic validation error format
                     errorMessage = errorData.detail.map((e: any) => e.msg).join(', ')
                 }
             }
@@ -38,6 +36,15 @@ export async function generateTestCode(
             errorMessage = `에러 발생 (Status ${response.status})`
         }
         throw new Error(errorMessage)
+    }
+
+    // Handle 200 OK but with validation error (to keep console clean)
+    const contentType = response.headers.get('Content-Type')
+    if (contentType?.includes('application/json')) {
+        const data = await response.json()
+        if (data.type === 'error' && data.status === 'validation_error') {
+            throw new Error(data.detail?.message || data.message || '입력 코드를 확인해주세요')
+        }
     }
 
     const reader = response.body?.getReader()
