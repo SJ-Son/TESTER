@@ -21,8 +21,9 @@
 ### 🛡️ Security & Trust (보안 및 신뢰)
 - **Policy**: 개인정보처리방침에 '소스 코드 영구 저장 금지' 조항(제3조) 신설
 - **UI**: 에디터 하단에 "코드는 저장되지 않음" 안내 문구(Shield Icon) 추가
-- **Headers**: 보안 헤더(HSTS, XFO, CSP) 적용으로 웹 취약점 방어 강화 (Trust & Safety)
+- **Headers**: 보안 헤더(HSTS Preload, XFO, CSP) 적용으로 웹 취약점 방어 강화 (Trust & Safety)
 - **Routing**: `robots.txt` 및 `sitemap.xml` 정적 파일 서빙 라우트 추가 (SEO 색인 오류 해결)
+- **Polish**: 헤더 가독성 추가 개선 및 HSTS Preload 적용
 
 ## [0.1.1] - 2026-01-31
 

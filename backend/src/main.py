@@ -110,8 +110,8 @@ async def google_auth(data: TokenRequest):
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     
-    # 1. HSTS (Strict-Transport-Security) - Force HTTPS for 1 year
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # 1. HSTS (Strict-Transport-Security) - Force HTTPS for 1 year + Preload
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
     
     # 2. X-Content-Type-Options - Prevent MIME sniffing
     response.headers["X-Content-Type-Options"] = "nosniff"
