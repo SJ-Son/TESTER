@@ -91,9 +91,12 @@ async def generate_test(
 
     except ValidationError as e:
         logger.warning(f"Validation failed: {e.message}")
-        raise HTTPException(
-            status_code=422, detail={"code": e.code, "message": e.message}
-        ) from None
+        # Return 200 OK with error payload to keep the browser console clean
+        return {
+            "type": "error",
+            "status": "validation_error",
+            "detail": {"code": e.code, "message": e.message},
+        }
     except TurnstileError as e:
         logger.error(f"Turnstile failed: {e.message}")
         raise HTTPException(

@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from jose import jwt
 from slowapi import _rate_limit_exceeded_handler
@@ -16,6 +16,7 @@ from backend.src.api.routers import api_router
 from backend.src.api.v1.deps import limiter
 from backend.src.auth import ALGORITHM
 from backend.src.config.settings import settings
+from backend.src.exceptions import ValidationError
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
@@ -76,7 +77,7 @@ async def security_middleware(request: Request, call_next):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
-        # Content-Security-Policy
+        # Content-Security-Policy (Flattened to avoid parsing warnings)
         csp_policy = (
             "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
             "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com; "
@@ -95,11 +96,14 @@ async def security_middleware(request: Request, call_next):
             f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s"
         )
         return response
-    except Exception as e:
-        logger.error(f"Request Failed: {e}")
-        return StreamingResponse(
-            iter([f"error: {str(e)}"]), media_type="text/plain", status_code=500
-        )
+    except ValidationError as e:
+        logger.warning(f"Validation failed: {e.message}")
+        # Return 200 OK with error payload to keep the browser console clean (no red lines for expected validation)
+        return {
+            "type": "error",
+            "status": "validation_error",
+            "detail": {"code": e.code, "message": e.message},
+        }
 
 
 # Include API Routers
