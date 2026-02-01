@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+
+## [0.2.0] - 2026-02-01
+
+### ♻️ Refactoring (코드 구조 개선)
+- **Backend Structure**: `main.py`를 `api/v1/{auth, generator, health, deps}.py`로 도메인별 분리
+- **Linting & Formatting**: `ruff` 및 `pre-commit` 훅 도입으로 코드 스타일 통일 및 자동화
+
 ## [0.1.2] - 2026-02-01
 
 ### ✨ Features (기능 추가)
