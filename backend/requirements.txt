@@ -11,3 +11,5 @@ pytest-mock
 slowapi==0.1.9
 google-auth
 python-jose[cryptography]
+ruff
+pre-commit

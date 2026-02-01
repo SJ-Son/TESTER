@@ -1,10 +1,5 @@
 # TESTER
 
-![Version](https://img.shields.io/badge/version-0.1.2-blue?style=for-the-badge)
-[![Build Status](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml)
-![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-[![Live Demo](https://img.shields.io/badge/demo-live-red?style=for-the-badge)](https://testcased.dev)
-
 <div align="center">
   <img src="https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D" alt="Vue.js" />
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
@@ -157,18 +152,8 @@ TESTER/
 
 ---
 ## TODO
-### 🏗️ 로드맵
 
-#### 🥇 Phase 1: 구조 및 규칙 확립 (Foundation)
-*   [ ] **Backend Router Split**: `main.py`의 엔드포인트를 `api/v1/{auth, generator, users}.py`로 도메인별 분리 (확장성 확보)
-*   [ ] **Linting & Formatting**: `ruff` 및 `pre-commit` 훅 적용 (코드 스타일 통일 및 자동화)
-
-#### 🥈 Phase 2: 안정성 및 사용자 경험 (Stability)
-*   [ ] **SSE 에러 핸들링 표준화**: `event: message` vs `event: error` 분리 및 명확한 에러 원인 전달
-*   [ ] **Frontend API Layer**: Store 내 `fetch` 로직을 `src/api/` 서비스 모듈로 격리 (유지보수성)
-*   [ ] **Exception Handling**: 포괄적 예외 처리(`except Exception`) 지양 및 구체적 에러 정의
-
-#### 🥉 Phase 3: 최적화 및 고도화 (Optimization)
+### 최적화 및 고도화 (Optimization)
 *   [ ] **같은질문 다른대답 (Caching)**: 동일 요청에 대한 캐싱 로직 고도화 (비용 절감)
 *   [ ] **Structured Logging**: JSON 포맷 로깅 도입 및 Request ID 추적 (관측 가능성)
 *   [ ] **Strict Typing**: `mypy` 도입 및 타입 힌트 강제 (잠재 버그 예방)
@@ -178,5 +163,3 @@ TESTER/
 ## 📄 라이선스 (License)
 
 이 프로젝트의 소스 코드는 MIT 라이선스 하에 배포됩니다.
-
-> **Note**: 본 서비스를 통해 생성된 **테스트 코드(결과물)**에 대한 저작권은 **사용자(본인)**에게 귀속되며, 상업적 용도를 포함하여 자유롭게 수정 및 배포할 수 있습니다.

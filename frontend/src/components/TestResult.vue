@@ -98,7 +98,7 @@ onMounted(async () => {
     >
        <div class="bg-gray-800/50 px-6 py-3 border-b border-gray-800 flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-mono text-gray-500 uppercase">{{ store.selectedLanguage }} suite</span>
+            <span class="text-[10px] font-mono text-gray-400 uppercase">{{ store.selectedLanguage }} suite</span>
             <span v-if="store.generatedCode" class="text-[10px] text-gray-400">• Real-time rendering</span>
           </div>
           <button 

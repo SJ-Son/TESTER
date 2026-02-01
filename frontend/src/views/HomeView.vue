@@ -52,7 +52,7 @@ const handleGenerate = async () => {
       <!-- Top header -->
       <header class="h-16 border-b border-gray-800 px-8 flex items-center bg-gray-900/50 backdrop-blur-md sticky top-0 z-20">
         <div class="flex items-center space-x-3 text-xs font-bold font-mono uppercase tracking-widest transition-all duration-300">
-          <span class="text-gray-500">Runner</span>
+          <span class="text-gray-400">Runner</span>
           <span class="text-gray-700">></span>
           <span class="text-blue-400 text-sm">{{ store.selectedLanguage.toUpperCase() }}</span>
           

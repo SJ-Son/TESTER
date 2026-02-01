@@ -1,20 +1,32 @@
 import re
+
 from backend.src.languages.base import LanguageStrategy
+
 
 class JavaStrategy(LanguageStrategy):
     def validate_code(self, code: str) -> tuple[bool, str]:
         if not code.strip():
             return False, "코드를 입력해주세요."
-            
+
         # 1. Negative Check: 다른 언어(Python, JS 등)의 패턴 감지
         valid, msg = self.check_negative_patterns(code, "java")
         if not valid:
             return False, msg
 
         # 2. Positive Check: Java 키워드
-        java_keywords = [r'\bclass\b', r'\binterface\b', r'\bpublic\b', r'\bprivate\b', r'\bprotected\b', r'@Override']
+        java_keywords = [
+            r"\bclass\b",
+            r"\binterface\b",
+            r"\bpublic\b",
+            r"\bprivate\b",
+            r"\bprotected\b",
+            r"@Override",
+        ]
         if not any(re.search(k, code) for k in java_keywords):
-            return False, "유효한 Java 코드가 아닌 것 같습니다. (class 정의 또는 접근 제어자가 필요합니다)" 
+            return (
+                False,
+                "유효한 Java 코드가 아닌 것 같습니다. (class 정의 또는 접근 제어자가 필요합니다)",
+            )
 
         return True, ""
 

@@ -1,5 +1,6 @@
-from abc import ABC, abstractmethod
 import re
+from abc import ABC, abstractmethod
+
 
 class LanguageStrategy(ABC):
     """
@@ -14,32 +15,32 @@ class LanguageStrategy(ABC):
         """
         patterns = {
             "python": {
-                "regex": r'^\s*def\s+\w+\s*\(.*\)\s*:',
-                "msg": "Python 코드로 감지됩니다. 언어 설정을 'Python'으로 변경해주세요."
+                "regex": r"^\s*def\s+\w+\s*\(.*\)\s*:",
+                "msg": "Python 코드로 감지됩니다. 언어 설정을 'Python'으로 변경해주세요.",
             },
             "javascript": {
-                "regex": r'\bconsole\.log\b|\bfunction\s+\w+\s*\(',
-                "msg": "JavaScript 코드로 감지됩니다. 언어 설정을 'JavaScript'로 변경해주세요."
+                "regex": r"\bconsole\.log\b|\bfunction\s+\w+\s*\(",
+                "msg": "JavaScript 코드로 감지됩니다. 언어 설정을 'JavaScript'로 변경해주세요.",
             },
             "java": {
-                "regex": r'\bpublic\s+static\s+void\b|\bSystem\.out\.println\b',
-                "msg": "Java 코드로 감지됩니다. 언어 설정을 'Java'로 변경해주세요."
-            }
+                "regex": r"\bpublic\s+static\s+void\b|\bSystem\.out\.println\b",
+                "msg": "Java 코드로 감지됩니다. 언어 설정을 'Java'로 변경해주세요.",
+            },
         }
-        
+
         for lang, data in patterns.items():
             if lang == current_lang.lower():
                 continue
             if re.search(data["regex"], code, re.MULTILINE):
                 return False, data["msg"]
-        
+
         return True, ""
 
     @abstractmethod
     def validate_code(self, code: str) -> tuple[bool, str]:
         """
         입력된 코드가 해당 언어의 문법에 맞는지(또는 최소한의 키워드가 있는지) 검증합니다.
-        
+
         Returns:
             (is_valid, error_message)
         """
@@ -58,7 +59,7 @@ class LanguageStrategy(ABC):
         UI 입력창에 보여줄 예시 코드를 반환합니다.
         """
         pass
-    
+
     @abstractmethod
     def get_syntax_name(self) -> str:
         """

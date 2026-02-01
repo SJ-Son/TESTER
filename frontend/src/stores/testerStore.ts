@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import * as generatorApi from '../api/generator'
 
 export const useTesterStore = defineStore('tester', () => {
     // State
@@ -40,10 +41,8 @@ export const useTesterStore = defineStore('tester', () => {
     }
 
     const addToHistory = (input: string, result: string, language: string) => {
-        // Validation: Ensure result is not empty and not an error
         if (!result || result.startsWith('ERROR:')) return
 
-        // Duplicate Prevention: Check if identical to the most recent item
         if (history.value.length > 0) {
             const lastItem = history.value[0]
             if (lastItem.inputCode === input && lastItem.result === result) {
@@ -61,7 +60,6 @@ export const useTesterStore = defineStore('tester', () => {
 
         history.value.unshift(newItem)
 
-        // Limit to 5 items
         if (history.value.length > 5) {
             history.value = history.value.slice(0, 5)
         }
@@ -73,7 +71,6 @@ export const useTesterStore = defineStore('tester', () => {
         inputCode.value = item.inputCode
         generatedCode.value = item.result
         selectedLanguage.value = item.language
-        // Set streamEnded to true since we are restoring a completed result
         streamEnded.value = true
     }
 
@@ -83,51 +80,30 @@ export const useTesterStore = defineStore('tester', () => {
         error.value = ''
         generatedCode.value = ''
         isGenerating.value = true
-        // Safeguard: Reset streamEnded immediately
         streamEnded.value = false
 
         try {
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken.value}`
-                },
-                body: JSON.stringify({
+            await generatorApi.generateTestCode(
+                {
                     input_code: inputCode.value,
                     language: selectedLanguage.value,
                     model: selectedModel.value,
                     recaptcha_token: recaptchaToken
-                })
-            })
-
-            if (!response.ok) throw new Error('Failed to connect to server')
-
-            const reader = response.body?.getReader()
-            if (!reader) throw new Error('No stream available')
-
-            const decoder = new TextDecoder()
-
-            while (true) {
-                const { done, value } = await reader.read()
-                if (done) break
-
-                const chunk = decoder.decode(value, { stream: true })
-
-                if (chunk.startsWith('ERROR:')) {
-                    error.value = chunk.replace('ERROR:', '').trim()
-                    break
+                },
+                userToken.value,
+                (chunk: string) => {
+                    generatedCode.value += chunk
+                },
+                (errorMsg: string) => {
+                    error.value = errorMsg
                 }
-
-                generatedCode.value += chunk
-            }
+            )
         } catch (err: any) {
             error.value = err.message
         } finally {
             isGenerating.value = false
             streamEnded.value = true
 
-            // Refinement: Add to history directly here when successfully completed
             if (generatedCode.value && !error.value) {
                 addToHistory(inputCode.value, generatedCode.value, selectedLanguage.value)
             }

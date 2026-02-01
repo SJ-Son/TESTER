@@ -1,20 +1,33 @@
 import re
+
 from backend.src.languages.base import LanguageStrategy
+
 
 class JavaScriptStrategy(LanguageStrategy):
     def validate_code(self, code: str) -> tuple[bool, str]:
         if not code.strip():
             return False, "코드를 입력해주세요."
-        
+
         # 1. Negative Check: 다른 언어(Python, Java 등)의 강력한 특징이 있는가?
         valid, msg = self.check_negative_patterns(code, "javascript")
         if not valid:
             return False, msg
 
         # 2. Positive Check: JS 키워드가 있는가?
-        js_keywords = [r'\bfunction\b', r'\bconst\b', r'\blet\b', r'\bvar\b', r'=>', r'\bclass\b', r'\bconsole\.log\b']
+        js_keywords = [
+            r"\bfunction\b",
+            r"\bconst\b",
+            r"\blet\b",
+            r"\bvar\b",
+            r"=>",
+            r"\bclass\b",
+            r"\bconsole\.log\b",
+        ]
         if not any(re.search(k, code) for k in js_keywords):
-            return False, "유효한 JavaScript 코드가 아닌 것 같습니다. (함수나 변수 선언이 필요합니다)"
+            return (
+                False,
+                "유효한 JavaScript 코드가 아닌 것 같습니다. (함수나 변수 선언이 필요합니다)",
+            )
 
         return True, ""
 
@@ -38,6 +51,6 @@ class JavaScriptStrategy(LanguageStrategy):
 
     def get_placeholder(self) -> str:
         return "const add = (a, b) => {\n  return a + b;\n};"
-    
+
     def get_syntax_name(self) -> str:
         return "javascript"

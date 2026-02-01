@@ -1,16 +1,18 @@
 import ast
+
 from backend.src.languages.base import LanguageStrategy
+
 
 class PythonStrategy(LanguageStrategy):
     def validate_code(self, code: str) -> tuple[bool, str]:
         if not code.strip():
             return False, "코드를 입력해주세요."
-        
+
         # 1. Negative Check: 다른 언어(JS, Java) 패턴 감지
         valid, msg = self.check_negative_patterns(code, "python")
         if not valid:
             return False, msg
-        
+
         try:
             ast.parse(code)
             return True, ""

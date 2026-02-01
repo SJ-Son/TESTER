@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+
+
+## [0.2.1] - 2026-02-01
+
+### ♻️ Refactoring (안정성 개선)
+- **SSE Error Handling**: 구조화된 이벤트 스트림(`event: error`) 도입 및 명확한 에러 전달
+- **Frontend API Layer**: Store 내 fetch 로직을 `src/api/` 모듈로 분리 (유지보수성 향상)
+- **Exception Handling**: 포괄적 예외 처리 개선 및 구체적 에러 타입 도입
+
+## [0.2.0] - 2026-02-01
+
+### ♻️ Refactoring (코드 구조 개선)
+- **Backend Structure**: `main.py`를 `api/v1/{auth, generator, health, deps}.py`로 도메인별 분리
+- **Linting & Formatting**: `ruff` 및 `pre-commit` 훅 도입으로 코드 스타일 통일 및 자동화
+
 ## [0.1.2] - 2026-02-01
 
 ### ✨ Features (기능 추가)
@@ -14,12 +29,16 @@
 - **Modal UX**: 법적 고지 및 체인지로그 페이지를 오버레이 모달 형태로 개선 (문맥 유지)
 - **Performance**: `highlight.js` 코드 분할 및 Gzip 압축 적용 (초기 로딩 속도 개선)
 - **SEO**: 메타 태그 최적화 및 `robots.txt`, `sitemap.xml` 생성 for Search Engine Indexing
+- **Accessibility**: 텍스트 대비(Contrast) 개선 및 Form Label 연결로 WCAG 접근성 기준 준수
 
 
 
 ### 🛡️ Security & Trust (보안 및 신뢰)
 - **Policy**: 개인정보처리방침에 '소스 코드 영구 저장 금지' 조항(제3조) 신설
 - **UI**: 에디터 하단에 "코드는 저장되지 않음" 안내 문구(Shield Icon) 추가
+- **Headers**: 보안 헤더(HSTS Preload, XFO, CSP) 적용으로 웹 취약점 방어 강화 (Trust & Safety)
+- **Routing**: `robots.txt` 및 `sitemap.xml` 정적 파일 서빙 라우트 추가 (SEO 색인 오류 해결)
+- **Polish**: 헤더 가독성 추가 개선 및 HSTS Preload 적용
 
 ## [0.1.1] - 2026-01-31
 
