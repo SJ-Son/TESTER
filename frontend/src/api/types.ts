@@ -6,7 +6,7 @@ export interface GenerateRequest {
     input_code: string
     language: string
     model: string
-    recaptcha_token: string
+    turnstile_token: string
 }
 
 export interface SSEChunk {

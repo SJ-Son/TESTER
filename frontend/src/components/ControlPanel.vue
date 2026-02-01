@@ -4,6 +4,7 @@ import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, Code, Info, ChevronRight, History } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import * as authApi from '../api/auth'
+import { loadGoogleSignIn } from '../utils/lazyLoad'
 
 const store = useTesterStore()
 const isSdkLoading = ref(true)
@@ -33,35 +34,41 @@ const logout = () => {
   setTimeout(initGoogleLogin, 100)
 }
 
-const initGoogleLogin = () => {
+const initGoogleLogin = async () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   if (!clientId) {
     isSdkLoading.value = false
     return
   }
 
-  // @ts-ignore
-  if (typeof google !== 'undefined' && google.accounts) {
+  try {
+    // Lazy load Google Sign-In SDK
+    await loadGoogleSignIn()
+    
     // @ts-ignore
-    google.accounts.id.initialize({
-      client_id: clientId,
-      callback: (res: any) => handleGoogleLogin(res),
-      use_fedcm_for_prompt: false
-    })
-    // @ts-ignore
-    google.accounts.id.renderButton(
-      document.getElementById("google-login-btn"),
-      { 
-        theme: "filled_black", 
-        size: "large", 
-        width: 272,
-        shape: "rectangular",
-        logo_alignment: "left"
-      }
-    )
+    if (typeof google !== 'undefined' && google.accounts) {
+      // @ts-ignore
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (res: any) => handleGoogleLogin(res),
+        use_fedcm_for_prompt: false
+      })
+      // @ts-ignore
+      google.accounts.id.renderButton(
+        document.getElementById("google-login-btn"),
+        { 
+          theme: "filled_black", 
+          size: "large", 
+          width: 272,
+          shape: "rectangular",
+          logo_alignment: "left"
+        }
+      )
+      isSdkLoading.value = false
+    }
+  } catch (error) {
+    console.error('Failed to load Google Sign-In:', error)
     isSdkLoading.value = false
-  } else {
-    setTimeout(initGoogleLogin, 100)
   }
 }
 

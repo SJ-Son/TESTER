@@ -4,6 +4,44 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-01
+
+### ✨ Features (기능 추가)
+- **Cloudflare Turnstile**: Google reCAPTCHA v3를 Cloudflare Turnstile로 완전 대체
+  - Invisible 모드 적용으로 사용자 경험 개선
+  - 서드 파티 쿠키 31개 완전 제거
+  - 개인정보 보호 대폭 강화 (GDPR/CCPA 준수)
+- **Lazy Loading**: Turnstile 스크립트 지연 로딩 구현 (`frontend/src/utils/lazyLoad.ts`)
+- **Backend Script**: PYTHONPATH 자동 설정 스타트업 스크립트 (`backend/start_server.sh`)
+
+### ♻️ Refactoring (코드 구조 개선)
+- **Backend API**: 
+  - `verify_recaptcha()` → `verify_turnstile()` 함수 교체
+  - `RecaptchaError` → `TurnstileError` 예외 클래스 명명 변경
+  - API 엔드포인트 필드명 `recaptcha_token` → `turnstile_token` 변경
+- **Backend Settings**:
+  - 환경 변수 `RECAPTCHA_SECRET_KEY` → `TURNSTILE_SECRET_KEY` 변경
+  - CSP 헤더에 Cloudflare 도메인 추가
+- **Frontend Integration**:
+  - reCAPTCHA lazy loading → Turnstile lazy loading 교체
+  - 환경 변수 `VITE_RECAPTCHA_SITE_KEY` → `VITE_TURNSTILE_SITE_KEY` 변경
+  - API 타입 및 Store 업데이트
+
+### ⚡️ Performance (성능 최적화)
+- **초기 로드 최적화**: ~175 KiB JavaScript 제거 (reCAPTCHA 스크립트)
+- **Lazy Loading**: Turnstile 스크립트를 Generate 버튼 클릭 시에만 로딩
+- **네트워크 최적화**: 초기 페이지 로드 시 서드 파티 요청 0개
+
+### 🛡️ Security (보안)
+- **Privacy**: 서드 파티 쿠키 31개 → 0개 (100% 제거)
+- **API Protection**: 유효한 Turnstile 토큰 없이는 백엔드 API 호출 불가
+- **Bot Detection**: Cloudflare Turnstile의 고급 봇 감지 기능 활용
+
+### 📝 Documentation (문서)
+- Turnstile 설정 가이드 완비
+- 마이그레이션 문서 및 테스트 결과 문서화
+- `.env.example` 파일 업데이트
+
 
 
 ## [0.2.1] - 2026-02-01

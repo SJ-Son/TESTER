@@ -5,8 +5,11 @@ import { RefreshCcw } from 'lucide-vue-next'
 import ControlPanel from '../components/ControlPanel.vue'
 import CodeEditor from '../components/CodeEditor.vue'
 import TestResult from '../components/TestResult.vue'
+import { loadTurnstile } from '../utils/lazyLoad'
 
 const store = useTesterStore()
+const turnstileToken = ref<string | null>(null)
+let turnstileWidgetId: string | null = null
 
 onMounted(() => {
   store.loadHistory()
@@ -14,28 +17,49 @@ onMounted(() => {
 
 const handleGenerate = async () => {
   try {
-    const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
-    if (!siteKey) throw new Error('reCAPTCHA Site Key is not configured')
+    const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+    if (!siteKey) throw new Error('Turnstile Site Key가 설정되지 않았습니다')
     
-    // @ts-ignore
-    const recaptchaToken = await new Promise<string>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('reCAPTCHA timeout')), 8000)
-      // @ts-ignore
-      if (typeof grecaptcha === 'undefined') {
-        reject(new Error('reCAPTCHA not loaded'))
+    // Lazy load Turnstile on first use
+    await loadTurnstile()
+    
+    // Create invisible Turnstile challenge
+    const token = await new Promise<string>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Turnstile 시간 초과')), 10000)
+      
+      if (typeof window.turnstile === 'undefined') {
+        reject(new Error('Turnstile이 로드되지 않았습니다'))
         return
       }
-      // @ts-ignore
-      grecaptcha.ready(() => {
-        // @ts-ignore
-        grecaptcha.execute(siteKey, { action: 'generate' }).then((token: string) => {
-           clearTimeout(timeout)
-           resolve(token)
-        }).catch(reject)
-      })
+      
+      // Create a temporary container element
+      const container = document.createElement('div')
+      container.style.position = 'fixed'
+      container.style.top = '-9999px'
+      document.body.appendChild(container)
+      
+      try {
+        turnstileWidgetId = window.turnstile.render(container, {
+          sitekey: siteKey,
+          callback: (token: string) => {
+            clearTimeout(timeout)
+            document.body.removeChild(container)
+            resolve(token)
+          },
+          'error-callback': () => {
+            clearTimeout(timeout)
+            document.body.removeChild(container)
+            reject(new Error('Turnstile 검증 실패'))
+          },
+        })
+      } catch (error) {
+        clearTimeout(timeout)
+        document.body.removeChild(container)
+        reject(error)
+      }
     })
 
-    await store.generateTestCode(recaptchaToken)
+    await store.generateTestCode(token)
   } catch (err: any) {
     store.error = err.message
   }
