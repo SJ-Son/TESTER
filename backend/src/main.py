@@ -105,7 +105,39 @@ async def google_auth(data: TokenRequest):
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Step 5: Logging Middleware
+# Step 5a: Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    
+    # 1. HSTS (Strict-Transport-Security) - Force HTTPS for 1 year
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # 2. X-Content-Type-Options - Prevent MIME sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    
+    # 3. X-Frame-Options - Prevent Clickjacking
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    
+    # 4. Referrer-Policy - Privacy control
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # 5. Content-Security-Policy (CSP) - Mitigate XSS
+    # Whitelisting Google Auth, Gemini, Fonts, etc.
+    csp_policy = (
+        "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com; "
+        "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
+        "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com; "
+        "font-src 'self' https://fonts.gstatic.com data:; "
+        "connect-src 'self' https://accounts.google.com https://www.google.com; "
+        "frame-src 'self' https://accounts.google.com https://www.google.com https://recaptcha.google.com;"
+    )
+    response.headers["Content-Security-Policy"] = csp_policy
+    
+    return response
+
+# Step 5b: Logging Middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
@@ -202,6 +234,20 @@ if os.path.exists(FRONTEND_DIST):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
     # Serve index.html for SPA
+    @app.get("/robots.txt")
+    async def get_robots_txt():
+        robots_file = os.path.join(FRONTEND_DIST, "robots.txt")
+        if os.path.exists(robots_file):
+            return FileResponse(robots_file)
+        return {"error": "robots.txt not found"}
+
+    @app.get("/sitemap.xml")
+    async def get_sitemap_xml():
+        sitemap_file = os.path.join(FRONTEND_DIST, "sitemap.xml")
+        if os.path.exists(sitemap_file):
+            return FileResponse(sitemap_file)
+        return {"error": "sitemap.xml not found"}
+
     @app.get("/{rest_of_path:path}")
     async def serve_frontend(rest_of_path: str):
         # Don't intercept /api routes

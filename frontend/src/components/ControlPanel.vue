@@ -87,7 +87,7 @@ onMounted(() => {
 
     <!-- Auth Section -->
     <div class="space-y-4">
-      <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block">Authentication</label>
+      <label class="text-xs font-semibold text-gray-400 uppercase tracking-widest block">Authentication</label>
       
       <div v-if="!store.isLoggedIn" class="relative group">
         <div v-if="isSdkLoading" class="w-full h-[40px] bg-gray-800 animate-pulse rounded-lg border border-gray-700"></div>
@@ -97,7 +97,7 @@ onMounted(() => {
         </div>
         
         <!-- Frictionless Consent Notice -->
-        <p class="mt-3 text-[10px] text-gray-500 text-center leading-tight">
+        <p class="mt-3 text-[10px] text-gray-400 text-center leading-tight">
           계속 진행 시 
           <span class="text-blue-500/80 hover:text-blue-400 hover:underline cursor-pointer transition-colors" @click.stop.prevent="$router.push('/terms')">이용약관</span> 및 
           <span class="text-blue-500/80 hover:text-blue-400 hover:underline cursor-pointer transition-colors" @click.stop.prevent="$router.push('/privacy')">개인정보처리방침</span>에<br>
@@ -122,15 +122,16 @@ onMounted(() => {
     <div class="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-1">
 
       <div>
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-3">Model</label>
+        <label for="model-select" class="text-xs font-semibold text-gray-400 uppercase tracking-widest block mb-3">Model</label>
         <div class="relative group">
           <select 
+            id="model-select"
             v-model="store.selectedModel"
             class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
           >
             <option v-for="m in models" :value="m.id">{{ m.name }}</option>
           </select>
-          <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
             <ChevronRight class="w-4 h-4 rotate-90" />
           </div>
         </div>

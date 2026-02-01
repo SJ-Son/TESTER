@@ -29,7 +29,7 @@ const handleGenerate = () => {
           :key="lang.id"
           @click="store.selectedLanguage = lang.id"
           class="px-2 py-1 rounded-md text-[9px] font-black transition-all duration-200 tracking-tighter"
-          :class="store.selectedLanguage === lang.id ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-300'"
+          :class="store.selectedLanguage === lang.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-300'"
         >
           {{ lang.label }}
         </button>
