@@ -19,11 +19,11 @@ class LanguageStrategy(ABC):
                 "msg": "Python 코드로 감지됩니다. 언어 설정을 'Python'으로 변경해주세요.",
             },
             "javascript": {
-                "regex": r"\bconsole\.log\b|\bfunction\s+\w+\s*\(",
+                "regex": r"\bconsole\.log\b|\bfunction\s+\w+\s*\(|\bconst\s+\w+\s*=|=>|\blet\s+\w+\b",
                 "msg": "JavaScript 코드로 감지됩니다. 언어 설정을 'JavaScript'로 변경해주세요.",
             },
             "java": {
-                "regex": r"\bpublic\s+static\s+void\b|\bSystem\.out\.println\b",
+                "regex": r"\bpublic\s+(?:class|interface|void|int|double|String|boolean)\b|\bprivate\s+\w+\b|\bprotected\s+\w+\b|\bSystem\.out\.println\b",
                 "msg": "Java 코드로 감지됩니다. 언어 설정을 'Java'로 변경해주세요.",
             },
         }
