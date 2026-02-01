@@ -1,10 +1,5 @@
 # TESTER
 
-![Version](https://img.shields.io/badge/version-0.1.2-blue?style=for-the-badge)
-[![Build Status](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml)
-![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-[![Live Demo](https://img.shields.io/badge/demo-live-red?style=for-the-badge)](https://testcased.dev)
-
 <div align="center">
   <img src="https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D" alt="Vue.js" />
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
@@ -178,5 +173,3 @@ TESTER/
 ## 📄 라이선스 (License)
 
 이 프로젝트의 소스 코드는 MIT 라이선스 하에 배포됩니다.
-
-> **Note**: 본 서비스를 통해 생성된 **테스트 코드(결과물)**에 대한 저작권은 **사용자(본인)**에게 귀속되며, 상업적 용도를 포함하여 자유롭게 수정 및 배포할 수 있습니다.
