@@ -189,11 +189,26 @@ pre-commit install
 ---
 ## TODO
 
-### 최적화 및 고도화 (Optimization)
-*   [ ] **같은질문 다른대답 (Caching)**: 동일 요청에 대한 캐싱 로직 고도화 (비용 절감)
-*   [ ] **Structured Logging**: JSON 포맷 로깅 도입 및 Request ID 추적 (관측 가능성)
-*   [ ] **Strict Typing**: `mypy` 도입 및 타입 힌트 강제 (잠재 버그 예방)
-*   [ ] **Frontend Composables**: 비즈니스 로직 분리 (Pinia 다이어트)    
+### Phase 3: 품질 및 운영 (Quality & Operations)
+
+#### 🧪 Testing & Quality
+*   [ ] **Unit Testing**: Backend pytest 테스트 작성 (핵심 로직 커버리지 80%+)
+*   [ ] **Frontend Testing**: Vitest + Vue Test Utils로 컴포넌트 테스트
+*   [ ] **E2E Testing**: Playwright로 주요 사용자 플로우 테스트 (로그인 → 생성)
+
+#### 🚀 CI/CD & Automation  
+*   [ ] **GitHub Actions**: PR마다 자동 테스트 + 린팅 실행
+*   [ ] **Automated Deployment**: develop → staging, main → production 자동 배포
+*   [ ] **Dependency Updates**: Dependabot으로 보안 패치 자동화
+
+#### 📊 Monitoring & Observability
+*   [ ] **Error Tracking**: Sentry 통합 (실시간 에러 알림)
+*   [ ] **Performance Metrics**: 응답 시간, 성공률 추적 (FastAPI middleware)
+*   [ ] **User Analytics**: 사용 패턴 분석 (Google Analytics or Mixpanel)
+
+#### 📚 Documentation
+*   [ ] **API Documentation**: FastAPI Swagger UI 개선 및 예제 추가
+*   [ ] **Development Guide**: 기여자를 위한 개발 가이드 작성    
 ---
 
 ## 📄 라이선스 (License)
