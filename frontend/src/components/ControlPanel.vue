@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, Code, Info, ChevronRight, History } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
@@ -60,9 +60,17 @@ const initGoogleLogin = async () => {
         callback: (res: any) => handleGoogleLogin(res),
         use_fedcm_for_prompt: false
       })
+      // Ensure DOM is ready before rendering
+      await nextTick()
+      const parent = document.getElementById("google-login-btn")
+      if (!parent) {
+        console.warn('Google login button parent element not found')
+        return
+      }
+
       // @ts-ignore
       google.accounts.id.renderButton(
-        document.getElementById("google-login-btn"),
+        parent,
         { 
           theme: "filled_black", 
           size: "large", 
