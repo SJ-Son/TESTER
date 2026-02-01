@@ -1,9 +1,17 @@
 # TESTER
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-green)
-[![Live Demo](https://img.shields.io/badge/demo-live-red)](https://testcased.dev)
+![Version](https://img.shields.io/badge/version-0.1.2-blue?style=for-the-badge)
+[![Build Status](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+[![Live Demo](https://img.shields.io/badge/demo-live-red?style=for-the-badge)](https://testcased.dev)
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D" alt="Vue.js" />
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+</div>
 
 **TESTER**는 FastAPI와 Vue 3로 구성된 웹 애플리케이션입니다. Google Generative AI를 이용한 콘텐츠 생성 및 인증 시스템을 포함합니다.
 
@@ -15,6 +23,8 @@
 *   🚀 **API 서버**: Python FastAPI 기반 비동기 백엔드 구성
 *   🎨 **UI**: Vue 3, TypeScript, TailwindCSS 기반 인터페이스
 *   🔐 **인증**: JWT 및 Google OAuth 기반 사용자 인증
+*   🛡️ **신뢰**: 소스 코드 **비저장(RAM-only)** 및 즉시 파기 정책
+*   📜 **법적 고지**: 이용약관 및 개인정보처리방침 페이지 (`/terms`, `/privacy`)
 *   📦 **인프라**: Docker 컨테이너 및 Firebase Hosting 배포 환경
 
 ---
@@ -114,7 +124,8 @@ TESTER/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/   # 재사용 가능한 UI 컴포넌트
-│   │   ├── views/        # 페이지 뷰
+│   │   ├── views/        # 페이지 뷰 (Home, Legal, Changelog)
+│   │   ├── router/       # Vue Router 설정
 │   │   ├── stores/       # Pinia 상태 관리
 │   │   └── ...
 │   ├── package.json      # 프론트엔드 의존성 목록
@@ -166,4 +177,6 @@ TESTER/
 
 ## 📄 라이선스 (License)
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 
+이 프로젝트의 소스 코드는 MIT 라이선스 하에 배포됩니다.
+
+> **Note**: 본 서비스를 통해 생성된 **테스트 코드(결과물)**에 대한 저작권은 **사용자(본인)**에게 귀속되며, 상업적 용도를 포함하여 자유롭게 수정 및 배포할 수 있습니다.

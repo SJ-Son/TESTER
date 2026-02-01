@@ -11,6 +11,10 @@
 - **Consent Flow**: 로그인 시 무마찰(Frictionless) 동의 UX 적용 ("계속 진행 시 동의로 간주")
 - **Router**: `vue-router` 도입으로 페이지 라우팅 구조(SPA) 구축
 - **Changelog Sync**: `CHANGELOG.md` 파일과 `/changelog` 페이지 자동 동기화 구현
+- **Modal UX**: 법적 고지 및 체인지로그 페이지를 오버레이 모달 형태로 개선 (문맥 유지)
+- **Performance**: `highlight.js` 코드 분할 및 Gzip 압축 적용 (초기 로딩 속도 개선)
+- **SEO**: 메타 태그 최적화 및 `robots.txt`, `sitemap.xml` 생성 for Search Engine Indexing
+
 
 
 ### 🛡️ Security & Trust (보안 및 신뢰)
