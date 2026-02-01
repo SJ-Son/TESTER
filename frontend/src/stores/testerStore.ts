@@ -74,7 +74,7 @@ export const useTesterStore = defineStore('tester', () => {
         streamEnded.value = true
     }
 
-    const generateTestCode = async (recaptchaToken: string) => {
+    const generateTestCode = async (turnstileToken: string) => {
         if (!inputCode.value.trim() || !isLoggedIn.value) return
 
         error.value = ''
@@ -88,7 +88,7 @@ export const useTesterStore = defineStore('tester', () => {
                     input_code: inputCode.value,
                     language: selectedLanguage.value,
                     model: selectedModel.value,
-                    recaptcha_token: recaptchaToken
+                    turnstile_token: turnstileToken
                 },
                 userToken.value,
                 (chunk: string) => {

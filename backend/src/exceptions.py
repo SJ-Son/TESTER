@@ -17,11 +17,11 @@ class ValidationError(TesterException):
         super().__init__(message, code="VALIDATION_ERROR")
 
 
-class RecaptchaError(TesterException):
-    """Raised when reCAPTCHA verification fails."""
+class TurnstileError(TesterException):
+    """Raised when Cloudflare Turnstile verification fails."""
 
     def __init__(self, message: str = "Bot detection failed"):
-        super().__init__(message, code="RECAPTCHA_FAILED")
+        super().__init__(message, code="TURNSTILE_FAILED")
 
 
 class GenerationError(TesterException):

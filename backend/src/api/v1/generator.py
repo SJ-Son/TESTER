@@ -8,8 +8,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.src.api.v1.deps import limiter
-from backend.src.auth import get_current_user, verify_recaptcha
-from backend.src.exceptions import GenerationError, RecaptchaError, ValidationError
+from backend.src.auth import get_current_user, verify_turnstile
+from backend.src.exceptions import GenerationError, TurnstileError, ValidationError
 from backend.src.languages.factory import LanguageFactory
 from backend.src.services.gemini_service import GeminiService
 
@@ -30,7 +30,7 @@ class GenerateRequest(BaseModel):
     input_code: str
     language: str
     model: str = "gemini-3-flash-preview"
-    recaptcha_token: str = Field(..., description="reCAPTCHA v3 token")
+    turnstile_token: str = Field(..., description="Cloudflare Turnstile token")
 
 
 def format_sse_event(event_type: str, data: dict) -> str:
@@ -45,9 +45,9 @@ async def generate_test(
 ):
     """Streams generated code using Server-Sent Events with structured error handling."""
 
-    # 1. reCAPTCHA Verify
-    if not await verify_recaptcha(data.recaptcha_token):
-        raise RecaptchaError()
+    # 1. Turnstile Verify
+    if not await verify_turnstile(data.turnstile_token):
+        raise TurnstileError()
 
     if not gemini_service:
         raise HTTPException(status_code=503, detail="Service Unavailable: AI Model not initialized")
@@ -94,8 +94,8 @@ async def generate_test(
         raise HTTPException(
             status_code=422, detail={"code": e.code, "message": e.message}
         ) from None
-    except RecaptchaError as e:
-        logger.error(f"Recaptcha failed: {e.message}")
+    except TurnstileError as e:
+        logger.error(f"Turnstile failed: {e.message}")
         raise HTTPException(
             status_code=403, detail={"code": e.code, "message": e.message}
         ) from None

@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, Code, Info, ChevronRight, History } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import * as authApi from '../api/auth'
+import { loadGoogleSignIn } from '../utils/lazyLoad'
+// @ts-ignore
+import changelogRaw from '../../../CHANGELOG.md?raw'
 
 const store = useTesterStore()
 const isSdkLoading = ref(true)
+
+const currentVersion = computed(() => {
+  const match = changelogRaw.match(/## \[(\d+\.\d+\.\d+)\]/)
+  return match ? `v${match[1]}` : 'v0.3.0'
+})
 
 const languages = [
   { id: 'python', name: 'Python', icon: 'py' },
@@ -33,35 +41,49 @@ const logout = () => {
   setTimeout(initGoogleLogin, 100)
 }
 
-const initGoogleLogin = () => {
+const initGoogleLogin = async () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   if (!clientId) {
     isSdkLoading.value = false
     return
   }
 
-  // @ts-ignore
-  if (typeof google !== 'undefined' && google.accounts) {
+  try {
+    // Lazy load Google Sign-In SDK
+    await loadGoogleSignIn()
+    
     // @ts-ignore
-    google.accounts.id.initialize({
-      client_id: clientId,
-      callback: (res: any) => handleGoogleLogin(res),
-      use_fedcm_for_prompt: false
-    })
-    // @ts-ignore
-    google.accounts.id.renderButton(
-      document.getElementById("google-login-btn"),
-      { 
-        theme: "filled_black", 
-        size: "large", 
-        width: 272,
-        shape: "rectangular",
-        logo_alignment: "left"
+    if (typeof google !== 'undefined' && google.accounts) {
+      // @ts-ignore
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (res: any) => handleGoogleLogin(res),
+        use_fedcm_for_prompt: false
+      })
+      // Ensure DOM is ready before rendering
+      await nextTick()
+      const parent = document.getElementById("google-login-btn")
+      if (!parent) {
+        console.warn('Google login button parent element not found')
+        return
       }
-    )
+
+      // @ts-ignore
+      google.accounts.id.renderButton(
+        parent,
+        { 
+          theme: "filled_black", 
+          size: "large", 
+          width: 272,
+          shape: "rectangular",
+          logo_alignment: "left"
+        }
+      )
+      isSdkLoading.value = false
+    }
+  } catch (error) {
+    console.error('Failed to load Google Sign-In:', error)
     isSdkLoading.value = false
-  } else {
-    setTimeout(initGoogleLogin, 100)
   }
 }
 
@@ -151,7 +173,7 @@ onMounted(() => {
         <router-link to="/privacy" class="hover:text-blue-400 transition-colors">개인정보처리방침</router-link>
       </div>
       <div class="text-[9px] text-gray-700 text-center font-mono">
-        <router-link to="/changelog" class="hover:text-blue-500 transition-colors">v0.1.2</router-link> &copy; TESTER
+        <router-link to="/changelog" class="hover:text-blue-500 transition-colors uppercase tracking-widest">{{ currentVersion }}</router-link> &copy; TESTER
       </div>
     </div>
   </aside>

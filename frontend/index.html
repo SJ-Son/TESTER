@@ -7,34 +7,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark">
     <title>TESTER - AI Test Code Generator</title>
-    <meta name="description" content="Generate high-quality test suites for Python, JavaScript, and Java using Google Gemini AI. Frictionless, secure, and instant.">
-    
+    <meta name="description"
+        content="Generate high-quality test suites for Python, JavaScript, and Java using Google Gemini AI. Frictionless, secure, and instant.">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://testcased.dev/">
     <meta property="og:title" content="TESTER - AI Test Code Generator">
-    <meta property="og:description" content="Generate high-quality test suites using Google Gemini AI. Instant, secure, and frictionless.">
+    <meta property="og:description"
+        content="Generate high-quality test suites using Google Gemini AI. Instant, secure, and frictionless.">
     <meta property="og:image" content="https://testcased.dev/og-image.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://testcased.dev/">
     <meta property="twitter:title" content="TESTER - AI Test Code Generator">
-    <meta property="twitter:description" content="Generate high-quality test suites using Google Gemini AI. Instant, secure, and frictionless.">
+    <meta property="twitter:description"
+        content="Generate high-quality test suites using Google Gemini AI. Instant, secure, and frictionless.">
 
-    <!-- Fonts optimization -->
+    <!-- Fonts optimization with preload for critical font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Changed display=swap for better performance and added &swap parameter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    </noscript>
 
-    <!-- DNS and Connection Pre-optimization -->
-    <link rel="preconnect" href="https://accounts.google.com">
-    <link rel="preconnect" href="https://www.google.com">
-    <link rel="preconnect" href="https://www.gstatic.com">
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Google reCAPTCHA v3 (Vite will inject the site key at build time) -->
-    <script src="https://www.google.com/recaptcha/api.js?render=%VITE_RECAPTCHA_SITE_KEY%" async defer></script>
+    <!-- DNS Pre-optimization for on-demand loaded scripts -->
+    <link rel="dns-prefetch" href="https://accounts.google.com">
+    <link rel="dns-prefetch" href="https://www.google.com">
+    <!-- Google Identity Services and reCAPTCHA will be loaded lazily when needed -->
 </head>
 
 <body class="bg-gray-950 text-gray-100">

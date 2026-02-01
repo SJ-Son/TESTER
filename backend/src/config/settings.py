@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     JWT_SECRET: str = "yoursecretkey-change-me-in-production"
-    RECAPTCHA_SECRET_KEY: str = ""
+    TURNSTILE_SECRET_KEY: str = ""  # Cloudflare Turnstile secret key
 
     # CORS Settings
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:8080"

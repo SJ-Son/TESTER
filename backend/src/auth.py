@@ -62,26 +62,23 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Could not validate credentials") from None
 
 
-async def verify_recaptcha(token: str) -> bool:
-    if not settings.RECAPTCHA_SECRET_KEY:
+async def verify_turnstile(token: str) -> bool:
+    """Verify Cloudflare Turnstile token."""
+    if not settings.TURNSTILE_SECRET_KEY:
         # Secret key가 없으면 검증을 건너뜁니다 (개발 환경 대비)
-        logger.warning("RECAPTCHA_SECRET_KEY not set. Skipping verification.")
+        logger.warning("TURNSTILE_SECRET_KEY not set. Skipping verification.")
         return True
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "https://www.google.com/recaptcha/api/siteverify",
-            data={"secret": settings.RECAPTCHA_SECRET_KEY, "response": token},
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+            json={"secret": settings.TURNSTILE_SECRET_KEY, "response": token},
         )
         result = response.json()
-        if not result.get("success"):
-            logger.error(f"reCAPTCHA verification failed: {result.get('error-codes')}")
-            return False
 
-        # v3에서는 점수를 확인합니다 (0.0 ~ 1.0)
-        score = result.get("score", 0)
-        if score < 0.5:  # 0.5 미만은 봇으로 간주
-            logger.warning(f"reCAPTCHA score too low: {score}")
+        if not result.get("success"):
+            error_codes = result.get("error-codes", [])
+            logger.error(f"Turnstile verification failed: {error_codes}")
             return False
 
         return True
