@@ -35,7 +35,7 @@
             일시적인 목적(RAM)으로만 사용되며, <strong>서버나 데이터베이스에 영구적으로 저장되지 않습니다.</strong>
           </p>
           <div class="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs">
-            <p class="text-blue-400 font-semibold mb-1">🤖 AI 학습 미이용 안내</p>
+            <p class="text-blue-400 font-semibold mb-1"> AI 학습 미이용 안내</p>
             <p>본 서비스는 사용자가 입력한 코드나 생성된 결과를 AI 모델(Gemini)의 학습용 데이터로 제공하거나 내부적으로 학습에 활용하지 않습니다.</p>
           </div>
         </section>
