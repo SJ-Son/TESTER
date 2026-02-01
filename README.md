@@ -1,9 +1,17 @@
 # TESTER
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-green)
-[![Live Demo](https://img.shields.io/badge/demo-live-red)](https://testcased.dev)
+![Version](https://img.shields.io/badge/version-0.1.2-blue?style=for-the-badge)
+[![Build Status](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/SJ-Son/TESTER/actions/workflows/deploy-prod.yml)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+[![Live Demo](https://img.shields.io/badge/demo-live-red?style=for-the-badge)](https://testcased.dev)
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D" alt="Vue.js" />
+  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+</div>
 
 **TESTER**는 FastAPI와 Vue 3로 구성된 웹 애플리케이션입니다. Google Generative AI를 이용한 콘텐츠 생성 및 인증 시스템을 포함합니다.
 
