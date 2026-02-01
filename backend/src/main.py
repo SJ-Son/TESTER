@@ -97,7 +97,7 @@ async def log_requests(request: Request, call_next):
     start_time = time.time()
     try:
         response = await call_next(request)
-        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+        response.headers["Cross-Origin-Opener-Policy"] = "unsafe-none"
         process_time = time.time() - start_time
         logger.info(
             f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s"
