@@ -30,10 +30,10 @@
         </section>
 
         <section>
-          <h2 class="text-lg font-semibold text-white mb-2">제 4 조 (회원의 의무)</h2>
+          <h2 class="text-lg font-semibold text-white mb-2">제 4 조 (회원의 의무 및 권리)</h2>
           <ul class="list-disc pl-5 mt-2 space-y-1">
             <li>회원은 관계법령, 본 약관의 규정, 이용안내 및 서비스와 관련하여 공지한 주의사항을 준수해야 합니다.</li>
-            <li>회원은 서비스를 이용하여 얻은 정보를 서비스 운영자의 사전 승낙 없이 복사, 복제, 변경, 번역, 출판, 방송 기타의 방법으로 사용하거나 이를 타인에게 제공할 수 없습니다.</li>
+            <li>서비스의 UI, 로직 등 지식재산권은 운영자에게 귀속되나, <strong>서비스를 통해 생성된 결과물(테스트 코드)</strong>에 대한 권리는 <strong>회원에게 있으며, 이를 자유롭게 수정/배포/상업적으로 이용할 수 있습니다.</strong></li>
           </ul>
         </section>
 

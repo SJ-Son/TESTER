@@ -10,7 +10,14 @@
 - **Legal**: 이용약관(`/terms`) 및 개인정보처리방침(`/privacy`) 페이지 구현
 - **Consent Flow**: 로그인 시 무마찰(Frictionless) 동의 UX 적용 ("계속 진행 시 동의로 간주")
 - **Router**: `vue-router` 도입으로 페이지 라우팅 구조(SPA) 구축
+- **Changelog Sync**: `CHANGELOG.md` 파일과 `/changelog` 페이지 자동 동기화 구현
 
+
+### 🛡️ Security & Trust (보안 및 신뢰)
+- **Policy**: 개인정보처리방침에 '소스 코드 영구 저장 금지' 조항(제3조) 신설
+- **UI**: 에디터 하단에 "코드는 저장되지 않음" 안내 문구(Shield Icon) 추가
+
+## [0.1.1] - 2026-01-31
 
 ### ⚡️ Performance (성능 최적화)
 - **Backend**: `In-Memory LRU Cache` 도입으로 중복 요청에 대한 응답 속도 및 API 비용 절감

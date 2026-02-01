@@ -157,7 +157,7 @@ onMounted(() => {
         <router-link to="/privacy" class="hover:text-blue-400 transition-colors">개인정보처리방침</router-link>
       </div>
       <div class="text-[9px] text-gray-700 text-center font-mono">
-        v0.1.0 &copy; TESTER
+        <router-link to="/changelog" class="hover:text-blue-500 transition-colors">v0.1.2</router-link> &copy; TESTER
       </div>
     </div>
   </aside>

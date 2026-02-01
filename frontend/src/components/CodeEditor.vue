@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTesterStore } from '../stores/testerStore'
-import { Languages, Send, RefreshCcw } from 'lucide-vue-next'
+import { Languages, Send, RefreshCcw, ShieldCheck } from 'lucide-vue-next'
 
 const store = useTesterStore()
 
@@ -57,9 +57,16 @@ const handleGenerate = () => {
         <p class="text-xs font-medium text-white bg-blue-600 px-4 py-2 rounded-full shadow-xl">Please Login First</p>
       </div>
       
-      <p class="absolute -bottom-6 right-2 text-[9px] text-gray-600 font-medium">
-        Rate Limit: 5 requests / min per IP
-      </p>
+      <div class="absolute -bottom-6 inset-x-2 flex items-center justify-between">
+        <div class="flex items-center space-x-1.5 text-[10px] text-gray-500/80">
+          <ShieldCheck class="w-3 h-3 text-green-500/70 shrink-0" />
+          <span class="truncate">입력하신 코드는 서버에 <strong>저장되지 않습니다</strong>.</span>
+        </div>
+
+        <p class="text-[9px] text-gray-600 font-medium shrink-0 ml-4">
+          Limit: 5/min
+        </p>
+      </div>
     </div>
   </section>
 </template>

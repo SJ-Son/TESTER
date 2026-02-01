@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import PrivacyPolicy from '../views/PrivacyPolicy.vue'
 import TermsOfService from '../views/TermsOfService.vue'
+import ChangelogView from '../views/ChangelogView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +21,11 @@ const router = createRouter({
             path: '/terms',
             name: 'terms',
             component: TermsOfService
+        },
+        {
+            path: '/changelog',
+            name: 'changelog',
+            component: ChangelogView
         }
     ]
 })
