@@ -10,6 +10,7 @@ on:
       - '**.jpg'
       - '**.md'
       - 'docs/**'
+  workflow_dispatch:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
