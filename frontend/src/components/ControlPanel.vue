@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, Code, Info, ChevronRight, History } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import * as authApi from '../api/auth'
 import { loadGoogleSignIn } from '../utils/lazyLoad'
+// @ts-ignore
+import changelogRaw from '../../../CHANGELOG.md?raw'
 
 const store = useTesterStore()
 const isSdkLoading = ref(true)
+
+const currentVersion = computed(() => {
+  const match = changelogRaw.match(/## \[(\d+\.\d+\.\d+)\]/)
+  return match ? `v${match[1]}` : 'v0.3.0'
+})
 
 const languages = [
   { id: 'python', name: 'Python', icon: 'py' },
@@ -158,7 +165,7 @@ onMounted(() => {
         <router-link to="/privacy" class="hover:text-blue-400 transition-colors">개인정보처리방침</router-link>
       </div>
       <div class="text-[9px] text-gray-700 text-center font-mono">
-        <router-link to="/changelog" class="hover:text-blue-500 transition-colors">v0.1.2</router-link> &copy; TESTER
+        <router-link to="/changelog" class="hover:text-blue-500 transition-colors uppercase tracking-widest">{{ currentVersion }}</router-link> &copy; TESTER
       </div>
     </div>
   </aside>
