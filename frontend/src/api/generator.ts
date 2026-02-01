@@ -20,8 +20,24 @@ export async function generateTestCode(
     })
 
     if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail?.message || 'Failed to connect to server')
+        let errorMessage = '서버 연결에 실패했습니다'
+        try {
+            const errorData = await response.json()
+            if (errorData.detail) {
+                if (typeof errorData.detail === 'string') {
+                    errorMessage = errorData.detail
+                } else if (errorData.detail.message) {
+                    // Custom ValidationError format
+                    errorMessage = errorData.detail.message
+                } else if (Array.isArray(errorData.detail)) {
+                    // Standard FastAPI/Pydantic validation error format
+                    errorMessage = errorData.detail.map((e: any) => e.msg).join(', ')
+                }
+            }
+        } catch (e) {
+            errorMessage = `에러 발생 (Status ${response.status})`
+        }
+        throw new Error(errorMessage)
     }
 
     const reader = response.body?.getReader()

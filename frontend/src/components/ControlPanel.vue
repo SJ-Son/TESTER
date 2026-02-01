@@ -172,7 +172,7 @@ onMounted(() => {
         <span>|</span>
         <router-link to="/privacy" class="hover:text-blue-400 transition-colors">개인정보처리방침</router-link>
       </div>
-      <div class="text-[9px] text-gray-700 text-center font-mono">
+      <div class="text-[9px] text-gray-500 text-center font-mono">
         <router-link to="/changelog" class="hover:text-blue-500 transition-colors uppercase tracking-widest">{{ currentVersion }}</router-link> &copy; TESTER
       </div>
     </div>

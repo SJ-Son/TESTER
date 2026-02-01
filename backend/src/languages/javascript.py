@@ -18,10 +18,10 @@ class JavaScriptStrategy(LanguageStrategy):
             r"\bfunction\b",
             r"\bconst\b",
             r"\blet\b",
-            r"\bvar\b",
             r"=>",
-            r"\bclass\b",
             r"\bconsole\.log\b",
+            r"\bwindow\.",
+            r"\bdocument\.",
         ]
         if not any(re.search(k, code) for k in js_keywords):
             return (
