@@ -11,6 +11,7 @@
 - **Consent Flow**: 로그인 시 무마찰(Frictionless) 동의 UX 적용 ("계속 진행 시 동의로 간주")
 - **Router**: `vue-router` 도입으로 페이지 라우팅 구조(SPA) 구축
 
+## [0.1.1] - 2026-01-31
 
 ### ⚡️ Performance (성능 최적화)
 - **Backend**: `In-Memory LRU Cache` 도입으로 중복 요청에 대한 응답 속도 및 API 비용 절감
