@@ -21,27 +21,38 @@
         </section>
 
         <section>
-          <h2 class="text-lg font-semibold text-white mb-2">제 3 조 (서비스의 제공)</h2>
+          <h2 class="text-lg font-semibold text-white mb-2">제 3 조 (서비스의 제공 및 한계)</h2>
           <p>
-            본 서비스는 Google Gemini API를 활용하여 테스트 코드 생성 기능을 제공합니다. 
-            AI가 생성한 코드의 정확성, 완전성, 무결성에 대해서는 보증하지 않습니다. 
-            생성된 코드를 실제 운영 환경에 적용하여 발생하는 문제에 대한 책임은 사용자에게 있습니다.
+            1. 본 서비스는 Google Gemini API를 활용하여 테스트 코드 자동 생성 기능을 제공합니다.<br>
+            2. <strong>AI의 특성상 생성된 결과물에는 오류, 논리적 결함 혹은 비효율적인 코드가 포함될 수 있습니다(Hallucinations).</strong> 서비스는 결과물의 정확성, 안전성, 특정 목적에의 적합성을 보증하지 않습니다.<br>
+            3. 사용자는 AI가 생성한 코드를 실제 환경에 적용하기 전 반드시 **보안 및 기능 검토**를 수행해야 하며, 이를 게을리하여 발생한 결과에 대한 책임은 사용자에게 있습니다.
           </p>
         </section>
 
         <section>
-          <h2 class="text-lg font-semibold text-white mb-2">제 4 조 (회원의 의무 및 권리)</h2>
+          <h2 class="text-lg font-semibold text-white mb-2">제 4 조 (금지사항)</h2>
+          <p>회원은 서비스를 이용할 때 다음 각 호의 행위를 하여서는 안 됩니다.</p>
           <ul class="list-disc pl-5 mt-2 space-y-1">
-            <li>회원은 관계법령, 본 약관의 규정, 이용안내 및 서비스와 관련하여 공지한 주의사항을 준수해야 합니다.</li>
-            <li>서비스의 UI, 로직 등 지식재산권은 운영자에게 귀속되나, <strong>서비스를 통해 생성된 결과물(테스트 코드)</strong>에 대한 권리는 <strong>회원에게 있으며, 이를 자유롭게 수정/배포/상업적으로 이용할 수 있습니다.</strong></li>
+            <li>타인의 지식재산권을 침해하는 코드를 입력하는 행위</li>
+            <li>악성코드 생성, 해킹, 타인에게 해를 끼칠 목적으로 서비스를 오용하는 행위</li>
+            <li>자동화된 수단(봇, 스크래퍼 등)을 이용해 서비스에 과도한 부하를 주거나 리버싱을 시도하는 행위</li>
+            <li>AI 모델의 취약점을 탐색하거나 부적절한 출력을 유도하는 행위 (Prompt Injection 등)</li>
           </ul>
         </section>
 
         <section>
-          <h2 class="text-lg font-semibold text-white mb-2">제 5 조 (책임의 한계)</h2>
+          <h2 class="text-lg font-semibold text-white mb-2">제 5 조 (회원의 권리와 책임)</h2>
+          <ul class="list-disc pl-5 mt-2 space-y-1">
+            <li>서비스의 UI 및 로직에 대한 권리는 운영자에게 있습니다.</li>
+            <li><strong>결과물에 대한 권리</strong>: 서비스를 통해 생성된 테스트 코드에 대한 권리는 <strong>해당 코드를 생성한 회원</strong>에게 있으며, 상업적 이용 및 배포가 자유롭습니다. 단, 원본 입력 코드에 대한 저작권 책임은 회원 본인에게 있습니다.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-semibold text-white mb-2">제 6 조 (책임의 한계 및 면책)</h2>
           <p>
-            본 서비스는 무료로 제공되는 서비스 이용과 관련하여 관련법에 특별한 규정이 없는 한 책임을 지지 않습니다. 
-            또한, Google 로그인 서비스의 장애로 인한 서비스 이용 장애에 대해서는 책임을 지지 않습니다.
+            운영자는 외부 서비스(Google Gemini, Cloudflare 등)의 장애, 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.
+            또한 무상으로 제공되는 서비스의 이용과 관련하여 이용자에게 발생한 손해에 대하여 책임을 지지 않습니다.
           </p>
         </section>
       </div>
