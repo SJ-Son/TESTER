@@ -10,8 +10,26 @@ const isCopied = ref(false)
 const codeBlock = ref<HTMLElement | null>(null)
 
 const highlightCode = debounce(async () => {
-  if (codeBlock.value) {
-    const hljs = (await import('highlight.js')).default
+  if (codeBlock.value && store.selectedLanguage) {
+    const hljs = (await import('highlight.js/lib/core')).default
+    
+    let langModule
+    switch (store.selectedLanguage) {
+      case 'python':
+        langModule = await import('highlight.js/lib/languages/python')
+        break
+      case 'javascript':
+        langModule = await import('highlight.js/lib/languages/javascript')
+        break
+      case 'java':
+        langModule = await import('highlight.js/lib/languages/java')
+        break
+    }
+    
+    if (langModule) {
+      hljs.registerLanguage(store.selectedLanguage, langModule.default)
+    }
+    
     // @ts-ignore
     hljs.highlightElement(codeBlock.value)
   }
@@ -33,8 +51,26 @@ const copyToClipboard = async () => {
 }
 
 onMounted(async () => {
-  if (codeBlock.value && store.generatedCode) {
-    const hljs = (await import('highlight.js')).default
+  if (codeBlock.value && store.generatedCode && store.selectedLanguage) {
+    const hljs = (await import('highlight.js/lib/core')).default
+    
+    let langModule
+    switch (store.selectedLanguage) {
+      case 'python':
+        langModule = await import('highlight.js/lib/languages/python')
+        break
+      case 'javascript':
+        langModule = await import('highlight.js/lib/languages/javascript')
+        break
+      case 'java':
+        langModule = await import('highlight.js/lib/languages/java')
+        break
+    }
+    
+    if (langModule) {
+      hljs.registerLanguage(store.selectedLanguage, langModule.default)
+    }
+
     // @ts-ignore
     hljs.highlightElement(codeBlock.value)
   }
