@@ -15,6 +15,8 @@
 *   🚀 **API 서버**: Python FastAPI 기반 비동기 백엔드 구성
 *   🎨 **UI**: Vue 3, TypeScript, TailwindCSS 기반 인터페이스
 *   🔐 **인증**: JWT 및 Google OAuth 기반 사용자 인증
+*   🛡️ **신뢰**: 소스 코드 **비저장(RAM-only)** 및 즉시 파기 정책
+*   📜 **법적 고지**: 이용약관 및 개인정보처리방침 페이지 (`/terms`, `/privacy`)
 *   📦 **인프라**: Docker 컨테이너 및 Firebase Hosting 배포 환경
 
 ---
@@ -114,7 +116,8 @@ TESTER/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/   # 재사용 가능한 UI 컴포넌트
-│   │   ├── views/        # 페이지 뷰
+│   │   ├── views/        # 페이지 뷰 (Home, Legal, Changelog)
+│   │   ├── router/       # Vue Router 설정
 │   │   ├── stores/       # Pinia 상태 관리
 │   │   └── ...
 │   ├── package.json      # 프론트엔드 의존성 목록
@@ -166,4 +169,6 @@ TESTER/
 
 ## 📄 라이선스 (License)
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 
+이 프로젝트의 소스 코드는 MIT 라이선스 하에 배포됩니다.
+
+> **Note**: 본 서비스를 통해 생성된 **테스트 코드(결과물)**에 대한 저작권은 **사용자(본인)**에게 귀속되며, 상업적 용도를 포함하여 자유롭게 수정 및 배포할 수 있습니다.
