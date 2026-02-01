@@ -10,6 +10,8 @@
 - **Legal**: 이용약관(`/terms`) 및 개인정보처리방침(`/privacy`) 페이지 구현
 - **Consent Flow**: 로그인 시 무마찰(Frictionless) 동의 UX 적용 ("계속 진행 시 동의로 간주")
 - **Router**: `vue-router` 도입으로 페이지 라우팅 구조(SPA) 구축
+- **Changelog Sync**: `CHANGELOG.md` 파일과 `/changelog` 페이지 자동 동기화 구현
+
 
 ### 🛡️ Security & Trust (보안 및 신뢰)
 - **Policy**: 개인정보처리방침에 '소스 코드 영구 저장 금지' 조항(제3조) 신설
