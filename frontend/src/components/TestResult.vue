@@ -93,22 +93,22 @@ onMounted(async () => {
     </div>
 
     <div 
-      class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col"
+      class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col min-h-[400px]"
       :class="{ 'animate-pulse border-blue-500/20': store.isGenerating && !store.generatedCode }"
     >
-       <div class="bg-gray-800/50 px-6 py-3 border-b border-gray-800 flex items-center justify-between">
+       <div class="bg-gray-800/50 px-4 md:px-6 py-3 border-b border-gray-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur-sm">
           <div class="flex items-center space-x-2">
             <span class="text-[10px] font-mono text-gray-300 uppercase">{{ store.selectedLanguage }} suite</span>
-            <span v-if="store.generatedCode" class="text-[10px] text-blue-300 font-medium">• Real-time rendering</span>
+            <span v-if="store.generatedCode" class="hidden sm:inline text-[10px] text-blue-300 font-medium">• Real-time rendering</span>
           </div>
           <button 
             v-if="store.generatedCode"
             @click="copyToClipboard"
-            class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-all text-[10px] font-semibold"
-            :class="{ 'text-green-400': isCopied }"
+            class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-gray-700 shadow-lg"
+            :class="{ 'text-green-400 border-green-500/50': isCopied }"
           >
             <component :is="isCopied ? Check : Copy" class="w-3 h-3" />
-            <span>{{ isCopied ? 'Copied!' : 'Copy Code' }}</span>
+            <span>{{ isCopied ? 'Copied!' : 'Copy' }}</span>
           </button>
        </div>
        <div class="flex-1 overflow-auto p-4 custom-scrollbar">
@@ -126,7 +126,7 @@ onMounted(async () => {
 .hljs {
   background: transparent !important;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 13px;
+  font-size: clamp(11px, 3vw, 13px);
   line-height: 1.6;
 }
 

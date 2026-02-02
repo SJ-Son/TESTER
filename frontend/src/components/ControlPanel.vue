@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
-import { Sparkles, User, LogOut, Code, Info, ChevronRight, History } from 'lucide-vue-next'
+import { Sparkles, User, LogOut, Code, Info, ChevronRight, History, X } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import * as authApi from '../api/auth'
 import { loadGoogleSignIn } from '../utils/lazyLoad'
@@ -95,9 +95,19 @@ onMounted(() => {
 <template>
   <aside class="w-80 border-r border-gray-800 bg-gray-900 flex flex-col p-6 space-y-8 h-full relative z-10">
     <!-- Logo Section -->
-    <div class="flex items-center space-x-3 text-blue-400 group cursor-default">
-      <Sparkles class="w-8 h-8 transition-transform group-hover:scale-110" />
-      <h1 class="text-xl font-bold tracking-tight text-white">TESTER</h1>
+    <div class="flex items-center justify-between text-blue-400 group cursor-default">
+      <div class="flex items-center space-x-3">
+        <Sparkles class="w-8 h-8 transition-transform group-hover:scale-110" />
+        <h1 class="text-xl font-bold tracking-tight text-white">TESTER</h1>
+      </div>
+      <!-- Mobile Close Button -->
+      <button 
+        v-if="store.isMobile"
+        @click="store.isSidebarOpen = false"
+        class="p-2 -mr-2 text-gray-500 hover:text-white lg:hidden"
+      >
+        <X class="w-6 h-6" />
+      </button>
     </div>
 
     <!-- Auth Section -->
