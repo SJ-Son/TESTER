@@ -106,6 +106,7 @@ const handleGenerate = async () => {
             v-if="store.isMobile"
             @click="store.isSidebarOpen = true"
             class="p-2 -ml-2 text-gray-400 hover:text-white"
+            aria-label="Open sidebar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />

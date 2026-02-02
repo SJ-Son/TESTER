@@ -105,6 +105,7 @@ onMounted(() => {
         v-if="store.isMobile"
         @click="store.isSidebarOpen = false"
         class="p-2 -mr-2 text-gray-500 hover:text-white lg:hidden"
+        aria-label="Close sidebar"
       >
         <X class="w-6 h-6" />
       </button>
