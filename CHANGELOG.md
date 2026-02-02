@@ -4,135 +4,32 @@
 
 ## [Unreleased]
 
-## [0.3.1] - 2026-02-01
-
-### ✨ Features (기능 추가)
-- **Error Transparency**: 백엔드 검증 오류(422) 발생 시 구체적인 사유를 사용자에게 직접 표시하도록 개선
-
-### 🐛 Fixes (버그 수정)
-- **Google Sign-In**: 버튼 렌더링 시 발생하는 `[GSI_LOGGER]` 경고 및 타이밍 오류 해결 (`nextTick` 도입)
-- **Language Detection**: Java와 JavaScript 간의 오탐지 방지를 위해 타입 및 접근 제어자 기반 판별 로직 정교화
-
-### 🛡️ Security (보안)
-- **COOP Adjustment**: `Cross-Origin-Opener-Policy`를 `unsafe-none`으로 조정하여 구글 로그인 팝업 호환성 확보
-- **CSP Hardening**: Content-Security-Policy에서 `'unsafe-eval'`을 제거하여 보안성 강화
-
-## [0.3.0] - 2026-02-01
-
-### ✨ Features (기능 추가)
-- **Cloudflare Turnstile**: Google reCAPTCHA v3를 Cloudflare Turnstile로 완전 대체
-  - Invisible 모드 적용으로 사용자 경험 개선
-  - 서드 파티 쿠키 31개 완전 제거
-  - 개인정보 보호 대폭 강화 (GDPR/CCPA 준수)
-- **Lazy Loading**: Turnstile 스크립트 지연 로딩 구현 (`frontend/src/utils/lazyLoad.ts`)
-- **Version Automation**: 사이드바 하단 버전을 `CHANGELOG.md`에서 자동으로 추출하여 동기화
-- **Manual Dispatch**: 깃허브 액션에 `workflow_dispatch` 추가로 수동 배포 지원
-
-### 🐛 Fixes (버그 수정)
-- **Docker Build**: `Dockerfile` 내 legacy reCAPTCHA 변수를 `VITE_TURNSTILE_SITE_KEY`로 수정하여 데이터 주입 오류 해결
-- **Deployment Trigger**: Empty commit이 배포를 시작하지 못하는 문제 해결 (`paths-ignore` 필터 보완)
-
-### ♻️ Refactoring (코드 구조 개선)
-- **Backend API**: 
-  - `verify_recaptcha()` → `verify_turnstile()` 함수 교체
-  - `RecaptchaError` → `TurnstileError` 예외 클래스 명명 변경
-  - API 엔드포인트 필드명 `recaptcha_token` → `turnstile_token` 변경
-- **Backend Settings**:
-  - 환경 변수 `RECAPTCHA_SECRET_KEY` → `TURNSTILE_SECRET_KEY` 변경
-  - CSP 헤더에 Cloudflare 도메인 추가
-- **Test Suite**: 기존 reCAPTCHA 기반의 테스트 코드를 Turnstile 모의(Mock) 방식으로 전면 개편
-
-### ⚡️ Performance (성능 최적화)
-- **초기 로드 최적화**: ~175 KiB JavaScript 제거 (reCAPTCHA 스크립트)
-- **Lazy Loading**: Turnstile 스크립트를 Generate 버튼 클릭 시에만 로딩
-- **네트워크 최적화**: 초기 페이지 로드 시 서드 파티 요청 0개
-
-### 🛡️ Security (보안)
-- **Privacy**: 서드 파티 쿠키 31개 → 0개 (100% 제거)
-- **API Protection**: 유효한 Turnstile 토큰 없이는 백엔드 API 호출 불가
-- **Bot Detection**: Cloudflare Turnstile의 고급 봇 감지 기능 활용
-
-### 📝 Documentation (문서)
-- Turnstile 설정 가이드 완비
-- 마이그레이션 문서 및 테스트 결과 문서화
-- `.env.example` 파일 업데이트
-
-## [0.2.1] - 2026-02-01
-
-### ♻️ Refactoring (안정성 개선)
-- **SSE Error Handling**: 구조화된 이벤트 스트림(`event: error`) 도입 및 명확한 에러 전달
-- **Frontend API Layer**: Store 내 fetch 로직을 `src/api/` 모듈로 분리 (유지보수성 향상)
-- **Exception Handling**: 포괄적 예외 처리 개선 및 구체적 에러 타입 도입
-
 ## [0.2.0] - 2026-02-01
 
-### ♻️ Refactoring (코드 구조 개선)
-- **Backend Structure**: `main.py`를 `api/v1/{auth, generator, health, deps}.py`로 도메인별 분리
-- **Linting & Formatting**: `ruff` 및 `pre-commit` 훅 도입으로 코드 스타일 통일 및 자동화
+### ✨ Features
+- **보안 강화 (Turnstile 도입)**: Google reCAPTCHA를 Cloudflare Turnstile로 전면 교체하여 사용자 개인정보 보호 강화 및 불필요한 쿠키 삭제
+- **보안 설정 고도화**: 보안 헤더(CSP/COOP) 설정을 최적화하여 서비스 안전성 및 구글 로그인 호환성 확보
+- **사용자 경험 개선**: 백엔드 검증 오류 발생 시 구체적인 사유를 안내하도록 개선
+- **법적 고지 준수**: 이용약관 및 개인정보처리방침 페이지 추가 및 동의 절차 자동화
+- **성능 최적화**: 주요 스크립트 지연 로딩을 통해 초기 페이지 로딩 속도 개선
 
-## [0.1.2] - 2026-02-01
+### ♻️ Refactoring
+- **백엔드 구조 개편**: 기능을 도메인별로 분리하여 유지보수성 향상 및 환경 변수 통합 관리
+- **프론트엔드 최적화**: API 통신 로직 모듈화 및 실시간 에러 핸들링 구조 개선
+- **배포 자동화**: GitHub Actions를 통한 배포 프로세스 자동화 및 수동 배포 기능 지원
 
-### ✨ Features (기능 추가)
-- **Legal**: 이용약관(`/terms`) 및 개인정보처리방침(`/privacy`) 페이지 구현
-- **Consent Flow**: 로그인 시 무마찰(Frictionless) 동의 UX 적용 ("계속 진행 시 동의로 간주")
-- **Router**: `vue-router` 도입으로 페이지 라우팅 구조(SPA) 구축
-- **Changelog Sync**: `CHANGELOG.md` 파일과 `/changelog` 페이지 자동 동기화 구현
-- **Modal UX**: 법적 고지 및 체인지로그 페이지를 오버레이 모달 형태로 개선 (문맥 유지)
-
-### 🛡️ Security (보안 및 신뢰)
-- **Policy**: 개인정보처리방침에 '소스 코드 영구 저장 금지' 조항(제3조) 신설
-- **UI**: 에디터 하단에 "코드는 저장되지 않음" 안내 문구(Shield Icon) 추가
-- **Headers**: 보안 헤더(HSTS Preload, XFO, CSP) 적용으로 웹 취약점 방어 강화 (Trust & Safety)
-
-### ⚡️ Performance (성능 최적화)
-- **Highlight.js**: 코드 분할 및 Gzip 압축 적용 (초기 로딩 속도 개선)
-- **SEO**: 메타 태그 최적화 및 `robots.txt`, `sitemap.xml` 생성
-
-## [0.1.1] - 2026-01-31
-
-### ⚡️ Performance (성능 최적화)
-- **Backend Cache**: `In-Memory LRU Cache` 도입으로 중복 요청에 대한 응답 속도 개선
-- **Gzip Compression**: `GzipMiddleware` 적용으로 API 응답 페이로드 크기 절감
-- **Lazy Loading**: `highlight.js` 지연 로딩 적용으로 초기 로딩 속도(FCP) 개선
+---
 
 ## [0.1.0] - 2026-01-31
 
-### ✨ Features (기능 추가)
-- **Custom Domain**: Firebase Hosting 설정 및 사용자 정의 도메인 매핑
+### ⚡ Performance & Optimization
+- **백엔드 캐시 도입**: 잦은 요청에 대한 응답 속도 향상을 위해 메모리 캐시 적용
+- **인프라 설정**: Firebase Hosting 환경 구축 및 프로젝트 가독성 개선
+- **검색 엔진 최적화(SEO)**: 메타 태그 및 사이트맵 설정을 통한 검색 노출 최적화
 
-### 🐛 Fixes (버그 수정)
-- **Deployment**: dist 디렉토리 누락 오류 수정 및 스테이징 Firebase 라우팅 보정
-- **Cloud Run**: `firebase.json` 내 Cloud Run rewrites 설정 수정
-
-### 📝 Documentation (문서)
-- **README Implementation**: 가독성 개선 및 최신 프로젝트 구조/성능 최적화 사항 반영
-
-### 👷 CI/CD (배포 및 인프라)
-- **Automation**: Firebase 배포 자동화 및 워크플로우 단순화
-
-## [0.0.3] - 2026-01-30
-
-### ✨ Features (기능 추가)
-- **History Feature**: localStorage 및 Pinia를 활용한 최근 생성 기록 기능 구현
-- **Minimalist Design**: 미달리스트 UI 디자인 도입 및 Vite 환경 개선
-
-### ♻️ Refactoring (리팩토링)
-- **Cleanup**: 사용하지 않는 코드 및 의존성 제거
-- **Optimization**: DRY 원칙 및 Dead Code 제거를 통한 성능 최적화
-- **Structure**: 테스트 코드 구조화 (unit, integration, security 분리)
-
-### 🛡️ Security (보안)
-- **Infrastructure**: Cloud Run을 위한 최소 권한 서비스 계정 적용
-
-## [0.0.2] - 2026-01-29
-
-### ✨ Features (기능 추가)
-- **UI/UX Refinement**: 헤더 언어 선택 및 사이드바 릴레이 레이아웃 개선
-
-### 🐛 Fixes (버그 수정)
-- **UI Restoration**: 사이드바 UI 및 Google 로그인 버튼 다크 테마 호환성 수정
+---
 
 ## [0.0.1] - 2026-01-28
 
-### ✨ Features (기능 추가)
-- **Initial Release**: 프로젝트 초기 설정 및 기본 기능 배포
+### ✨ Initial Release
+- 프로젝트 초기 설정 및 기본 기능 배포
