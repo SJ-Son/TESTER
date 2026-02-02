@@ -1,11 +1,11 @@
 # TESTER
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D" alt="Vue.js" />
-  <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Vue.js-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" alt="Vue.js" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/GCP-4285F4?style=flat-square&logo=googlecloud&logoColor=white" alt="GCP" />
 </div>
 
 **TESTER**는 FastAPI와 Vue 3로 구성된 웹 애플리케이션입니다. Google Generative AI를 이용한 콘텐츠 생성 및 인증 시스템을 포함합니다.
@@ -28,10 +28,11 @@
 
 | 분류 | 기술 |
 | :--- | :--- |
-| **Backend** | Python 3.9+, FastAPI, Uvicorn, SQLAlchemy (or similar), Google GenAI SDK |
-| **Frontend** | Vue 3, TypeScript, Vite, Pinia, TailwindCSS, Lucide Icons |
-| **Testing** | Pytest, Pytest-Mock |
-| **DevOps** | Docker, Firebase Hosting |
+| **Backend** | Python 3.12+, FastAPI, SQLAlchemy, Google GenAI (Gemini) |
+| **Database** | **Supabase** (PostgreSQL, Auth, Storage) |
+| **Frontend** | Vue 3 (Composition API), TypeScript, Pinia, TailwindCSS |
+| **Execution** | **Playwright**, Cloud Run Jobs (Firecracker Isolation) |
+| **DevOps** | Docker, GitHub Actions, Firebase Hosting |
 
 ---
 
@@ -42,7 +43,7 @@
 ### 1. 사전 요구사항 (Prerequisites)
 
 *   **Node.js** (v18 이상 권장)
-*   **Python** (3.9 이상 권장)
+*   **Python** (3.12 이상 권장)
 *   **Git**
 
 ### 2. 프로젝트 클론 (Clone)
@@ -108,35 +109,31 @@ npm run dev
 TESTER/
 ├── backend/
 │   ├── src/
-│   │   ├── api/              # API 엔드포인트 (모듈화)
-│   │   │   ├── v1/           # API v1
-│   │   │   │   ├── auth.py       # 인증 엔드포인트
-│   │   │   │   ├── generator.py  # 코드 생성 엔드포인트
-│   │   │   │   ├── health.py     # 헬스 체크
-│   │   │   │   └── deps.py       # 공유 의존성
-│   │   │   └── routers.py    # 라우터 통합
-│   │   ├── config/           # 환경 변수 및 앱 설정
-│   │   ├── services/         # 비즈니스 로직 (Gemini, Language)
-│   │   ├── exceptions.py     # 커스텀 예외 타입
-│   │   ├── auth.py           # 인증 유틸리티
-│   │   └── main.py           # FastAPI 앱 진입점 (미들웨어)
-│   ├── tests/                # Pytest 테스트 코드
-│   ├── requirements.txt      # 백엔드 의존성 목록
-│   └── .env.example          # 환경 변수 예시
+│   │   ├── api/              # API 엔드포인트 (v1 모듈화)
+│   │   │   ├── v1/           # 도메인별 API (auth, generator, health)
+│   │   │   └── routers.py    # 라우터 통합 및 버전 관리
+│   │   ├── config/           # 환경 변수 및 글로벌 설정 (Pydantic Settings)
+│   │   ├── languages/        # 언어별 테스트 생성 전략 (Strategy Pattern)
+│   │   │   ├── factory.py    # 전략 팩토리
+│   │   │   └── {python, javascript, java}.py
+│   │   ├── services/         # 외부 서비스 연동 (Gemini AI)
+│   │   ├── utils/            # 공용 유틸리티 (Lazy Loading 등)
+│   │   ├── auth.py           # JWT 및 Google OAuth 보안 로직
+│   │   ├── exceptions.py     # 구조화된 커스텀 예외 정의
+│   │   └── main.py           # FastAPI 진입점 및 보안 미들웨어
+│   ├── tests/                # 백엔드 단위 및 통합 테스트
+│   └── ...
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── api/              # API 통신 레이어
-│   │   │   ├── auth.ts           # 인증 API
-│   │   │   ├── generator.ts      # 코드 생성 API
-│   │   │   └── types.ts          # API 타입 정의
-│   │   ├── components/       # 재사용 가능한 UI 컴포넌트
-│   │   ├── views/            # 페이지 뷰 (Home, Legal, Changelog)
-│   │   ├── router/           # Vue Router 설정
-│   │   ├── stores/           # Pinia 상태 관리 (비즈니스 로직)
-│   │   └── ...
-│   ├── package.json          # 프론트엔드 의존성 목록
-│   └── vite.config.ts        # Vite 빌드 설정
+│   │   ├── api/              # API 통신 모듈 (Axios/Fetch 기반)
+│   │   ├── components/       # UI 컴포넌트 (Editor, Panel, Result)
+│   │   ├── views/            # 페이지 레벨 컴포넌트 (Home, TOS, Privacy, Changelog)
+│   │   ├── stores/           # Pinia 전역 상태 관리
+│   │   ├── router/           # 클라이언트 사이드 라우팅 설정
+│   │   └── utils/            # 프론트엔드 유틸리티 (Script Loader 등)
+│   ├── package.json          # 프로젝트 메타데이터 및 의존성
+│   └── vite.config.ts        # Vite 빌드 및 프록시 설정
 │
 ├── pyproject.toml            # Ruff 린팅 설정
 ├── .pre-commit-config.yaml   # Git pre-commit 훅 설정
