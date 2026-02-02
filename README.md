@@ -37,6 +37,21 @@
 
 ---
 
+## 🏗️ 시스템 아키텍처 (System Architecture)
+
+```mermaid
+graph LR
+    User([User]) -->|Request| Server[FastAPI Server]
+    Server -->|Prompt| LLM[Google Gemini AI]
+    LLM -->|Generated Code| Server
+    Server -->|Execution| Validation[Validation Logic]
+    Validation -->|Result/Feedback| Server
+    Server -->|Response| User
+```
+
+
+---
+
 ## 🚀 로컬 개발 환경 설정 (Local Development Setup)
 
 이 프로젝트를 로컬 개발 환경에서 실행하거나 기여하고 싶은 개발자를 위한 가이드입니다.
