@@ -13,6 +13,8 @@ export const useTesterStore = defineStore('tester', () => {
     const streamEnded = ref(false)
     const userToken = ref(localStorage.getItem('tester_token') || '')
     const history = ref<any[]>([])
+    const isSidebarOpen = ref(false)
+    const isMobile = ref(window.innerWidth < 768)
 
     // Computed
     const isLoggedIn = computed(() => !!userToken.value)
@@ -120,6 +122,8 @@ export const useTesterStore = defineStore('tester', () => {
         streamEnded,
         userToken,
         history,
+        isSidebarOpen,
+        isMobile,
         isLoggedIn,
         setToken,
         clearToken,
