@@ -13,7 +13,7 @@ const handleGenerate = () => {
 
 <template>
   <section class="flex flex-col space-y-4 h-full">
-    <div class="flex items-center justify-between mb-2 md:mb-0">
+    <div class="flex items-center justify-between h-9 mb-2 md:mb-0">
       <h2 class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
         <Languages class="w-4 h-4 text-blue-400" />
         <span>Source Code</span>

@@ -79,10 +79,12 @@ onMounted(async () => {
 
 <template>
   <section class="flex flex-col space-y-4 h-full overflow-hidden">
-    <h2 class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
-      <CheckCircle2 class="w-4 h-4 text-green-500" />
-      <span>Generated Quality Test Suite</span>
-    </h2>
+    <div class="flex items-center h-9">
+      <h2 class="text-sm font-semibold text-gray-300 flex items-center space-x-2">
+        <CheckCircle2 class="w-4 h-4 text-green-500" />
+        <span>Generated Quality Test Suite</span>
+      </h2>
+    </div>
     
     <div v-if="store.error" class="bg-red-900/20 border border-red-500/50 rounded-xl p-6 text-red-200 flex items-start space-x-4">
       <AlertCircle class="w-5 h-5 flex-shrink-0" />
