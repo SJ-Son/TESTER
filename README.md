@@ -187,28 +187,17 @@ pre-commit install
 *   **Patch**: 하위 호환성 있는 버그 수정
 
 ---
-## TODO
+## 🚀 Roadmap (TODO)
 
-### Phase 3: 품질 및 운영 (Quality & Operations)
+### 📂 Phase 2: Persistence & Management
+- [ ] **Data Assetization**: Supabase 연동으로 프로젝트 및 테스트 케이스 저장 기능 구축
+- [ ] **Workspace UI**: 사이드바 확장 및 프로젝트별 테스트 관리 에디터 구현
+- [ ] **Auth Expansion**: 구글 로그인 외 저장 공간 접근 권한 및 프로젝트 공유 기능
 
-#### 🧪 Testing & Quality
-*   [ ] **Unit Testing**: Backend pytest 테스트 작성 (핵심 로직 커버리지 80%+)
-*   [ ] **Frontend Testing**: Vitest + Vue Test Utils로 컴포넌트 테스트
-*   [ ] **E2E Testing**: Playwright로 주요 사용자 플로우 테스트 (로그인 → 생성)
-
-#### 🚀 CI/CD & Automation  
-*   [ ] **GitHub Actions**: PR마다 자동 테스트 + 린팅 실행
-*   [ ] **Automated Deployment**: develop → staging, main → production 자동 배포
-*   [ ] **Dependency Updates**: Dependabot으로 보안 패치 자동화
-
-#### 📊 Monitoring & Observability
-*   [ ] **Error Tracking**: Sentry 통합 (실시간 에러 알림)
-*   [ ] **Performance Metrics**: 응답 시간, 성공률 추적 (FastAPI middleware)
-*   [ ] **User Analytics**: 사용 패턴 분석 (Google Analytics or Mixpanel)
-
-#### 📚 Documentation
-*   [ ] **API Documentation**: FastAPI Swagger UI 개선 및 예제 추가
-*   [ ] **Development Guide**: 기여자를 위한 개발 가이드 작성    
+### ⚡ Phase 3: Remote Execution Engine
+- [ ] **Sandbox Sandbox**: Cloud Run Jobs 기반 격리된 테스트 실행 엔진 구축
+- [ ] **Reporting**: 실시간 로그 스트리밍 및 비디오/스크린샷 결과 리포트 대시보드
+- [ ] **Integrations**: GitHub Actions 연동 및 CLI 도구 제공으로 CI 파이프라인 통합
 ---
 
 ## 📄 라이선스 (License)
