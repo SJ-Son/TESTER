@@ -189,15 +189,15 @@ pre-commit install
 ---
 ## 🚀 Roadmap (TODO)
 
-### 📂 Phase 2: Persistence & Management
-- [ ] **Data Assetization**: Supabase 연동으로 프로젝트 및 테스트 케이스 저장 기능 구축
-- [ ] **Workspace UI**: 사이드바 확장 및 프로젝트별 테스트 관리 에디터 구현
-- [ ] **Auth Expansion**: 구글 로그인 외 저장 공간 접근 권한 및 프로젝트 공유 기능
+### 📂 Phase 2: Persistence & Engineering Foundation
+- [ ] **Intelligent DB Schema**: 단순 저장을 넘어 요소 식별용 벡터 데이터(Locator)를 포함한 Supabase 스키마 구축
+- [ ] **Project-based Workspace**: 히스토리를 넘어 프로젝트 단위의 테스트 케이스 관리 및 버전 제어 인터페이스 구현
+- [ ] **AI-Ready Backend**: 생성된 코드가 즉시 DB에 영속화되고 실행 준비 상태가 되는 데이터 파이프라인 개편
 
-### ⚡ Phase 3: Remote Execution Engine
-- [ ] **Sandbox Sandbox**: Cloud Run Jobs 기반 격리된 테스트 실행 엔진 구축
-- [ ] **Reporting**: 실시간 로그 스트리밍 및 비디오/스크린샷 결과 리포트 대시보드
-- [ ] **Integrations**: GitHub Actions 연동 및 CLI 도구 제공으로 CI 파이프라인 통합
+### ⚡ Phase 3: Intelligent Execution & Sandbox
+- [ ] **Pre-warmed Sandbox**: Cloud Run Jobs 기반 격리 환경 구축
+- [ ] **Self-Healing Loop**: 실행 결과(Trace)를 AI가 분석하여 코드를 자동 수정하는 자가 치유 피드백 루프 구현
+- [ ] **Visual Debugger**: 실시간 로그 스트리밍 및 픽셀 단위 Visual Regression 리포팅 대시보드 개발
 ---
 
 ## 📄 라이선스 (License)
