@@ -6,8 +6,8 @@ WORKDIR /app/frontend
 # 의존성 파일만 먼저 복사 (레이어 캐싱)
 COPY frontend/package*.json ./
 
-# 의존성 설치 (소스 코드 변경 시에도 캐시 유지)
-RUN npm ci --only=production
+# 의존성 설치 (빌드에 devDependencies 필요)
+RUN npm ci
 
 # 소스 코드 복사
 COPY frontend/ .
@@ -56,7 +56,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:${PORT}/api/v1/health || exit 1
+    CMD curl -f http://localhost:${PORT}/api/v1/health || exit 1
 
 # 포트 노출
 EXPOSE 8080
@@ -67,4 +67,4 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 
 # FastAPI 서버 시작
-CMD uvicorn backend.src.main:app --host 0.0.0.0 --port $PORT
+CMD ["uvicorn", "backend.src.main:app", "--host", "0.0.0.0", "--port", "8080"]
