@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
     SUPABASE_KEY: str = Field(default="", description="Supabase Anon/Service Key")
 
+    # Security (Encryption)
+    DATA_ENCRYPTION_KEY: str = Field(default="", description="AES Key for column encryption")
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @field_validator("GEMINI_API_KEY")
