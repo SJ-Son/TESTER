@@ -19,7 +19,7 @@ class TestGeneratorService:
         self.gemini_service = gemini_service
 
     async def generate_test(
-        self, code: str, language: str, model: str
+        self, code: str, language: str, model: str, is_regenerate: bool = False
     ) -> AsyncGenerator[str, None]:
         """
         테스트 코드를 생성합니다.
@@ -51,6 +51,9 @@ class TestGeneratorService:
 
         # 5. AI 생성 호출 (캐싱은 GeminiService 내부에서 처리됨)
         async for chunk in self.gemini_service.generate_test_code(
-            source_code=code, system_instruction=system_instruction, stream=True
+            source_code=code,
+            system_instruction=system_instruction,
+            stream=True,
+            is_regenerate=is_regenerate,
         ):
             yield chunk

@@ -20,6 +20,7 @@ class GenerateRequest(BaseModel):
     language: str
     model: str = "gemini-3-flash-preview"
     turnstile_token: str = Field(..., description="Cloudflare Turnstile token")
+    is_regenerate: bool = False
 
 
 def format_sse_event(event_type: str, data: dict) -> str:
@@ -46,7 +47,10 @@ async def generate_test(
             chunk_count = 0
             # Delegate logic to Service
             async for chunk in service.generate_test(
-                code=data.input_code, language=data.language, model=data.model
+                code=data.input_code,
+                language=data.language,
+                model=data.model,
+                is_regenerate=data.is_regenerate,
             ):
                 if chunk:
                     # Send as message event

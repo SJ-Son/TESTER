@@ -38,13 +38,18 @@ class GeminiService:
         retry=retry_if_exception_type(Exception),
     )
     async def generate_test_code(
-        self, source_code: str, system_instruction: str = None, stream: bool = True
+        self,
+        source_code: str,
+        system_instruction: str = None,
+        stream: bool = True,
+        is_regenerate: bool = False,
     ):
         """
         Args:
             source_code: 테스트할 소스 코드
             system_instruction: 언어별 시스템 프롬프트
             stream: 스트리밍 여부
+            is_regenerate: 재생성 요청 여부 (True면 캐시 무시 및 창의성 증가)
         """
         if not source_code.strip():
             msg = "# 코드를 입력해주세요."
@@ -54,21 +59,27 @@ class GeminiService:
         # 1. Generate Cache Key
         cache_key = self.cache.generate_key(self.model_name, source_code, system_instruction)
 
-        # 2. Check Cache (Hit)
-        cached_result = self.cache.get(cache_key)
-        if cached_result:
-            self.logger.info_ctx("Cache Hit", cache_key=cache_key)
-            yield cached_result
-            return
+        # 2. Check Cache (Hit) - Skip if regenerating
+        if not is_regenerate:
+            cached_result = self.cache.get(cache_key)
+            if cached_result:
+                self.logger.info_ctx("Cache Hit", cache_key=cache_key)
+                yield cached_result
+                return
 
         try:
-            # 3. Cache Miss - Call API
+            # 3. Cache Miss or Regenerate - Call API
             model = self._get_model(self.model_name, system_instruction)
 
-            # 비동기 호출 (Temperature 0 = 결정론적 출력)
-            generation_config = genai.types.GenerationConfig(temperature=0.0)
+            # Temperature 설정: 재생성이면 0.7 (창의적), 아니면 0.2 (안정적)
+            # 0.0은 너무 딱딱하므로 0.2로 완화하여 자연스러운 일관성 유지
+            temperature = 0.7 if is_regenerate else 0.2
+            generation_config = genai.types.GenerationConfig(temperature=temperature)
+
             response = await model.generate_content_async(
-                source_code, stream=stream, generation_config=generation_config
+                source_code,
+                stream=stream,
+                generation_config=generation_config,
             )
 
             full_response_text = ""
