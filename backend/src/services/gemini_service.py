@@ -65,8 +65,11 @@ class GeminiService:
             # 3. Cache Miss - Call API
             model = self._get_model(self.model_name, system_instruction)
 
-            # 비동기 호출
-            response = await model.generate_content_async(source_code, stream=stream)
+            # 비동기 호출 (Temperature 0 = 결정론적 출력)
+            generation_config = genai.types.GenerationConfig(temperature=0.0)
+            response = await model.generate_content_async(
+                source_code, stream=stream, generation_config=generation_config
+            )
 
             full_response_text = ""
 
