@@ -10,5 +10,12 @@ router = APIRouter()
 async def health_check(
     supabase: SupabaseService = Depends(get_supabase_service),
 ):
-    db_status = "connected" if supabase.is_connected() else "disconnected"
-    return {"status": "ok", "service": "gemini-api", "database": db_status}
+    db_info = supabase.get_connection_status()
+    return {
+        "status": "ok",
+        "service": "gemini-api",
+        "database": {
+            "status": "connected" if db_info["connected"] else "disconnected",
+            "reason": db_info["reason"],
+        },
+    }

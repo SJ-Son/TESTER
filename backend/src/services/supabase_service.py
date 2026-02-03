@@ -35,15 +35,26 @@ class SupabaseService:
             raise RuntimeError("Supabase client is not initialized")
         return self._client
 
-    def is_connected(self) -> bool:
-        """Supabase 연결 상태 확인 (실제 쿼리 수행)"""
+    def get_connection_status(self) -> dict:
+        """상세 연결 상태 반환"""
+        if not settings.SUPABASE_URL or not settings.SUPABASE_KEY:
+            return {"connected": False, "reason": "Environment variables missing"}
+
         if not self._client:
-            return False
+            return {"connected": False, "reason": "Client initialization failed"}
+
         try:
-            # 간단한 쿼리로 연결 테스트 (test_logs 테이블 존재 여부 확인)
-            # head=True를 사용하여 데이터 전송 최소화
+            # 테이블 존재 확인 및 권한 테스트
             self._client.table("test_logs").select("id", count="exact", head=True).execute()
-            return True
+            return {"connected": True, "reason": "OK"}
         except Exception as e:
-            logger.error(f"Supabase connection check failed: {e}")
-            return False
+            error_msg = str(e)
+            if 'relation "public.test_logs" does not exist' in error_msg.lower():
+                return {
+                    "connected": False,
+                    "reason": "Table 'test_logs' not found (schema.sql not applied)",
+                }
+            return {"connected": False, "reason": f"Query failed: {error_msg}"}
+
+    def is_connected(self) -> bool:
+        return self.get_connection_status()["connected"]
