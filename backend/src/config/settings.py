@@ -41,19 +41,6 @@ class Settings(BaseSettings):
             raise ValueError("Invalid Gemini API key format (must start with 'AI')")
         return v
 
-    @field_validator("JWT_SECRET")
-    @classmethod
-    def validate_jwt_secret(cls, v: str) -> str:
-        """JWT Secret 보안 검증"""
-        insecure_values = {"changeme", "secret", "password", "12345", "yoursecretkey"}
-        if any(insecure in v.lower() for insecure in insecure_values):
-            raise ValueError(
-                "JWT_SECRET contains insecure patterns. Use a strong random value in production."
-            )
-        if len(v) < 32:
-            raise ValueError("JWT_SECRET must be at least 32 characters for security")
-        return v
-
     @field_validator("ENV")
     @classmethod
     def validate_environment(cls, v: str) -> str:
