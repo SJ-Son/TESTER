@@ -54,17 +54,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PORT=8080
 
-# 헬스체크 추가
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/api/v1/health || exit 1
-
 # 포트 노출
 EXPOSE 8080
 
-# Non-root 사용자로 실행 (보안)
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
-USER appuser
-
-# FastAPI 서버 시작 (Cloud Run은 PORT 환경 변수를 동적으로 설정)
+# FastAPI 서버 시작
 CMD uvicorn backend.src.main:app --host 0.0.0.0 --port ${PORT:-8080}
