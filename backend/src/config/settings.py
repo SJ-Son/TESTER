@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     """환경 변수 설정 및 검증"""
 
     # API Keys
-    GEMINI_API_KEY: str = Field(default="", min_length=10, description="Google Gemini API Key")
+    GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
     GOOGLE_CLIENT_ID: str = Field(default="", description="Google OAuth Client ID")
     GOOGLE_CLIENT_SECRET: str = Field(default="", description="Google OAuth Client Secret")
     TURNSTILE_SECRET_KEY: str = Field(default="", description="Cloudflare Turnstile Secret")
@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     # Security
     JWT_SECRET: str = Field(
         default="yoursecretkey-change-me-in-production",
-        min_length=32,
         description="JWT Signing Secret",
     )
     TESTER_INTERNAL_SECRET: str = Field(
@@ -27,9 +26,9 @@ class Settings(BaseSettings):
         description="CORS Allowed Origins (comma-separated)",
     )
 
-    # Application
-    ENVIRONMENT: str = Field(
-        default="development", description="Environment: development/production"
+    # Application (ENV와 ENVIRONMENT 모두 지원)
+    ENV: str = Field(
+        default="development", description="Environment: development/production/staging"
     )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -55,13 +54,13 @@ class Settings(BaseSettings):
             raise ValueError("JWT_SECRET must be at least 32 characters for security")
         return v
 
-    @field_validator("ENVIRONMENT")
+    @field_validator("ENV")
     @classmethod
     def validate_environment(cls, v: str) -> str:
         """환경 값 검증"""
         allowed = {"development", "production", "staging", "test"}
         if v.lower() not in allowed:
-            raise ValueError(f"ENVIRONMENT must be one of {allowed}")
+            raise ValueError(f"ENV must be one of {allowed}")
         return v.lower()
 
     @property
@@ -72,7 +71,7 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         """프로덕션 환경 여부"""
-        return self.ENVIRONMENT == "production"
+        return self.ENV == "production"
 
     def validate(self):
         """레거시 호환성을 위한 검증 메서드 (Pydantic validator로 대체됨)"""
