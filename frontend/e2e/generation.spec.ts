@@ -35,8 +35,14 @@ test.describe('Code Generation Flow', () => {
         const inputCode = 'print("hello world")';
         await page.getByPlaceholder(/Paste your source code/i).fill(inputCode);
 
+        // Debug Network and Console
+        page.on('request', request => console.log('>>', request.method(), request.url()));
+        page.on('response', response => console.log('<<', response.status(), response.url()));
+        page.on('console', msg => console.log('LOG:', msg.text()));
+
         // Mock API response for Generation
         await page.route(/\/api\/generate/, async route => {
+            console.log('Intercepted route:', route.request().url());
             await route.fulfill({
                 status: 200,
                 contentType: 'text/event-stream',
@@ -59,21 +65,15 @@ test.describe('Code Generation Flow', () => {
         await page.getByRole('button', { name: /Generate/i }).click();
 
         // Wait for result
-        // The result component should appear or the text needs to be checked.
-        // Assuming TestResult.vue displays the code.
-        // We need to know where the result is displayed.
-        // Based on previous reads, it's in TestResult component.
-
-        // Let's look for the code content
-        await expect(page.locator('code')).toContainText('def test_hello');
-
-        // Wait for result
-        // The result component should appear or the text needs to be checked.
-        // Assuming TestResult.vue displays the code.
-        // We need to know where the result is displayed.
-        // Based on previous reads, it's in TestResult component.
-
-        // Let's look for the code content
-        await expect(page.locator('code')).toContainText('def test_hello');
+        try {
+            await expect(page.locator('code')).toContainText('def test_hello', { timeout: 10000 });
+        } catch (e) {
+            console.log('Assertion Failed. Snapshotting page state...');
+            const bodyHTML = await page.innerHTML('body');
+            console.log('Body HTML:', bodyHTML);
+            const isMobile = await page.evaluate(() => window.innerWidth < 768);
+            console.log('Is Mobile View:', isMobile);
+            throw e;
+        }
     });
 });
