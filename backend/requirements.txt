@@ -10,3 +10,4 @@ slowapi==0.1.9
 google-auth
 python-jose[cryptography]
 redis
+prometheus-fastapi-instrumentator
