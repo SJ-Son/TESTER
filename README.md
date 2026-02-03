@@ -18,9 +18,10 @@
 *   🚀 **API 서버**: Python FastAPI 기반 비동기 백엔드 구성
 *   🎨 **UI**: Vue 3, TypeScript, TailwindCSS 기반 인터페이스
 *   🔐 **인증**: JWT 및 Google OAuth 기반 사용자 인증
-*   🛡️ **신뢰**: 소스 코드 **비저장(RAM-only)** 및 즉시 파기 정책
+*   🛡️ **보안**: 데이터 암호화(Fernet) 저장 및 즉시 파기 정책 (Privacy First)
 *   📜 **법적 고지**: 이용약관 및 개인정보처리방침 페이지 (`/terms`, `/privacy`)
-*   📦 **인프라**: Docker 컨테이너 및 Firebase Hosting 배포 환경
+*   📦 **인프라**: Docker 컨테이너, Firebase Hosting, Cloud Run, Supabase
+*   🎭 **QA 자동화**: **Playwright** 기반 E2E 테스트 및 CI/CD 파이프라인 연동
 
 ---
 
@@ -202,15 +203,17 @@ pre-commit install
 ---
 ## 🚀 Roadmap (TODO)
 
-### 📂 Phase 2: Persistence & Engineering Foundation
-- [ ] **Intelligent DB Schema**: 단순 저장을 넘어 요소 식별용 벡터 데이터(Locator)를 포함한 Supabase 스키마 구축
-- [ ] **Project-based Workspace**: 히스토리를 넘어 프로젝트 단위의 테스트 케이스 관리 및 버전 제어 인터페이스 구현
-- [ ] **AI-Ready Backend**: 생성된 코드가 즉시 DB에 영속화되고 실행 준비 상태가 되는 데이터 파이프라인 개편
+### ⚡ Phase 3: Infrastructure & Security (Completed)
+- [x] **Redis Caching**: 응답 속도 최적화
+- [x] **Service Layer**: 아키텍처 개선
+- [x] **Data Privacy**: Supabase 연동 및 데이터 암호화 구현
+- [x] **Monitoring**: Prometheus/Grafana 도입
 
-### ⚡ Phase 3: Intelligent Execution & Sandbox
-- [ ] **Pre-warmed Sandbox**: Cloud Run Jobs 기반 격리 환경 구축
-- [ ] **Self-Healing Loop**: 실행 결과(Trace)를 AI가 분석하여 코드를 자동 수정하는 자가 치유 피드백 루프 구현
-- [ ] **Visual Debugger**: 실시간 로그 스트리밍 및 픽셀 단위 Visual Regression 리포팅 대시보드 개발
+### 🧠 Phase 4: AI QA Agent (Next Gen)
+- [x] **E2E Automation**: Playwright 기반 테스트 자동화 및 GitHub Actions 연동
+- [ ] **Self-Healing Tests**: 실행 실패 시 AI가 에러 로그를 분석하여 코드를 자동 수정
+- [ ] **Text-to-Test**: 자연어 시나리오를 입력하여 Playwright 코드 자동 생성 (GenAI)
+- [ ] **Edge Case Discovery**: AI가 극한의 경계값 데이터를 생성하여 서비스 안정성 검증
 ---
 
 ## 📄 라이선스 (License)
