@@ -66,17 +66,13 @@ async def generate_test(
 
         async def generate_stream():
             try:
-                chunk_count = 0
                 async for chunk in gemini_service.generate_test_code(
                     data.input_code, system_instruction=system_instruction, stream=True
                 ):
                     if chunk:
                         # Send as message event
                         yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
-                        chunk_count += 1
-                        # 100개당 한 번만 양보하여 백프레셔 방지
-                        if chunk_count % 100 == 0:
-                            await asyncio.sleep(0)
+                        await asyncio.sleep(0.01)
 
                 # Send completion event
                 yield format_sse_event("message", {"type": "done"})
