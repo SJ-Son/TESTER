@@ -45,14 +45,16 @@ class SupabaseService:
 
         try:
             # 테이블 존재 확인 및 권한 테스트
-            self._client.table("test_logs").select("id", count="exact", head=True).execute()
+            self._client.table("generation_history").select(
+                "id", count="exact", head=True
+            ).execute()
             return {"connected": True, "reason": "OK"}
         except Exception as e:
             error_msg = str(e)
-            if 'relation "public.test_logs" does not exist' in error_msg.lower():
+            if 'relation "public.generation_history" does not exist' in error_msg.lower():
                 return {
                     "connected": False,
-                    "reason": "Table 'test_logs' not found (schema.sql not applied)",
+                    "reason": "Table 'generation_history' not found (schema.sql not applied)",
                 }
             return {"connected": False, "reason": f"Query failed: {error_msg}"}
 
