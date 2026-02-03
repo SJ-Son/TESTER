@@ -51,7 +51,8 @@ let turnstileLoaded = false
 let turnstilePromise: Promise<void> | null = null
 
 export function loadTurnstile(): Promise<void> {
-    if (turnstileLoaded && typeof window.turnstile !== 'undefined') {
+    if (typeof window.turnstile !== 'undefined') {
+        turnstileLoaded = true
         return Promise.resolve()
     }
 

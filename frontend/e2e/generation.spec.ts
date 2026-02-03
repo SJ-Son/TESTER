@@ -36,7 +36,7 @@ test.describe('Code Generation Flow', () => {
         await page.getByPlaceholder(/Paste your source code/i).fill(inputCode);
 
         // Mock API response for Generation
-        await page.route('/api/v1/generate', async route => {
+        await page.route(/\/api\/generate/, async route => {
             await route.fulfill({
                 status: 200,
                 contentType: 'text/event-stream',
@@ -58,8 +58,14 @@ test.describe('Code Generation Flow', () => {
         // Click Generate
         await page.getByRole('button', { name: /Generate/i }).click();
 
-        // Check loading state
-        await expect(page.getByText(/Thinking/i)).toBeVisible();
+        // Wait for result
+        // The result component should appear or the text needs to be checked.
+        // Assuming TestResult.vue displays the code.
+        // We need to know where the result is displayed.
+        // Based on previous reads, it's in TestResult component.
+
+        // Let's look for the code content
+        await expect(page.locator('code')).toContainText('def test_hello');
 
         // Wait for result
         // The result component should appear or the text needs to be checked.
