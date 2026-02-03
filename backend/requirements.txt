@@ -11,3 +11,4 @@ google-auth
 python-jose[cryptography]
 redis
 prometheus-fastapi-instrumentator
+supabase

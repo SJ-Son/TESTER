@@ -7,6 +7,7 @@ from slowapi.util import get_remote_address
 
 from backend.src.config.settings import settings
 from backend.src.services.gemini_service import GeminiService
+from backend.src.services.supabase_service import SupabaseService
 from backend.src.services.test_generator_service import TestGeneratorService
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,10 @@ async def verify_api_key(api_key: str = Depends(api_key_header)):
 
 def get_gemini_service() -> GeminiService:
     return GeminiService()
+
+
+def get_supabase_service() -> SupabaseService:
+    return SupabaseService()
 
 
 def get_test_generator_service(
