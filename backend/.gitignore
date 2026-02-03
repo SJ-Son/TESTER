@@ -10,7 +10,6 @@ venv/
 
 # Streamlit
 .streamlit/
-*.toml
 
 # Testing
 .pytest_cache/
