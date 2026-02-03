@@ -21,5 +21,8 @@ export default defineConfig({
         command: 'npm run dev',
         url: 'http://localhost:5173',
         reuseExistingServer: !process.env.CI,
+        env: {
+            VITE_TURNSTILE_SITE_KEY: 'mock_site_key',
+        },
     },
 });

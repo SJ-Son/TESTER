@@ -65,15 +65,6 @@ test.describe('Code Generation Flow', () => {
         await page.getByRole('button', { name: /Generate/i }).click();
 
         // Wait for result
-        try {
-            await expect(page.locator('code')).toContainText('def test_hello', { timeout: 10000 });
-        } catch (e) {
-            console.log('Assertion Failed. Snapshotting page state...');
-            const bodyHTML = await page.innerHTML('body');
-            console.log('Body HTML:', bodyHTML);
-            const isMobile = await page.evaluate(() => window.innerWidth < 768);
-            console.log('Is Mobile View:', isMobile);
-            throw e;
-        }
+        await expect(page.locator('code')).toContainText('def test_hello');
     });
 });
