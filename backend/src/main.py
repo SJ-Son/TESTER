@@ -9,6 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from jose import jwt
+from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -41,6 +42,12 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 # Rate Limiting Setup
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Prometheus Metrics
+# Prometheus Metrics
+
+
+Instrumentator().instrument(app).expose(app)
 
 
 # Middleware: Attach User to State (for Rate Limiting)

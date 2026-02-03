@@ -15,7 +15,7 @@
           <ul class="list-disc pl-5 mt-2 space-y-1">
             <li><strong>필수항목</strong>: 이메일 주소, 이름(닉네임), 프로필 사진 URL, Google 사용자 고유 ID</li>
           </ul>
-          <p class="mt-2 text-xs text-gray-500">* 본 서비스는 별도의 비밀번호를 수집하거나 저장하지 않습니다.</p>
+          <p class="mt-2 text-xs text-gray-500">* 본 서비스는 별도의 비밀번호를 수집하지 않으며, 데이터는 암호화됩니다.</p>
         </section>
 
         <section>
@@ -32,7 +32,7 @@
           <h2 class="text-lg font-semibold text-white mb-2">3. 입력된 소스 코드의 처리 (중요)</h2>
           <p>
             사용자가 테스트 코드 생성을 위해 입력하는 <strong>소스 코드(Source Code)</strong>는 AI 분석 및 결과 생성을 위한 
-            일시적인 목적(RAM)으로만 사용되며, <strong>서버나 데이터베이스에 영구적으로 저장되지 않습니다.</strong>
+            일시적인 목적(RAM)으로만 사용되며, <strong>서버나 데이터베이스에 암호화되어 안전하게 보관됩니다.</strong>
           </p>
           <div class="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs">
             <p class="text-blue-400 font-semibold mb-1"> AI 학습 미이용 안내</p>

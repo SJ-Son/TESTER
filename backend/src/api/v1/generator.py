@@ -1,29 +1,18 @@
 import asyncio
 import json
 import logging
-import os
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.src.api.v1.deps import limiter
+from backend.src.api.v1.deps import get_test_generator_service, limiter
 from backend.src.auth import get_current_user, verify_turnstile
-from backend.src.exceptions import GenerationError, TurnstileError, ValidationError
-from backend.src.languages.factory import LanguageFactory
-from backend.src.services.gemini_service import GeminiService
+from backend.src.exceptions import TurnstileError, ValidationError
+from backend.src.services.test_generator_service import TestGeneratorService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-# Initialize Service
-try:
-    if not os.getenv("GEMINI_API_KEY"):
-        logger.warning("GEMINI_API_KEY not found in env. Service might fail.")
-    gemini_service = GeminiService(model_name="gemini-3-flash-preview")
-except Exception as e:
-    logger.error(f"Failed to initialize GeminiService: {e}")
-    gemini_service = None
 
 
 class GenerateRequest(BaseModel):
@@ -31,6 +20,7 @@ class GenerateRequest(BaseModel):
     language: str
     model: str = "gemini-3-flash-preview"
     turnstile_token: str = Field(..., description="Cloudflare Turnstile token")
+    is_regenerate: bool = False
 
 
 def format_sse_event(event_type: str, data: dict) -> str:
@@ -41,7 +31,10 @@ def format_sse_event(event_type: str, data: dict) -> str:
 @router.post("/generate")
 @limiter.limit("5/minute")
 async def generate_test(
-    request: Request, data: GenerateRequest, current_user: dict = Depends(get_current_user)
+    request: Request,
+    data: GenerateRequest,
+    current_user: dict = Depends(get_current_user),
+    service: TestGeneratorService = Depends(get_test_generator_service),
 ):
     """Streams generated code using Server-Sent Events with structured error handling."""
 
@@ -49,63 +42,43 @@ async def generate_test(
     if not await verify_turnstile(data.turnstile_token):
         raise TurnstileError()
 
-    if not gemini_service:
-        raise HTTPException(status_code=503, detail="Service Unavailable: AI Model not initialized")
+    async def generate_stream():
+        try:
+            chunk_count = 0
+            # Delegate logic to Service
+            async for chunk in service.generate_test(
+                code=data.input_code,
+                language=data.language,
+                model=data.model,
+                is_regenerate=data.is_regenerate,
+            ):
+                if chunk:
+                    # Send as message event
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
+                    chunk_count += 1
+                    # Yield control to event loop every 100 chunks to prevent blocking
+                    if chunk_count % 100 == 0:
+                        await asyncio.sleep(0)
 
-    # 2. Validation
-    try:
-        strategy = LanguageFactory.get_strategy(data.language)
-        valid, msg = strategy.validate_code(data.input_code)
+            # Send completion event
+            yield format_sse_event("message", {"type": "done"})
 
-        if not valid:
-            raise ValidationError(msg)
+        except ValidationError as e:
+            logger.warning(f"Validation failed: {e}")
+            # Send as error event via SSE
+            yield format_sse_event(
+                "error",
+                {"code": "VALIDATION_ERROR", "message": str(e)},
+            )
 
-        # 3. Setup System Instruction
-        system_instruction = strategy.get_system_instruction()
-        gemini_service.model_name = data.model
+        except Exception as e:
+            logger.error(f"Streaming error: {e}")
+            # Send as error event
+            error_data = {
+                "type": "error",
+                "code": "GENERATION_ERROR",
+                "message": str(e),
+            }
+            yield format_sse_event("error", error_data)
 
-        async def generate_stream():
-            try:
-                chunk_count = 0
-                async for chunk in gemini_service.generate_test_code(
-                    data.input_code, system_instruction=system_instruction, stream=True
-                ):
-                    if chunk:
-                        # Send as message event
-                        yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
-                        chunk_count += 1
-                        # Yield control to event loop every 100 chunks to prevent blocking
-                        if chunk_count % 100 == 0:
-                            await asyncio.sleep(0)
-
-                # Send completion event
-                yield format_sse_event("message", {"type": "done"})
-
-            except Exception as e:
-                logger.error(f"Streaming error: {e}")
-                # Send as error event
-                error_data = {
-                    "type": "error",
-                    "code": "GENERATION_ERROR",
-                    "message": str(e),
-                }
-                yield format_sse_event("error", error_data)
-
-        return StreamingResponse(generate_stream(), media_type="text/event-stream")
-
-    except ValidationError as e:
-        logger.warning(f"Validation failed: {e.message}")
-        # Return 200 OK with error payload to keep the browser console clean
-        return {
-            "type": "error",
-            "status": "validation_error",
-            "detail": {"code": e.code, "message": e.message},
-        }
-    except TurnstileError as e:
-        logger.error(f"Turnstile failed: {e.message}")
-        raise HTTPException(
-            status_code=403, detail={"code": e.code, "message": e.message}
-        ) from None
-    except Exception as e:
-        logger.error(f"Generate endpoint error: {e}")
-        raise GenerationError(str(e)) from e
+    return StreamingResponse(generate_stream(), media_type="text/event-stream")

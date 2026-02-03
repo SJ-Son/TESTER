@@ -31,13 +31,26 @@ class Settings(BaseSettings):
         default="development", description="Environment: development/production/staging"
     )
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    # Infrastructure
+    REDIS_URL: str = Field(default="redis://localhost:6379", description="Redis Connection URL")
+
+    # Supabase (Optional for now)
+    SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
+    SUPABASE_KEY: str = Field(default="", description="Supabase Anon/Service Key")
+
+    # Security (Encryption)
+    DATA_ENCRYPTION_KEY: str = Field(default="", description="AES Key for column encryption")
+
+    model_config = SettingsConfigDict(
+        env_file=(".env", "backend/.env"), env_file_encoding="utf-8", extra="ignore"
+    )
 
     @field_validator("GEMINI_API_KEY")
     @classmethod
     def validate_gemini_key(cls, v: str) -> str:
         """Gemini API 키 형식 검증 (값이 있을 때만)"""
-        if v and not v.startswith("AI"):
+        if v and v != "your_gemini_api_key_here" and not v.startswith("AI"):
+            # 실제 키 같은데 형식이 틀린 경우만 에러 (플레이스홀더는 허용)
             raise ValueError("Invalid Gemini API key format (must start with 'AI')")
         return v
 

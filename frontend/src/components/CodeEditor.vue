@@ -60,7 +60,7 @@ const handleGenerate = () => {
       <div class="absolute -bottom-6 inset-x-2 flex items-center justify-between">
         <div class="flex items-center space-x-1.5 text-[10px] text-gray-300">
           <ShieldCheck class="w-3 h-3 text-green-500 shrink-0" />
-          <span class="truncate">입력하신 코드는 서버에 <strong>저장되지 않습니다</strong>.</span>
+          <span class="truncate">입력하신 코드는 서버에 <strong>암호화되어 안전하게 보관됩니다</strong>.</span>
         </div>
 
         <p class="text-[9px] text-gray-400 font-medium shrink-0 ml-4">

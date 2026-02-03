@@ -33,7 +33,8 @@ export function useTestGeneration(): TestGenerationResult {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+                    'X-TESTER-KEY': import.meta.env.VITE_TESTER_INTERNAL_SECRET || ''
                 },
                 body: JSON.stringify({
                     input_code: options.code,
