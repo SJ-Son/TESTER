@@ -30,8 +30,8 @@
 | 분류 | 기술 | 비고 |
 | :--- | :--- | :--- |
 | **Backend** | Python 3.12+, FastAPI, Google GenAI (Gemini) | |
-| **Database** | **Supabase** (Postgres, Auth, Storage) | `도입 예정` |
-| **ORM** | **SQLAlchemy** (or similar) | `도입 예정` |
+| **Database** | **Supabase** (Postgres, Auth, Storage) | |
+| **ORM** | **SQLAlchemy** (or similar) | |
 | **Frontend** | Vue 3 (Composition API), TypeScript, Pinia, TailwindCSS | |
 | **Execution** | **Playwright**, Cloud Run Jobs (Isolation) | `도입 예정` |
 | **DevOps** | Docker, GitHub Actions, Firebase Hosting | |
