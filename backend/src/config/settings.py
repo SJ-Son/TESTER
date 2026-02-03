@@ -13,8 +13,8 @@ class Settings(BaseSettings):
 
     # Security
     JWT_SECRET: str = Field(
-        default="yoursecretkey-change-me-in-production",
-        description="JWT Signing Secret",
+        ...,  # Required - no default value for security
+        description="JWT Signing Secret (REQUIRED)",
     )
     TESTER_INTERNAL_SECRET: str = Field(
         default="default-secret-change-me", description="Internal API Secret"

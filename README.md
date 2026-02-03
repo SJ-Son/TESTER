@@ -208,12 +208,27 @@ pre-commit install
 - [x] **Service Layer**: 아키텍처 개선
 - [x] **Data Privacy**: Supabase 연동 및 데이터 암호화 구현
 - [x] **Monitoring**: Prometheus/Grafana 도입
+- [x] **Code Quality**: Ruff 린팅 및 Pre-commit 훅 적용
 
-### 🧠 Phase 4: AI QA Agent (Next Gen)
+### 🧠 Phase 4: AI QA Agent (In Progress)
 - [x] **E2E Automation**: Playwright 기반 테스트 자동화 및 GitHub Actions 연동
 - [ ] **Self-Healing Tests**: 실행 실패 시 AI가 에러 로그를 분석하여 코드를 자동 수정
 - [ ] **Text-to-Test**: 자연어 시나리오를 입력하여 Playwright 코드 자동 생성 (GenAI)
 - [ ] **Edge Case Discovery**: AI가 극한의 경계값 데이터를 생성하여 서비스 안정성 검증
+
+### 🚀 Phase 5: Platform Evolution (3-6개월)
+- [ ] **Multi-Model 지원**: Gemini 1.5 Pro, Claude, GPT 등 다중 모델 선택 기능
+- [ ] **Context-Aware Generation**: 프로젝트 구조 분석 및 기존 테스트 패턴 학습
+- [ ] **코드 품질 대시보드**: 생성된 테스트 커버리지 및 에러 탐지율 통계
+- [ ] **A/B 테스트 플랫폼**: 프롬프트 최적화 실험 및 모델별 성능 비교
+
+### 🌐 Phase 6: Enterprise & Integration (6-12개월)
+- [ ] **IDE 플러그인**: VSCode Extension, IntelliJ IDEA Plugin
+- [ ] **CI/CD 통합**: GitHub Actions Marketplace, GitLab CI 템플릿
+- [ ] **Team Collaboration**: 테스트 공유 및 협업 기능
+- [ ] **Custom Model Fine-tuning**: 기업 맞춤형 AI 모델 학습
+- [ ] **On-Premise 배포**: 엔터프라이즈 자체 호스팅 옵션
+
 ---
 
 ## 📄 라이선스 (License)

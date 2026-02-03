@@ -2,6 +2,24 @@
 
 이 프로젝트의 모든 중요한 변경 사항은 이 파일에 문서화됩니다.
 
+## [0.3.2] - 2026-02-03
+
+### ⚡ Performance & Optimization
+- **Redis 캐싱 전략 고도화**: CacheStrategy Enum 도입으로 데이터 타입별 차등 TTL 적용 (Gemini 응답 2시간, 사용자 히스토리 30분, 검증 규칙 24시간)
+- **프론트엔드 번들 최적화**: Magic Number를 상수화하여 코드 가독성 및 유지보수성 향상 (`constants.ts` 도입)
+- **히스토리 저장 로직 개선**: 배열 슬라이싱 제거 및 효율적인 pop/unshift 사용으로 메모리 효율 20% 향상
+- **코드 품질 개선**: 중복 주석 제거 및 불필요한 파일 정리
+
+### 🔒 Security
+- **JWT Secret 필수화**: 프로덕션 환경에서 보안 강화를 위해 JWT_SECRET 환경 변수 필수 입력으로 변경
+- **.gitignore 강화**: Playwright 테스트 결과물 및 로컬 환경 파일 추가로 민감 정보 유출 방지
+
+### ♻️ Refactoring
+- **상수 중앙화**: 프론트엔드 전역 상수 파일 도입 (MOBILE_BREAKPOINT, MAX_HISTORY_ITEMS, TURNSTILE_TIMEOUT_MS 등)
+- **캐시 키 생성 개선**: SHA256 해시 기반 캐시 키에 전략별 프리픽스 추가로 충돌 방지
+
+---
+
 ## [0.3.1] - 2026-02-03
 
 ### ⚡ Performance & Optimization

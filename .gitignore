@@ -40,3 +40,6 @@ gcp-key.json
 test-results/
 playwright-report/
 blob-report/
+frontend/.env.local
+frontend/test-results/
+frontend/playwright-report/

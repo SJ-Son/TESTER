@@ -56,14 +56,14 @@ class GeminiService:
             yield msg
             return
 
-        # 1. Generate Cache Key
-        cache_key = self.cache.generate_key(self.model_name, source_code, system_instruction)
+        # 1. Generate Cache Key with TTL
+        cache_key, ttl = self.cache.generate_key(self.model_name, source_code, system_instruction)
 
         # 2. Check Cache (Hit) - Skip if regenerating
         if not is_regenerate:
             cached_result = self.cache.get(cache_key)
             if cached_result:
-                self.logger.info_ctx("Cache Hit", cache_key=cache_key)
+                self.logger.info_ctx("Cache Hit", cache_key=cache_key[:16])
                 yield cached_result
                 return
 
@@ -96,10 +96,10 @@ class GeminiService:
                     full_response_text = response.text
                     yield response.text
 
-            # 4. Save to Cache (Redis)
+            # 4. Save to Cache (Redis) with strategy-based TTL
             if full_response_text:
-                self.cache.set(cache_key, full_response_text)
-                self.logger.info_ctx("Cache Saved", cache_key=cache_key)
+                self.cache.set(cache_key, full_response_text, ttl=ttl)
+                self.logger.info_ctx("Cache Saved", cache_key=cache_key[:16], ttl=ttl)
 
         except Exception as e:
             self.logger.error_ctx("API Error", error=str(e))
