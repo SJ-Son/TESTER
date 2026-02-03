@@ -36,4 +36,14 @@ class SupabaseService:
         return self._client
 
     def is_connected(self) -> bool:
-        return self._client is not None
+        """Supabase 연결 상태 확인 (실제 쿼리 수행)"""
+        if not self._client:
+            return False
+        try:
+            # 간단한 쿼리로 연결 테스트 (test_logs 테이블 존재 여부 확인)
+            # head=True를 사용하여 데이터 전송 최소화
+            self._client.table("test_logs").select("id", count="exact", head=True).execute()
+            return True
+        except Exception as e:
+            logger.error(f"Supabase connection check failed: {e}")
+            return False
