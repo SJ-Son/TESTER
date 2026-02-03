@@ -66,5 +66,5 @@ RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# FastAPI 서버 시작
-CMD ["uvicorn", "backend.src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# FastAPI 서버 시작 (Cloud Run은 PORT 환경 변수를 동적으로 설정)
+CMD uvicorn backend.src.main:app --host 0.0.0.0 --port ${PORT:-8080}
