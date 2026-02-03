@@ -36,4 +36,7 @@ gcp-key.json
 
 # --- Infrastructure ---
 .terraform/
-terraform.tfstate*
+# --- Playwright ---
+test-results/
+playwright-report/
+blob-report/
