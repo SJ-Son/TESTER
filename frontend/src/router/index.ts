@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import PrivacyPolicy from '../views/PrivacyPolicy.vue'
-import TermsOfService from '../views/TermsOfService.vue'
-import ChangelogView from '../views/ChangelogView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,17 +11,17 @@ const router = createRouter({
         {
             path: '/privacy',
             name: 'privacy',
-            component: PrivacyPolicy
+            component: () => import('../views/PrivacyPolicy.vue') // Lazy load
         },
         {
             path: '/terms',
             name: 'terms',
-            component: TermsOfService
+            component: () => import('../views/TermsOfService.vue') // Lazy load
         },
         {
             path: '/changelog',
             name: 'changelog',
-            component: ChangelogView
+            component: () => import('../views/ChangelogView.vue') // Lazy load
         }
     ]
 })

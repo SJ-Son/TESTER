@@ -7,14 +7,23 @@ logger = get_logger(__name__)
 
 
 class SupabaseService:
-    """Supabase 클라이언트 관리 서비스"""
+    """Supabase 클라이언트 관리 서비스 (Singleton)"""
 
+    _instance = None
     _client: Client = None
 
-    def __init__(self):
-        self._initialize_client()
+    def __new__(cls):
+        """Singleton 패턴: 인스턴스가 하나만 생성되도록 보장"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialize_client()
+        return cls._instance
 
     def _initialize_client(self):
+        """클라이언트 초기화 (한 번만 실행)"""
+        if self._client is not None:
+            return  # 이미 초기화됨
+
         try:
             url = settings.SUPABASE_URL
             key = settings.SUPABASE_KEY

@@ -26,6 +26,11 @@ class Settings(BaseSettings):
         description="CORS Allowed Origins (comma-separated)",
     )
 
+    # AI Configuration
+    DEFAULT_GEMINI_MODEL: str = Field(
+        default="gemini-3-flash-preview", description="Default Gemini model for test generation"
+    )
+
     # Application (Cloud Run은 ENV 환경 변수 사용)
     ENV: str = Field(
         default="development", description="Environment: development/production/staging"
@@ -56,7 +61,12 @@ class Settings(BaseSettings):
 
     @property
     def allowed_origins_list(self) -> list[str]:
-        """CORS Origins를 리스트로 변환"""
+        """CORS Origins를 환경별로 제공"""
+        if self.is_production:
+            # Production: localhost 제거, 명시적으로 설정된 도메인만 허용
+            origins = [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
+            return [o for o in origins if not o.startswith("http://localhost")]
+        # Development: 모든 설정 허용
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
 
     @property

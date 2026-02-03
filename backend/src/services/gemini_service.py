@@ -9,9 +9,9 @@ from backend.src.utils.logger import get_logger
 class GeminiService:
     """Gemini API를 통한 테스트 코드 생성 서비스"""
 
-    def __init__(self, model_name: str = "gemini-3-flash-preview"):
+    def __init__(self, model_name: str | None = None):
         self.logger = get_logger(__name__)
-        self.model_name = model_name
+        self.model_name = model_name or settings.DEFAULT_GEMINI_MODEL
         self._configure_api()
         # CacheService 초기화 (Redis 연결)
         self.cache = CacheService()
