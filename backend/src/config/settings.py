@@ -31,6 +31,9 @@ class Settings(BaseSettings):
         default="development", description="Environment: development/production/staging"
     )
 
+    # Infrastructure
+    REDIS_URL: str = Field(default="redis://localhost:6379", description="Redis Connection URL")
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @field_validator("GEMINI_API_KEY")
