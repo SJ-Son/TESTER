@@ -44,9 +44,6 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Prometheus Metrics
-# Prometheus Metrics
-
-
 Instrumentator().instrument(app).expose(app)
 
 

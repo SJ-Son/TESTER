@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import * as generatorApi from '../api/generator'
+import { MOBILE_BREAKPOINT, MAX_HISTORY_ITEMS } from '../utils/constants'
 
 export const useTesterStore = defineStore('tester', () => {
     // State
@@ -14,7 +15,7 @@ export const useTesterStore = defineStore('tester', () => {
     const userToken = ref(localStorage.getItem('tester_token') || '')
     const history = ref<any[]>([])
     const isSidebarOpen = ref(false)
-    const isMobile = ref(window.innerWidth < 768)
+    const isMobile = ref(window.innerWidth < MOBILE_BREAKPOINT)
 
     // Computed
     const isLoggedIn = computed(() => !!userToken.value)
@@ -60,11 +61,11 @@ export const useTesterStore = defineStore('tester', () => {
             language: language
         }
 
-        history.value.unshift(newItem)
-
-        if (history.value.length > 5) {
-            history.value = history.value.slice(0, 5)
+        // Optimize: remove last item before adding if at max capacity
+        if (history.value.length >= MAX_HISTORY_ITEMS) {
+            history.value.pop()
         }
+        history.value.unshift(newItem)
 
         localStorage.setItem('tester_history', JSON.stringify(history.value))
     }

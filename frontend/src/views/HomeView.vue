@@ -6,6 +6,7 @@ import ControlPanel from '../components/ControlPanel.vue'
 import CodeEditor from '../components/CodeEditor.vue'
 import TestResult from '../components/TestResult.vue'
 import { loadTurnstile } from '../utils/lazyLoad'
+import { MOBILE_BREAKPOINT, TURNSTILE_TIMEOUT_MS } from '../utils/constants'
 
 const store = useTesterStore()
 const turnstileToken = ref<string | null>(null)
@@ -15,7 +16,7 @@ let turnstileWidgetId: string | null = null
 const viewMode = ref<'edit' | 'result'>('edit')
 
 const updateIsMobile = () => {
-  store.isMobile = window.innerWidth < 768
+  store.isMobile = window.innerWidth < MOBILE_BREAKPOINT
 }
 
 onMounted(() => {
@@ -34,7 +35,7 @@ const handleGenerate = async () => {
     
     // Create invisible Turnstile challenge
     const token = await new Promise<string>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Turnstile 시간 초과')), 10000)
+      const timeout = setTimeout(() => reject(new Error('Turnstile 시간 초과')), TURNSTILE_TIMEOUT_MS)
       
       if (typeof window.turnstile === 'undefined') {
         reject(new Error('Turnstile이 로드되지 않았습니다'))
