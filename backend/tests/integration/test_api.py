@@ -35,7 +35,9 @@ def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
     with client.stream("POST", "/api/generate", json=payload) as response:
         assert response.status_code == 200
         content = "".join(response.iter_text())
-        assert "public class Test {}" in content
+        # Validate SSE format presence
+        assert 'data: {"type": "chunk", "content": "public class "}' in content
+        assert 'data: {"type": "chunk", "content": "Test {}"}' in content
 
 
 def test_validation_error(client, mock_user_auth, mock_turnstile_success):
