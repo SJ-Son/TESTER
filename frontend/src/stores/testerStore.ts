@@ -2,18 +2,20 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import * as generatorApi from '../api/generator'
 import { MOBILE_BREAKPOINT, MAX_HISTORY_ITEMS } from '../utils/constants'
+import type { SupportedLanguage, GeminiModel } from '../types'
 
 export const useTesterStore = defineStore('tester', () => {
     // State
     const inputCode = ref('')
     const generatedCode = ref('')
-    const selectedLanguage = ref('python')
-    const selectedModel = ref('gemini-3-flash-preview')
+    const selectedLanguage = ref<SupportedLanguage>('python')
+    const selectedModel = ref<GeminiModel>('gemini-3-flash-preview')
     const isGenerating = ref(false)
     const error = ref<string | null>(null)
     const streamEnded = ref(false)
     const userToken = ref(localStorage.getItem('tester_token') || '')
     const history = ref<any[]>([])
+
     const isSidebarOpen = ref(false)
     const isMobile = ref(window.innerWidth < MOBILE_BREAKPOINT)
 
@@ -43,7 +45,7 @@ export const useTesterStore = defineStore('tester', () => {
         }
     }
 
-    const addToHistory = (input: string, result: string, language: string) => {
+    const addToHistory = (input: string, result: string, language: SupportedLanguage) => {
         if (!result || result.startsWith('ERROR:')) return
 
         if (history.value.length > 0) {
