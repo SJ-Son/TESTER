@@ -14,14 +14,14 @@ def mock_supabase_client():
 
 
 def test_supabase_service_init(mock_supabase_client):
-    # Mock settings
     with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = "https://test.supabase.co"
         mock_settings.SUPABASE_KEY = "test-key"
 
         service = SupabaseService()
 
-        assert service._client is not None
+        # Check if _client is initialized via property or direct access logic
+        assert service.client is not None
         assert service.is_connected() is True
 
 

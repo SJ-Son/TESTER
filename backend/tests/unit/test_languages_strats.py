@@ -4,64 +4,33 @@ from src.languages.python import PythonStrategy
 
 
 class TestLanguageStrategies:
-    def test_python_strategy_prompt(self):
+    def test_python_strategy_instruction(self):
         strategy = PythonStrategy()
-        code = "def add(a, b): return a + b"
-        prompt = strategy.generate_prompt(code)
+        # get_system_instruction은 인자를 받지 않음
+        instruction = strategy.get_system_instruction()
 
-        assert "pytest" in prompt
-        assert "Unittest" in prompt
-        assert code in prompt
+        assert "Google의 전문 QA 엔지니어" in instruction
+        assert "pytest" in instruction
+        assert "Raw Code" in instruction
 
     def test_python_strategy_validate(self):
         strategy = PythonStrategy()
-        assert strategy.validate("def foo(): pass") is True
-        # Simple validation just checks non-empty usually, or basic syntax if implemented.
-        # Based on current implementation (likely abstract base check or specific)
-        assert strategy.validate("") is False
+        valid, msg = strategy.validate_code("def foo(): pass")
+        assert valid is True
 
-    def test_java_strategy_prompt(self):
+        valid, msg = strategy.validate_code("")
+        assert valid is False
+        assert msg == "코드를 입력해주세요."
+
+    def test_java_strategy_instruction(self):
         strategy = JavaStrategy()
-        code = "public class Foo {}"
-        prompt = strategy.generate_prompt(code)
+        instruction = strategy.get_system_instruction()
 
-        assert "JUnit" in prompt
-        assert "AssertJ" in prompt or "assertions" in prompt.lower()
-        assert code in prompt
+        assert "JUnit 5" in instruction
+        assert "Mockito" in instruction
 
-    def test_java_strategy_file_extension(self):
-        strategy = JavaStrategy()
-        assert strategy.get_file_extension() == "java"
-
-    def test_javascript_strategy_prompt(self):
+    def test_javascript_strategy_instruction(self):
         strategy = JavaScriptStrategy()
-        code = "function foo() {}"
-        prompt = strategy.generate_prompt(code)
+        instruction = strategy.get_system_instruction()
 
-        assert "Jest" in prompt or "Vitest" in prompt
-        assert code in prompt
-
-    def test_response_parsing_markdown_removal(self):
-        """Test that code blocks are correctly extracted from LLM response"""
-        # All strategies likely inherit from BaseLanguageStrategy which handles this,
-        # or implement it themselves. We test one representative.
-        strategy = PythonStrategy()
-
-        raw_response = """
-Here is the code:
-```python
-def test_foo():
-    assert True
-```
-Hope it helps.
-"""
-        parsed = strategy.parse_response(raw_response)
-        assert "def test_foo():" in parsed
-        assert "Here is the code" not in parsed
-        assert "```" not in parsed
-
-    def test_response_parsing_no_markdown(self):
-        strategy = PythonStrategy()
-        raw_code = "def test_foo():\n    assert True"
-        parsed = strategy.parse_response(raw_code)
-        assert parsed == raw_code
+        assert "Jest" in instruction

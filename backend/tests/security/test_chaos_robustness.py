@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 
 CHAOS_CASES = [
@@ -47,32 +45,31 @@ const jsFunc = () => console.log("JS here");
 
 
 @pytest.mark.parametrize("case", CHAOS_CASES, ids=lambda c: c["name"])
-@patch("src.main.gemini_service")
-def test_chaos_robustness_scenarios(
-    mock_service, case, client, mock_user_auth, mock_recaptcha_success
-):
+@pytest.mark.parametrize("case", CHAOS_CASES, ids=lambda c: c["name"])
+def test_chaos_robustness_scenarios(case, client, mock_user_auth, mock_turnstile_success):
     """Verify that the system handles malformed or malicious inputs gracefully without 500 errors."""
+    from unittest.mock import AsyncMock
 
-    # Mocking async generator for Gemini response
+    from src.api.v1.deps import get_test_generator_service
+    from src.main import app
+
+    mock_service = AsyncMock()
+
     async def mock_async_generator(*args, **kwargs):
-        # We don't strictly care about the output content here,
-        # just that the system doesn't crash and returns something.
         yield "Handled"
 
-    mock_service.generate_test_code.return_value = mock_async_generator()
-    mock_service.model_name = "gemini-3-flash-preview"
+    mock_service.generate_test.side_effect = mock_async_generator
+    app.dependency_overrides[get_test_generator_service] = lambda: mock_service
 
     payload = {
         "input_code": case["input_code"],
         "language": case["language"],
         "model": "gemini-3-flash-preview",
-        "recaptcha_token": "fake_token",
+        "turnstile_token": "fake_token",
     }
 
-    # API should return 200 and a stream, even for "ERROR:" messages
+    # API should return 200 and a stream
     with client.stream("POST", "/api/generate", json=payload) as response:
         assert response.status_code == 200
         content = "".join(response.iter_text())
         assert len(content) > 0
-        # If it's a Trap, it might return a validation ERROR from our code (handled)
-        # or generic output from AI. Both are acceptable as long as it's not a crash.

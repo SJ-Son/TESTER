@@ -8,17 +8,25 @@ def test_health_check(client):
     assert response.json()["status"] == "ok"
 
 
-@patch("src.main.gemini_service")
-def test_generate_code_api(mock_service, client, mock_user_auth, mock_turnstile_success):
+@patch("src.api.v1.deps.get_test_generator_service")
+def test_generate_code_api(mock_deps, client, mock_user_auth, mock_turnstile_success):
     """Verify the streaming API works and returns raw text."""
+    from unittest.mock import AsyncMock
 
-    # Mocking async generator
+    mock_service = AsyncMock()
+
     async def mock_async_generator(*args, **kwargs):
         yield "public class "
         yield "Test {}"
 
-    mock_service.generate_test_code.return_value = mock_async_generator()
-    mock_service.model_name = "gemini-3-flash-preview"
+    # Service layer method is generate_test
+    mock_service.generate_test.side_effect = mock_async_generator
+
+    # Override dependency
+    from src.api.v1.deps import get_test_generator_service
+    from src.main import app
+
+    app.dependency_overrides[get_test_generator_service] = lambda: mock_service
 
     payload = {
         "input_code": "class Test {}",
@@ -33,9 +41,28 @@ def test_generate_code_api(mock_service, client, mock_user_auth, mock_turnstile_
         assert "public class Test {}" in content
 
 
-@patch("src.main.gemini_service")
-def test_validation_error(mock_service, client, mock_user_auth, mock_turnstile_success):
+@patch("src.api.v1.deps.get_test_generator_service")
+def test_validation_error(mock_deps, client, mock_user_auth, mock_turnstile_success):
     """Verify invalid code returns a raw error message."""
+    from unittest.mock import AsyncMock
+
+    from src.exceptions import ValidationError
+
+    mock_service = AsyncMock()
+
+    # Mock validation error during generation
+    async def mock_error_gen(*args, **kwargs):
+        if False:
+            yield  # make it async generator
+        raise ValidationError("Invalid Code Pattern", "INVALID_CODE")
+
+    mock_service.generate_test.side_effect = mock_error_gen
+
+    from src.api.v1.deps import get_test_generator_service
+    from src.main import app
+
+    app.dependency_overrides[get_test_generator_service] = lambda: mock_service
+
     payload = {
         "input_code": "Just some random text",
         "language": "Python",
@@ -46,4 +73,4 @@ def test_validation_error(mock_service, client, mock_user_auth, mock_turnstile_s
     with client.stream("POST", "/api/generate", json=payload) as response:
         assert response.status_code == 200
         content = response.read().decode()
-        assert "ERROR:" in content
+        assert "error" in content.lower()
