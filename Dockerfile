@@ -51,11 +51,11 @@ COPY --from=build-stage /app/frontend/dist ./frontend/dist
 
 # 환경 변수
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/backend
 ENV PORT=8080
 
 # 포트 노출
 EXPOSE 8080
 
 # FastAPI 서버 시작
-CMD uvicorn backend.src.main:app --host 0.0.0.0 --port $PORT
+CMD uvicorn src.main:app --host 0.0.0.0 --port $PORT
