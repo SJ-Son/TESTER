@@ -1,10 +1,9 @@
 name: Test
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  workflow_call:
 
 jobs:
   backend-test:
@@ -28,7 +27,7 @@ jobs:
     - name: Run tests with coverage
       working-directory: ./backend
       run: |
-        pytest --cov=backend/src --cov-report=xml --cov-report=term
+        pytest --cov=src --cov-report=xml --cov-report=term
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4

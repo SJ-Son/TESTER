@@ -20,8 +20,13 @@ env:
   IMAGE_URL: ""
 
 jobs:
+  verify:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
   e2e-test:
     runs-on: ubuntu-latest
+    needs: verify
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -48,7 +53,7 @@ jobs:
           VITE_TESTER_INTERNAL_SECRET: ${{ secrets.TESTER_INTERNAL_SECRET }}
 
   deploy:
-    needs: e2e-test
+    needs: [verify, e2e-test]
     runs-on: ubuntu-latest
 
     steps:
