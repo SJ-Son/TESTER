@@ -9,6 +9,11 @@ jobs:
   backend-test:
     runs-on: ubuntu-latest
     
+    env:
+      JWT_SECRET: "test_secret_for_ci_12345"
+      GEMINI_API_KEY: "AI_test_key_for_ci_dummy"
+      ENV: "test"
+    
     steps:
     - uses: actions/checkout@v4
     
