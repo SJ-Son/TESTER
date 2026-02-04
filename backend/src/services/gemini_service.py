@@ -1,9 +1,8 @@
 import google.generativeai as genai
+from src.config.settings import settings
+from src.services.cache_service import CacheService
+from src.utils.logger import get_logger
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
-
-from backend.src.config.settings import settings
-from backend.src.services.cache_service import CacheService
-from backend.src.utils.logger import get_logger
 
 
 class GeminiService:

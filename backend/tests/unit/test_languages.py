@@ -1,9 +1,8 @@
 import pytest
-
-from backend.src.languages.factory import LanguageFactory
-from backend.src.languages.java import JavaStrategy
-from backend.src.languages.javascript import JavaScriptStrategy
-from backend.src.languages.python import PythonStrategy
+from src.languages.factory import LanguageFactory
+from src.languages.java import JavaStrategy
+from src.languages.javascript import JavaScriptStrategy
+from src.languages.python import PythonStrategy
 
 
 class TestLanguageFactory:
@@ -17,8 +16,11 @@ class TestLanguageFactory:
         assert isinstance(LanguageFactory.get_strategy("JAVA"), JavaStrategy)
 
     def test_default_strategy(self):
-        # 지원하지 않는 언어는 PythonStrategy 반환
-        assert isinstance(LanguageFactory.get_strategy("Go"), PythonStrategy)
+        # 지원하지 않는 언어는 UnsupportedLanguageError 발생 확인
+        from src.languages.factory import UnsupportedLanguageError
+
+        with pytest.raises(UnsupportedLanguageError):
+            LanguageFactory.get_strategy("Go")
 
 
 class TestPythonStrategy:

@@ -6,18 +6,17 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from jose import jwt
 from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-
-from backend.src.api.routers import api_router
-from backend.src.api.v1.deps import limiter
-from backend.src.auth import ALGORITHM
-from backend.src.config.settings import settings
-from backend.src.exceptions import ValidationError
+from src.api.routers import api_router
+from src.api.v1.deps import limiter
+from src.auth import ALGORITHM
+from src.config.settings import settings
+from src.exceptions import TurnstileError, ValidationError
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +41,15 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 # Rate Limiting Setup
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.exception_handler(TurnstileError)
+async def turnstile_exception_handler(request: Request, exc: TurnstileError):
+    return JSONResponse(
+        status_code=400,
+        content={"type": "error", "code": exc.code, "message": exc.message},
+    )
+
 
 # Prometheus Metrics
 Instrumentator().instrument(app).expose(app)

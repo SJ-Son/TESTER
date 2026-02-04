@@ -4,8 +4,7 @@ from enum import Enum
 from typing import Any, Optional
 
 import redis
-
-from backend.src.config.settings import settings
+from src.config.settings import settings
 
 
 class CacheStrategy(str, Enum):

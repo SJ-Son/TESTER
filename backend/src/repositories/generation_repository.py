@@ -3,10 +3,9 @@ from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
-
-from backend.src.repositories.base_repository import BaseRepository
-from backend.src.services.supabase_service import SupabaseService
-from backend.src.utils.security import EncryptionService
+from src.repositories.base_repository import BaseRepository
+from src.services.supabase_service import SupabaseService
+from src.utils.security import EncryptionService
 
 
 class GenerationModel(BaseModel):

@@ -20,7 +20,12 @@ env:
   IMAGE_URL: ""
 
 jobs:
+  verify:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
   deploy:
+    needs: verify
     runs-on: ubuntu-latest
 
     steps:

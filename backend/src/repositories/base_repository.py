@@ -1,8 +1,7 @@
 from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel
-
-from backend.src.services.supabase_service import SupabaseService
+from src.services.supabase_service import SupabaseService
 
 T = TypeVar("T", bound=BaseModel)
 

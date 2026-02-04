@@ -1,33 +1,35 @@
 from unittest.mock import Mock, patch
 
 import pytest
-
-from backend.src.repositories.test_log_repository import TestLogRepository
-from backend.src.services.supabase_service import SupabaseService
+from src.repositories.generation_repository import GenerationRepository
+from src.services.supabase_service import SupabaseService
 
 
 @pytest.fixture
 def mock_supabase_client():
-    with patch("backend.src.services.supabase_service.create_client") as mock_create:
+    with patch("src.services.supabase_service.create_client") as mock_create:
         mock_client = Mock()
         mock_create.return_value = mock_client
         yield mock_client
 
 
 def test_supabase_service_init(mock_supabase_client):
-    # Mock settings
-    with patch("backend.src.services.supabase_service.settings") as mock_settings:
+    # Reset Singleton
+    SupabaseService._instance = None
+
+    with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = "https://test.supabase.co"
         mock_settings.SUPABASE_KEY = "test-key"
 
         service = SupabaseService()
 
-        assert service._client is not None
+        # Check if _client is initialized via property or direct access logic
+        assert service.client is not None
         assert service.is_connected() is True
 
 
 def test_supabase_service_no_creds():
-    with patch("backend.src.services.supabase_service.settings") as mock_settings:
+    with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = ""
         mock_settings.SUPABASE_KEY = ""
 
@@ -36,18 +38,24 @@ def test_supabase_service_no_creds():
         assert service.is_connected() is False
 
 
-def test_repository_create(mock_supabase_client):
+@patch("src.repositories.generation_repository.EncryptionService")
+def test_repository_create(mock_enc_cls, mock_supabase_client):
+    # Mock Encryption
+    mock_enc = mock_enc_cls.return_value
+    mock_enc.encrypt.return_value = "encrypted_code"
+    mock_enc.decrypt.return_value = "print('hello')"
+
     # Setup Service with mocked client
     service = Mock(spec=SupabaseService)
     service.client = mock_supabase_client
 
-    repo = TestLogRepository(service)
+    repo = GenerationRepository(service)
 
     # Mock DB Response
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value.data = [
         {
             "id": "123e4567-e89b-12d3-a456-426614174000",
-            "input_code": "print('hello')",
+            "input_code": "encrypted_code",
             "language": "python",
             "model": "gpt-4",
             "created_at": "2024-01-01T00:00:00Z",
@@ -55,7 +63,7 @@ def test_repository_create(mock_supabase_client):
     ]
 
     # Test Create
-    result = repo.create_log(None, "print('hello')", "python", "gpt-4")
+    result = repo.create_history(None, "print('hello')", "python", "gpt-4")
 
     assert result is not None
     assert result.input_code == "print('hello')"

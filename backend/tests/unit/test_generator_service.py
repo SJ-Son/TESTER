@@ -1,9 +1,8 @@
 from unittest.mock import Mock, patch
 
 import pytest
-
-from backend.src.exceptions import ValidationError
-from backend.src.services.test_generator_service import TestGeneratorService
+from src.exceptions import ValidationError
+from src.services.test_generator_service import TestGeneratorService as GeneratorService
 
 
 @pytest.fixture
@@ -17,7 +16,7 @@ def mock_gemini_service():
 
 @pytest.fixture
 def test_service(mock_gemini_service):
-    return TestGeneratorService(gemini_service=mock_gemini_service)
+    return GeneratorService(gemini_service=mock_gemini_service)
 
 
 async def mock_async_gen(*args, **kwargs):
@@ -28,7 +27,7 @@ async def mock_async_gen(*args, **kwargs):
 @pytest.mark.asyncio
 async def test_generate_test_success(test_service, mock_gemini_service):
     # Mock Language Strategy verification
-    with patch("backend.src.services.test_generator_service.LanguageFactory") as MockFactory:
+    with patch("src.services.test_generator_service.LanguageFactory") as MockFactory:
         mock_strategy = Mock()
         mock_strategy.validate_code.return_value = (True, "")
         mock_strategy.get_system_instruction.return_value = "sys_instruct"
@@ -52,7 +51,7 @@ async def test_generate_test_success(test_service, mock_gemini_service):
 
 @pytest.mark.asyncio
 async def test_generate_test_validation_error(test_service):
-    with patch("backend.src.services.test_generator_service.LanguageFactory") as MockFactory:
+    with patch("src.services.test_generator_service.LanguageFactory") as MockFactory:
         mock_strategy = Mock()
         mock_strategy.validate_code.return_value = (False, "Invalid code")
         MockFactory.get_strategy.return_value = mock_strategy

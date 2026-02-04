@@ -1,8 +1,8 @@
 from collections.abc import AsyncGenerator
 
-from backend.src.exceptions import ValidationError
-from backend.src.languages.factory import LanguageFactory
-from backend.src.services.gemini_service import GeminiService
+from src.exceptions import ValidationError
+from src.languages.factory import LanguageFactory
+from src.services.gemini_service import GeminiService
 
 
 class TestGeneratorService:

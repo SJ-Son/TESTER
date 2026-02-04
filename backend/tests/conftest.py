@@ -1,8 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-
-from backend.src.auth import get_current_user, verify_turnstile
-from backend.src.main import app
+from src.auth import get_current_user, verify_turnstile
+from src.main import app
 
 
 @pytest.fixture
@@ -38,3 +37,13 @@ def mock_turnstile_success():
     yield
     if verify_turnstile in app.dependency_overrides:
         del app.dependency_overrides[verify_turnstile]
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    """Disable rate limiting for tests."""
+    from src.api.v1.deps import limiter
+
+    limiter.enabled = False
+    yield
+    limiter.enabled = True

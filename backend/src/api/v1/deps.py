@@ -4,11 +4,10 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-
-from backend.src.config.settings import settings
-from backend.src.services.gemini_service import GeminiService
-from backend.src.services.supabase_service import SupabaseService
-from backend.src.services.test_generator_service import TestGeneratorService
+from src.config.settings import settings
+from src.services.gemini_service import GeminiService
+from src.services.supabase_service import SupabaseService
+from src.services.test_generator_service import TestGeneratorService
 
 logger = logging.getLogger(__name__)
 
