@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from src.repositories.test_log_repository import TestLogRepository
+from src.repositories.generation_repository import GenerationRepository
 from src.services.supabase_service import SupabaseService
 
 
@@ -35,18 +35,24 @@ def test_supabase_service_no_creds():
         assert service.is_connected() is False
 
 
-def test_repository_create(mock_supabase_client):
+@patch("src.repositories.generation_repository.EncryptionService")
+def test_repository_create(mock_enc_cls, mock_supabase_client):
+    # Mock Encryption
+    mock_enc = mock_enc_cls.return_value
+    mock_enc.encrypt.return_value = "encrypted_code"
+    mock_enc.decrypt.return_value = "print('hello')"
+
     # Setup Service with mocked client
     service = Mock(spec=SupabaseService)
     service.client = mock_supabase_client
 
-    repo = TestLogRepository(service)
+    repo = GenerationRepository(service)
 
     # Mock DB Response
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value.data = [
         {
             "id": "123e4567-e89b-12d3-a456-426614174000",
-            "input_code": "print('hello')",
+            "input_code": "encrypted_code",
             "language": "python",
             "model": "gpt-4",
             "created_at": "2024-01-01T00:00:00Z",
@@ -54,7 +60,7 @@ def test_repository_create(mock_supabase_client):
     ]
 
     # Test Create
-    result = repo.create_log(None, "print('hello')", "python", "gpt-4")
+    result = repo.create_history(None, "print('hello')", "python", "gpt-4")
 
     assert result is not None
     assert result.input_code == "print('hello')"
