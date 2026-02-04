@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from src.exceptions import ValidationError
-from src.services.test_generator_service import TestGeneratorService
+from src.services.test_generator_service import TestGeneratorService as GeneratorService
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def mock_gemini_service():
 
 @pytest.fixture
 def test_service(mock_gemini_service):
-    return TestGeneratorService(gemini_service=mock_gemini_service)
+    return GeneratorService(gemini_service=mock_gemini_service)
 
 
 async def mock_async_gen(*args, **kwargs):

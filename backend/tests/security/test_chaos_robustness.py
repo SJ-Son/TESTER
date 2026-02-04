@@ -45,7 +45,6 @@ const jsFunc = () => console.log("JS here");
 
 
 @pytest.mark.parametrize("case", CHAOS_CASES, ids=lambda c: c["name"])
-@pytest.mark.parametrize("case", CHAOS_CASES, ids=lambda c: c["name"])
 def test_chaos_robustness_scenarios(case, client, mock_user_auth, mock_turnstile_success):
     """Verify that the system handles malformed or malicious inputs gracefully without 500 errors."""
     from unittest.mock import AsyncMock
