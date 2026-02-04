@@ -5,6 +5,7 @@ import { Sparkles, User, LogOut, Code, Info, ChevronRight, History, X } from 'lu
 import HistoryPanel from './HistoryPanel.vue'
 import * as authApi from '../api/auth'
 import { loadGoogleSignIn } from '../utils/lazyLoad'
+import type { SupportedLanguage, GeminiModel } from '../types'
 // @ts-ignore
 import changelogRaw from '../../../CHANGELOG.md?raw'
 
@@ -16,13 +17,13 @@ const currentVersion = computed(() => {
   return match ? `v${match[1]}` : 'v0.3.0'
 })
 
-const languages = [
+const languages: { id: SupportedLanguage, name: string, icon: string }[] = [
   { id: 'python', name: 'Python', icon: 'py' },
   { id: 'javascript', name: 'JavaScript', icon: 'js' },
   { id: 'java', name: 'Java', icon: 'java' }
 ]
 
-const models = [
+const models: { id: GeminiModel, name: string }[] = [
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast)' }
 ]
 
@@ -146,6 +147,22 @@ onMounted(() => {
 
     <!-- Strategy Config -->
     <div class="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-1">
+
+      <div>
+        <label for="lang-select" class="text-xs font-semibold text-gray-300 uppercase tracking-widest block mb-3">Language</label>
+        <div class="relative group">
+          <select 
+            id="lang-select"
+            v-model="store.selectedLanguage"
+            class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+          >
+            <option v-for="l in languages" :value="l.id">{{ l.name }}</option>
+          </select>
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300">
+            <ChevronRight class="w-4 h-4 rotate-90" />
+          </div>
+        </div>
+      </div>
 
       <div>
         <label for="model-select" class="text-xs font-semibold text-gray-300 uppercase tracking-widest block mb-3">Model</label>
