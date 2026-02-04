@@ -14,6 +14,9 @@ def mock_supabase_client():
 
 
 def test_supabase_service_init(mock_supabase_client):
+    # Reset Singleton
+    SupabaseService._instance = None
+
     with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = "https://test.supabase.co"
         mock_settings.SUPABASE_KEY = "test-key"

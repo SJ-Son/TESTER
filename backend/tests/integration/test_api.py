@@ -1,6 +1,3 @@
-from unittest.mock import patch
-
-
 def test_health_check(client):
     """Verify the API health check."""
     response = client.get("/api/health")
@@ -8,8 +5,7 @@ def test_health_check(client):
     assert response.json()["status"] == "ok"
 
 
-@patch("src.api.v1.deps.get_test_generator_service")
-def test_generate_code_api(mock_deps, client, mock_user_auth, mock_turnstile_success):
+def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
     """Verify the streaming API works and returns raw text."""
     from unittest.mock import AsyncMock
 
@@ -41,8 +37,7 @@ def test_generate_code_api(mock_deps, client, mock_user_auth, mock_turnstile_suc
         assert "public class Test {}" in content
 
 
-@patch("src.api.v1.deps.get_test_generator_service")
-def test_validation_error(mock_deps, client, mock_user_auth, mock_turnstile_success):
+def test_validation_error(client, mock_user_auth, mock_turnstile_success):
     """Verify invalid code returns a raw error message."""
     from unittest.mock import AsyncMock
 

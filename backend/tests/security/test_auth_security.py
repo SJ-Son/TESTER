@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from src.config.settings import settings
 
 VALID_KEY = settings.TESTER_INTERNAL_SECRET
@@ -15,14 +17,10 @@ def test_unauthorized_access(client):
     assert response.status_code == 401
 
 
-def test_turnstile_failure(client, mock_user_auth):
-    """Turnstile 검증 실패 시 403 에러가 발생하는지 확인."""  # Fix status code logic (actually raises 400 or 403 in code)
-    # The code in src/api/v1/generator.py raises TurnstileError, which maps to 400 usually, or 403. Check exception handler.
-    # Assuming TurnstileError -> 400 or 403.
-    from src.auth import verify_turnstile
-    from src.main import app
-
-    app.dependency_overrides[verify_turnstile] = lambda x: False
+@patch("src.api.v1.generator.verify_turnstile")
+def test_turnstile_failure(mock_verify, client, mock_user_auth):
+    """Turnstile 검증 실패 시 403 에러가 발생하는지 확인."""
+    mock_verify.return_value = False
 
     payload = {
         "input_code": "def foo(): pass",
@@ -33,6 +31,7 @@ def test_turnstile_failure(client, mock_user_auth):
     response = client.post("/api/generate", json=payload)
     # If TurnstileError is uncaught/handled, check its status code.
     # Usually pydantic validation might pass but verify fails.
+    response = client.post("/api/generate", json=payload)
     assert response.status_code in [400, 403]
     # assert "reCAPTCHA" in response.text # Message might have changed
 

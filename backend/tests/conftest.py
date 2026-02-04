@@ -37,3 +37,13 @@ def mock_turnstile_success():
     yield
     if verify_turnstile in app.dependency_overrides:
         del app.dependency_overrides[verify_turnstile]
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    """Disable rate limiting for tests."""
+    from src.api.v1.deps import limiter
+
+    limiter.enabled = False
+    yield
+    limiter.enabled = True
