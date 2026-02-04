@@ -47,6 +47,11 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
 
     from unittest.mock import AsyncMock
 
+    from src.api.v1.deps import limiter
+
+    # Enable limiter for this test
+    limiter.enabled = True
+
     from src.api.v1.deps import get_test_generator_service
     from src.main import app
 

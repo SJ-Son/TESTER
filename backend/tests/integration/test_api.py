@@ -7,15 +7,16 @@ def test_health_check(client):
 
 def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
     """Verify the streaming API works and returns raw text."""
-    from unittest.mock import AsyncMock
+    from unittest.mock import MagicMock
 
-    mock_service = AsyncMock()
+    mock_service = MagicMock()
 
     async def mock_async_generator(*args, **kwargs):
         yield "public class "
         yield "Test {}"
 
     # Service layer method is generate_test
+    # side_effect에 비동기 제너레이터 함수를 할당하면 호출 시 코루틴/제너레이터를 반환
     mock_service.generate_test.side_effect = mock_async_generator
 
     # Override dependency
@@ -39,11 +40,11 @@ def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
 
 def test_validation_error(client, mock_user_auth, mock_turnstile_success):
     """Verify invalid code returns a raw error message."""
-    from unittest.mock import AsyncMock
+    from unittest.mock import MagicMock
 
     from src.exceptions import ValidationError
 
-    mock_service = AsyncMock()
+    mock_service = MagicMock()
 
     # Mock validation error during generation
     async def mock_error_gen(*args, **kwargs):
