@@ -1,8 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
-
-from backend.src.services.cache_service import CacheService
+from src.services.cache_service import CacheService
 
 
 @pytest.fixture

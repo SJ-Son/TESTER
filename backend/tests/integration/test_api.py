@@ -8,7 +8,7 @@ def test_health_check(client):
     assert response.json()["status"] == "ok"
 
 
-@patch("backend.src.main.gemini_service")
+@patch("src.main.gemini_service")
 def test_generate_code_api(mock_service, client, mock_user_auth, mock_turnstile_success):
     """Verify the streaming API works and returns raw text."""
 
@@ -33,7 +33,7 @@ def test_generate_code_api(mock_service, client, mock_user_auth, mock_turnstile_
         assert "public class Test {}" in content
 
 
-@patch("backend.src.main.gemini_service")
+@patch("src.main.gemini_service")
 def test_validation_error(mock_service, client, mock_user_auth, mock_turnstile_success):
     """Verify invalid code returns a raw error message."""
     payload = {

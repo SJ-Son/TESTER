@@ -1,8 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-
-from backend.src.auth import get_current_user, verify_turnstile
-from backend.src.main import app
+from src.auth import get_current_user, verify_turnstile
+from src.main import app
 
 
 @pytest.fixture

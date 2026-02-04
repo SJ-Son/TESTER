@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from backend.src.config.settings import settings
+from src.config.settings import settings
 
 VALID_KEY = settings.TESTER_INTERNAL_SECRET
 
@@ -17,7 +17,7 @@ def test_unauthorized_access(client):
     assert response.status_code == 401
 
 
-@patch("backend.src.main.verify_recaptcha")
+@patch("src.main.verify_recaptcha")
 def test_recaptcha_failure(mock_verify, client, mock_user_auth):
     """reCAPTCHA 검증 실패 시 403 에러가 발생하는지 확인."""
     mock_verify.return_value = False
@@ -42,7 +42,7 @@ def test_rate_limiting(client, mock_user_auth, mock_recaptcha_success):
         "recaptcha_token": "fake",
     }
 
-    with patch("backend.src.main.gemini_service") as mock_service:
+    with patch("src.main.gemini_service") as mock_service:
 
         async def mock_gen(*args, **kwargs):
             yield "ok"

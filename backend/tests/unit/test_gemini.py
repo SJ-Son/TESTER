@@ -1,14 +1,13 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from backend.src.services.gemini_service import GeminiService
+from src.services.gemini_service import GeminiService
 
 
 class TestGeminiService:
     @pytest.fixture
     def service(self):
-        with patch("backend.src.services.gemini_service.genai.configure"):
+        with patch("src.services.gemini_service.genai.configure"):
             return GeminiService(model_name="gemini-3-flash-preview")
 
     @pytest.mark.asyncio
@@ -16,7 +15,7 @@ class TestGeminiService:
         assert service.model_name == "gemini-3-flash-preview"
 
     @pytest.mark.asyncio
-    @patch("backend.src.services.gemini_service.genai.GenerativeModel")
+    @patch("src.services.gemini_service.genai.GenerativeModel")
     async def test_generate_test_code_success(self, mock_model_class, service):
         mock_model = mock_model_class.return_value
 

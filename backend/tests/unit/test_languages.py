@@ -1,9 +1,8 @@
 import pytest
-
-from backend.src.languages.factory import LanguageFactory
-from backend.src.languages.java import JavaStrategy
-from backend.src.languages.javascript import JavaScriptStrategy
-from backend.src.languages.python import PythonStrategy
+from src.languages.factory import LanguageFactory
+from src.languages.java import JavaStrategy
+from src.languages.javascript import JavaScriptStrategy
+from src.languages.python import PythonStrategy
 
 
 class TestLanguageFactory:

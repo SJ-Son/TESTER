@@ -1,14 +1,13 @@
 from unittest.mock import Mock, patch
 
 import pytest
-
-from backend.src.repositories.test_log_repository import TestLogRepository
-from backend.src.services.supabase_service import SupabaseService
+from src.repositories.test_log_repository import TestLogRepository
+from src.services.supabase_service import SupabaseService
 
 
 @pytest.fixture
 def mock_supabase_client():
-    with patch("backend.src.services.supabase_service.create_client") as mock_create:
+    with patch("src.services.supabase_service.create_client") as mock_create:
         mock_client = Mock()
         mock_create.return_value = mock_client
         yield mock_client
@@ -16,7 +15,7 @@ def mock_supabase_client():
 
 def test_supabase_service_init(mock_supabase_client):
     # Mock settings
-    with patch("backend.src.services.supabase_service.settings") as mock_settings:
+    with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = "https://test.supabase.co"
         mock_settings.SUPABASE_KEY = "test-key"
 
@@ -27,7 +26,7 @@ def test_supabase_service_init(mock_supabase_client):
 
 
 def test_supabase_service_no_creds():
-    with patch("backend.src.services.supabase_service.settings") as mock_settings:
+    with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = ""
         mock_settings.SUPABASE_KEY = ""
 

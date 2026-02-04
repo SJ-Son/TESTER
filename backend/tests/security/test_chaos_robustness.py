@@ -47,7 +47,7 @@ const jsFunc = () => console.log("JS here");
 
 
 @pytest.mark.parametrize("case", CHAOS_CASES, ids=lambda c: c["name"])
-@patch("backend.src.main.gemini_service")
+@patch("src.main.gemini_service")
 def test_chaos_robustness_scenarios(
     mock_service, case, client, mock_user_auth, mock_recaptcha_success
 ):

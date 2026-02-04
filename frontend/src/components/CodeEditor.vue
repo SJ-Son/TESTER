@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { useTesterStore } from '../stores/testerStore'
 import { Languages, Send, RefreshCcw, ShieldCheck } from 'lucide-vue-next'
+import type { SupportedLanguage } from '../types'
 
 const store = useTesterStore()
 
 const emit = defineEmits(['generate'])
+
+const supportedLanguages: { id: SupportedLanguage, label: string }[] = [
+  { id: 'python', label: 'PY' },
+  { id: 'javascript', label: 'JS' },
+  { id: 'java', label: 'JAVA' }
+]
 
 const handleGenerate = () => {
   emit('generate')
@@ -21,11 +28,7 @@ const handleGenerate = () => {
       
       <div class="flex items-center bg-gray-900 border border-gray-800 p-0.5 rounded-lg">
         <button 
-          v-for="lang in [
-            { id: 'python', label: 'PY' },
-            { id: 'javascript', label: 'JS' },
-            { id: 'java', label: 'JAVA' }
-          ]" 
+          v-for="lang in supportedLanguages" 
           :key="lang.id"
           @click="store.selectedLanguage = lang.id"
           class="px-2 py-1 rounded-md text-[9px] font-black transition-all duration-200 tracking-tighter"
