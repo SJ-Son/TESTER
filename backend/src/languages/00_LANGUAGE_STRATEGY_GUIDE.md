@@ -107,7 +107,7 @@ Generate comprehensive test cases:
 
 ```python
 # languages/typescript.py
-from backend.src.languages.base import LanguageStrategy
+from src.languages.base import LanguageStrategy
 
 class TypeScriptStrategy(LanguageStrategy):
     def validate_code(self, code: str) -> tuple[bool, str]:
@@ -132,7 +132,7 @@ class TypeScriptStrategy(LanguageStrategy):
 
 ```python
 # languages/factory.py
-from backend.src.languages.typescript import TypeScriptStrategy
+from src.languages.typescript import TypeScriptStrategy
 
 class LanguageFactory:
     _strategy_classes = {
@@ -233,7 +233,7 @@ Requirements:
 ```python
 # tests/languages/test_python_strategy.py
 import pytest
-from backend.src.languages.python import PythonStrategy
+from src.languages.python import PythonStrategy
 
 def test_validate_empty_code():
     strategy = PythonStrategy()

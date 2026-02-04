@@ -12,12 +12,11 @@ from jose import jwt
 from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-
-from backend.src.api.routers import api_router
-from backend.src.api.v1.deps import limiter
-from backend.src.auth import ALGORITHM
-from backend.src.config.settings import settings
-from backend.src.exceptions import ValidationError
+from src.api.routers import api_router
+from src.api.v1.deps import limiter
+from src.auth import ALGORITHM
+from src.config.settings import settings
+from src.exceptions import ValidationError
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)

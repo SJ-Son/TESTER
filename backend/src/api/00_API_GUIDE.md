@@ -60,7 +60,7 @@ data: {"type": "done"}
 `deps.py`에서 서비스 인스턴스를 제공합니다:
 
 ```python
-from backend.src.api.v1.deps import (
+from src.api.v1.deps import (
     get_test_generator_service,  # TestGeneratorService
     limiter                        # Rate Limiter
 )
@@ -119,7 +119,7 @@ async def generate_test(request: Request, ...):
 
 ```python
 # routers.py
-from backend.src.api.v1 import auth, generator, health, history
+from src.api.v1 import auth, generator, health, history
 
 api_router.include_router(history.router, prefix="/history", tags=["history"])
 ```

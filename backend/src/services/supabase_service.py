@@ -1,7 +1,6 @@
+from src.config.settings import settings
+from src.utils.logger import get_logger
 from supabase import Client, create_client
-
-from backend.src.config.settings import settings
-from backend.src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

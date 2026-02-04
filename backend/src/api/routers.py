@@ -1,6 +1,5 @@
 from fastapi import APIRouter
-
-from backend.src.api.v1 import auth, generator, health
+from src.api.v1 import auth, generator, health
 
 api_router = APIRouter()
 

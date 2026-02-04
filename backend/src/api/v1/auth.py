@@ -2,8 +2,7 @@ from datetime import timedelta
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
-from backend.src.auth import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, verify_google_token
+from src.auth import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, verify_google_token
 
 router = APIRouter()
 

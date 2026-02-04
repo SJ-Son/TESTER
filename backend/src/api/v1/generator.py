@@ -5,11 +5,10 @@ import logging
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-
-from backend.src.api.v1.deps import get_test_generator_service, limiter
-from backend.src.auth import get_current_user, verify_turnstile
-from backend.src.exceptions import TurnstileError, ValidationError
-from backend.src.services.test_generator_service import TestGeneratorService
+from src.api.v1.deps import get_test_generator_service, limiter
+from src.auth import get_current_user, verify_turnstile
+from src.exceptions import TurnstileError, ValidationError
+from src.services.test_generator_service import TestGeneratorService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

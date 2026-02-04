@@ -1,6 +1,6 @@
 import ast
 
-from backend.src.languages.base import LanguageStrategy
+from src.languages.base import LanguageStrategy
 
 
 class PythonStrategy(LanguageStrategy):

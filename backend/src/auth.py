@@ -8,8 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from jose import JWTError, jwt
-
-from backend.src.config.settings import settings
+from src.config.settings import settings
 
 logger = logging.getLogger(__name__)
 

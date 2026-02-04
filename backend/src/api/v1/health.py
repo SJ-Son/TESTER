@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
-
-from backend.src.api.v1.deps import get_supabase_service
-from backend.src.services.supabase_service import SupabaseService
+from src.api.v1.deps import get_supabase_service
+from src.services.supabase_service import SupabaseService
 
 router = APIRouter()
 
