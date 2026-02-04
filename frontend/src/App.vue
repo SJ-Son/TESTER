@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import HomeView from './views/HomeView.vue'
+import CookieConsent from './components/CookieConsent.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,7 +59,10 @@ const closeModal = (e: MouseEvent) => {
            </RouterView>
         </div>
       </div>
+
     </Transition>
+    <!-- Global Cookie Consent Banner -->
+    <CookieConsent />
   </div>
 </template>
 
