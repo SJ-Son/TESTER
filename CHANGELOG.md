@@ -22,6 +22,7 @@
 - **Hybrid 아키텍처 도입**: Cloud Run (Web/API) + GCE VM (Worker) 구조로 분리하여 비용 효율 및 실행 격리 확보
 - **Worker 보안 강화**: `WORKER_AUTH_TOKEN` 기반의 어플리케이션 레벨 인증 도입으로 IP 유동성 대응 및 보안성 향상
 - **자동화된 Worker 배포**: `setup.sh` 스크립트를 통한 Docker, Python, 의존성 원클릭 설치 지원
+- **호환성 패치**: Worker VM의 Docker SDK 호환성 문제(`http+docker` scheme error) 해결을 위해 `urllib3<2.0.0` 버전 고정
 
 ---
 
