@@ -72,7 +72,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --service-account tester-runtime-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=production,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }},JWT_SECRET=${{ secrets.JWT_SECRET }}" \
+            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=production,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }},JWT_SECRET=${{ secrets.JWT_SECRET }},SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_KEY=${{ secrets.SUPABASE_KEY }},WORKER_URL=${{ secrets.WORKER_URL }},WORKER_AUTH_TOKEN=${{ secrets.WORKER_AUTH_TOKEN }}" \
             --port 8080
 
       - name: Prepare Firebase Public Directory
