@@ -107,7 +107,7 @@ def execute_code(request: ExecutionRequest):
 
         # Run pytest with timeout
         run_cmd = ["timeout", "10s", "pytest", "test_run.py"]
-        exec_result = container.exec_run(run_cmd, workdir="/app")
+        exec_result = container.exec_run(run_cmd, workdir="/")
 
         output_str = exec_result.output.decode("utf-8")
         success = exec_result.exit_code == 0
