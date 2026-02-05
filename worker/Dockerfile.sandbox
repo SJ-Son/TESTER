@@ -1,0 +1,21 @@
+# Base Image
+FROM python:3.12-slim
+
+# Install basics
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Pytest (Essential for testing)
+# Also installing other common libraries could be good, but focusing on requirements.
+RUN pip install --no-cache-dir pytest pytest-asyncio
+
+# Set workdir
+WORKDIR /app
+
+# Non-root user for security
+RUN useradd -m sandbox
+USER sandbox
+
+# Default command (can be overridden)
+CMD ["python", "--version"]

@@ -67,8 +67,9 @@ def execute_code(request: ExecutionRequest):
     try:
         client.images.get(image_name)
     except ImageNotFound:
-        logger.warning(f"Image {image_name} not found. Falling back to python:3.9-slim.")
-        image_name = "python:3.9-slim"
+        msg = f"Critical Error: Docker image '{image_name}' not found. Please run 'docker build -t {image_name} -f Dockerfile.sandbox .' on the worker."
+        logger.critical(msg)
+        raise HTTPException(status_code=500, detail=msg) from None
 
     container = None
     try:

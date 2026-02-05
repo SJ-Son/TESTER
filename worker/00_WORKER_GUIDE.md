@@ -27,7 +27,11 @@ sudo docker logs -f tester-worker
 # 기존 컨테이너 삭제
 sudo docker stop tester-worker && sudo docker rm tester-worker
 
-# 이미지 빌드 & 실행
+# 1. 샌드박스 이미지 빌드 (필수!)
+# 이것이 없으면 테스트 실행 시 에러 발생함
+sudo docker build -t tester-sandbox -f Dockerfile.sandbox .
+
+# 2. 워커 이미지 빌드 & 실행
 sudo docker build -t tester-worker .
 export WORKER_AUTH_TOKEN="[토큰값]"
 sudo docker run -d --name tester-worker -p 5000:5000 \
