@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from src.services.execution_service import ExecutionService
@@ -20,8 +20,8 @@ async def test_execution_service_initialization():
 async def test_execute_code_success(mock_httpx_client):
     service = ExecutionService()
 
-    # Mock response
-    mock_response = AsyncMock()
+    # Mock response (MagicMock because json() is synchronous)
+    mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"success": True, "output": "test output", "error": ""}
 
@@ -50,7 +50,7 @@ async def test_execute_code_worker_failure(mock_httpx_client):
     service = ExecutionService()
 
     # Mock response error
-    mock_response = AsyncMock()
+    mock_response = MagicMock()
     mock_response.status_code = 500
     mock_response.text = "Internal Server Error"
 
