@@ -22,5 +22,5 @@ async def execute_code(
     current_user: dict = Depends(get_current_user),
 ):
     """Execute code in a sandboxed environment."""
-    result = execution_service.execute_code(data.input_code, data.test_code, data.language)
+    result = await execution_service.execute_code(data.input_code, data.test_code, data.language)
     return result
