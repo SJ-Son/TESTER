@@ -73,7 +73,7 @@ export const useTesterStore = defineStore('tester', () => {
         if (!generatedCode.value || !isLoggedIn.value) return null
 
         try {
-            return await generatorApi.executeTestCode(generatedCode.value, selectedLanguage.value, userToken.value)
+            return await generatorApi.executeTestCode(inputCode.value, generatedCode.value, selectedLanguage.value, userToken.value)
         } catch (e: any) {
             return { success: false, error: e.message, output: '' }
         }
