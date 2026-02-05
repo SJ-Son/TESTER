@@ -13,3 +13,5 @@ redis
 prometheus-fastapi-instrumentator
 supabase
 cryptography
+docker
+httpx

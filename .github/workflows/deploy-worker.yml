@@ -1,0 +1,66 @@
+name: Deploy Worker VM
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'worker/**'
+      - '.github/workflows/deploy-worker.yml'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  # Hardcoding zone as it's specific to the VM instance
+  ZONE: asia-northeast3-a
+  INSTANCE_NAME: tester-worker
+
+jobs:
+  deploy-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Worker VM
+        run: |
+          echo "Preparing worker package..."
+          tar -czf worker.tar.gz worker/
+
+          echo "Uploading code to ${INSTANCE_NAME}..."
+          gcloud compute scp worker.tar.gz ${INSTANCE_NAME}:~/worker.tar.gz --zone=${ZONE}
+
+          echo "Executing deployment script on VM..."
+          gcloud compute ssh ${INSTANCE_NAME} --zone=${ZONE} --command "
+            # Stop existing container if running
+            sudo docker stop ${INSTANCE_NAME} || true
+            sudo docker rm ${INSTANCE_NAME} || true
+
+            # Extract new code
+            rm -rf ~/worker
+            tar -xzf worker.tar.gz
+
+            # Build new image
+            cd worker
+            sudo docker build -t ${INSTANCE_NAME} .
+
+            # Run new container
+            sudo docker run -d \
+              --name ${INSTANCE_NAME} \
+              -p 5000:5000 \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -e WORKER_AUTH_TOKEN=${{ secrets.WORKER_AUTH_TOKEN }} \
+              --restart unless-stopped \
+              ${INSTANCE_NAME}
+            
+            # Cleanup
+            sudo docker image prune -f
+          "

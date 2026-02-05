@@ -75,6 +75,24 @@ onMounted(async () => {
     hljs.highlightElement(codeBlock.value)
   }
 })
+
+const isExecuting = ref(false)
+const executionResult = ref<{success: boolean, output: string, error: string} | null>(null)
+const showOutput = ref(false)
+
+const runTest = async () => {
+    if (!store.generatedCode) return
+    isExecuting.value = true
+    executionResult.value = null
+    showOutput.value = true
+    
+    try {
+        const result = await store.executeTest()
+        executionResult.value = result
+    } finally {
+        isExecuting.value = false
+    }
+}
 </script>
 
 <template>
@@ -103,15 +121,30 @@ onMounted(async () => {
             <span class="text-[10px] font-mono text-gray-300 uppercase">{{ store.selectedLanguage }} suite</span>
             <span v-if="store.generatedCode" class="hidden sm:inline text-[10px] text-blue-300 font-medium">• Real-time rendering</span>
           </div>
-          <button 
-            v-if="store.generatedCode"
-            @click="copyToClipboard"
-            class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-gray-700 shadow-lg"
-            :class="{ 'text-green-400 border-green-500/50': isCopied }"
-          >
-            <component :is="isCopied ? Check : Copy" class="w-3 h-3" />
-            <span>{{ isCopied ? 'Copied!' : 'Copy' }}</span>
-          </button>
+          <div class="flex items-center space-x-2">
+            <button 
+                v-if="store.generatedCode && store.selectedLanguage === 'python'"
+                @click="runTest"
+                :disabled="isExecuting"
+                class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-gray-700 shadow-lg disabled:opacity-50"
+              >
+                <div v-if="isExecuting" class="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div>
+                <template v-else>
+                    <component :is="Code" class="w-3 h-3" />
+                    <span>Run Test</span>
+                </template>
+            </button>
+
+            <button 
+                v-if="store.generatedCode"
+                @click="copyToClipboard"
+                class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-gray-700 shadow-lg"
+                :class="{ 'text-green-400 border-green-500/50': isCopied }"
+            >
+                <component :is="isCopied ? Check : Copy" class="w-3 h-3" />
+                <span>{{ isCopied ? 'Copied!' : 'Copy' }}</span>
+            </button>
+          </div>
        </div>
        <div class="flex-1 overflow-auto p-4 custom-scrollbar">
          <pre v-if="store.generatedCode" class="m-0"><code ref="codeBlock" :class="'language-' + store.selectedLanguage" class="hljs">{{ store.generatedCode }}</code></pre>
@@ -119,6 +152,24 @@ onMounted(async () => {
            <Code class="w-12 h-12" />
            <p class="text-xs font-medium">Ready for generation</p>
          </div>
+       </div>
+
+       <!-- Execution Result Console -->
+       <div v-if="showOutput" class="border-t border-gray-800 bg-black/80 backdrop-blur p-4 h-1/3 overflow-auto transition-all duration-300 flex flex-col min-h-[150px]">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-mono font-bold text-gray-400">Execution Output</span>
+                <button @click="showOutput = false" class="text-gray-500 hover:text-gray-300">✕</button>
+            </div>
+            
+            <div v-if="isExecuting" class="text-gray-400 text-xs font-mono animate-pulse">Running tests in sandbox...</div>
+            
+            <div v-else-if="executionResult" class="font-mono text-xs whitespace-pre-wrap">
+                <div v-if="!executionResult.success" class="text-red-400 mb-2 font-bold">Execution Failed</div>
+                <div v-else class="text-green-400 mb-2 font-bold">Execution Successful</div>
+                
+                <div v-if="executionResult.error" class="text-red-300 bg-red-900/10 p-2 rounded mb-2">{{ executionResult.error }}</div>
+                <div class="text-gray-300 max-w-full overflow-x-auto">{{ executionResult.output }}</div>
+            </div>
        </div>
     </div>
   </section>

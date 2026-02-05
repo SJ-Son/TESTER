@@ -68,3 +68,44 @@ class SupabaseService:
 
     def is_connected(self) -> bool:
         return self.get_connection_status()["connected"]
+
+    def save_generation(
+        self, user_id: str, input_code: str, generated_code: str, language: str, model: str
+    ):
+        """생성 기록 저장"""
+        if not self._client:
+            logger.warning("Supabase client not initialized. Skipping save.")
+            return None
+
+        try:
+            data = {
+                "user_id": user_id,
+                "input_code": input_code,
+                "generated_code": generated_code,
+                "language": language,
+                "model": model,
+            }
+            response = self._client.table("generation_history").insert(data).execute()
+            return response
+        except Exception as e:
+            logger.error(f"Failed to save generation history: {e}")
+            return None
+
+    def get_history(self, user_id: str, limit: int = 50):
+        """사용자 기록 조회"""
+        if not self._client:
+            return []
+
+        try:
+            response = (
+                self._client.table("generation_history")
+                .select("*")
+                .eq("user_id", user_id)
+                .order("created_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return response.data
+        except Exception as e:
+            logger.error(f"Failed to fetch history: {e}")
+            return []

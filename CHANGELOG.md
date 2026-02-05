@@ -2,6 +2,30 @@
 
 이 프로젝트의 모든 중요한 변경 사항은 이 파일에 문서화됩니다.
 
+
+## [0.4.0] - 2026-02-05
+
+### ✨ Features
+- **Supabase 히스토리 저장**: 생성된 테스트 코드를 영구 저장하고 불러오는 기능 구현 (RLS 적용)
+- **Docker 샌드박스 실행**: 격리된 Docker 컨테이너에서 생성된 Python 테스트 코드를 안전하게 실행 및 검증
+- **실시간 실행 결과 확인**: 프론트엔드에서 테스트 실행 버튼을 통해 즉시 결과(Pass/Fail/Logs) 확인 가능
+
+### 🛡️ Security
+- **샌드박스 격리 강화**: `network_disabled`, `pids_limit`, `no-new-privileges` 옵션을 적용하여 호스트 시스템 보호
+- **입력 코드 검증**: 실행 시 소스 코드와 테스트 코드를 결합하여 샌드박스 내에서 안전하게 실행되도록 로직 개선
+
+### ♻️ Refactoring
+- **실행 컨텍스트 최적화**: 테스트 대상 함수와 테스트 코드를 단일 실행 파일로 결합하여 Import 에러 방지
+- **타임아웃 적용**: `pytest` 실행 시 `timeout` 명령어를 사용하여 무한 루프 방지
+
+### 🏗️ Infrastructure
+- **Hybrid 아키텍처 도입**: Cloud Run (Web/API) + GCE VM (Worker) 구조로 분리하여 비용 효율 및 실행 격리 확보
+- **Worker 보안 강화**: `WORKER_AUTH_TOKEN` 기반의 어플리케이션 레벨 인증 도입으로 IP 유동성 대응 및 보안성 향상
+- **자동화된 Worker 배포**: `setup.sh` 스크립트를 통한 Docker, Python, 의존성 원클릭 설치 지원
+- **호환성 패치**: Worker VM의 Docker SDK 호환성 문제(`http+docker` scheme error) 해결을 위해 `urllib3<2.0.0` 버전 고정
+
+---
+
 ## [0.3.2] - 2026-02-03
 
 ### ⚡ Performance & Optimization

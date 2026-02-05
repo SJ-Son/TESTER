@@ -88,3 +88,34 @@ export async function generateTestCode(
         }
     }
 }
+
+export async function executeTestCode(inputCode: string, testCode: string, language: string, token: string): Promise<any> {
+    const response = await fetch('/api/execution/execute', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ input_code: inputCode, test_code: testCode, language })
+    })
+
+    if (!response.ok) {
+        throw new Error(`Execution failed: ${response.statusText}`)
+    }
+
+    return await response.json()
+}
+
+export async function fetchHistory(token: string): Promise<any[]> {
+    const response = await fetch('/api/history/', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok) {
+        return []
+    }
+
+    return await response.json()
+}

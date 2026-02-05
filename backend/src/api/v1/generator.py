@@ -5,9 +5,10 @@ import logging
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from src.api.v1.deps import get_test_generator_service, limiter
+from src.api.v1.deps import get_supabase_service, get_test_generator_service, limiter
 from src.auth import get_current_user, verify_turnstile
 from src.exceptions import TurnstileError, ValidationError
+from src.services.supabase_service import SupabaseService
 from src.services.test_generator_service import TestGeneratorService
 
 router = APIRouter()
@@ -34,6 +35,7 @@ async def generate_test(
     data: GenerateRequest,
     current_user: dict = Depends(get_current_user),
     service: TestGeneratorService = Depends(get_test_generator_service),
+    supabase_service: SupabaseService = Depends(get_supabase_service),
 ):
     """Streams generated code using Server-Sent Events with structured error handling."""
 
@@ -42,6 +44,7 @@ async def generate_test(
         raise TurnstileError()
 
     async def generate_stream():
+        generated_content = []
         try:
             chunk_count = 0
             # Delegate logic to Service
@@ -52,12 +55,28 @@ async def generate_test(
                 is_regenerate=data.is_regenerate,
             ):
                 if chunk:
+                    # Collect chunk
+                    generated_content.append(chunk)
                     # Send as message event
                     yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
                     chunk_count += 1
                     # Yield control to event loop every 100 chunks to prevent blocking
                     if chunk_count % 100 == 0:
                         await asyncio.sleep(0)
+
+            # Save to Supabase (Best effort)
+            try:
+                full_code = "".join(generated_content)
+                if full_code:
+                    supabase_service.save_generation(
+                        user_id=current_user["id"],
+                        input_code=data.input_code,
+                        generated_code=full_code,
+                        language=data.language,
+                        model=data.model,
+                    )
+            except Exception as e:
+                logger.error(f"Failed to save generation history: {e}")
 
             # Send completion event
             yield format_sse_event("message", {"type": "done"})
