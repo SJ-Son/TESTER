@@ -6,6 +6,7 @@ create table public.generation_history (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users(id) on delete set null,
   input_code text not null,
+  generated_code text not null,
   language varchar(50) not null,
   model varchar(50) not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null

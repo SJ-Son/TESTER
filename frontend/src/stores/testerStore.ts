@@ -33,43 +33,50 @@ export const useTesterStore = defineStore('tester', () => {
         localStorage.removeItem('tester_token')
     }
 
-    const loadHistory = () => {
-        const savedHistory = localStorage.getItem('tester_history')
-        if (savedHistory) {
-            try {
-                history.value = JSON.parse(savedHistory)
-            } catch (e) {
-                console.error('Failed to parse history', e)
-                history.value = []
-            }
+    const loadHistory = async () => {
+        if (!isLoggedIn.value) return
+
+        try {
+            const historyData = await generatorApi.fetchHistory(userToken.value)
+            history.value = historyData.map((item: any) => ({
+                id: item.id,
+                timestamp: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                inputCode: item.input_code,
+                result: item.generated_code,
+                language: item.language
+            }))
+        } catch (e) {
+            console.error('Failed to load history', e)
         }
     }
 
     const addToHistory = (input: string, result: string, language: SupportedLanguage) => {
-        if (!result || result.startsWith('ERROR:')) return
-
-        if (history.value.length > 0) {
-            const lastItem = history.value[0]
-            if (lastItem.inputCode === input && lastItem.result === result) {
-                return
-            }
-        }
-
+        // Optimistic update or just reload. 
+        // For better UX, we can just push to local list, but ID will be missing.
+        // We will reload history when sidebar is opened or just push a temporary item.
+        // For now, let's just reload history silently if possible, or append simple item.
         const newItem = {
-            id: Date.now(),
+            id: 'temp-' + Date.now(),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             inputCode: input,
             result: result,
             language: language
         }
-
-        // Optimize: remove last item before adding if at max capacity
-        if (history.value.length >= MAX_HISTORY_ITEMS) {
+        history.value.unshift(newItem)
+        if (history.value.length > MAX_HISTORY_ITEMS) {
             history.value.pop()
         }
-        history.value.unshift(newItem)
+        // In background, we could fetch fresh history.
+    }
 
-        localStorage.setItem('tester_history', JSON.stringify(history.value))
+    const executeTest = async () => {
+        if (!generatedCode.value || !isLoggedIn.value) return null
+
+        try {
+            return await generatorApi.executeTestCode(generatedCode.value, selectedLanguage.value, userToken.value)
+        } catch (e: any) {
+            return { success: false, error: e.message, output: '' }
+        }
     }
 
     const restoreHistory = (item: any) => {
@@ -133,6 +140,7 @@ export const useTesterStore = defineStore('tester', () => {
         loadHistory,
         addToHistory,
         restoreHistory,
-        generateTestCode
+        generateTestCode,
+        executeTest
     }
 })
