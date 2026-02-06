@@ -126,45 +126,48 @@ app.include_router(api_router, prefix="/api")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIST = "/app/frontend/dist"
 
-if os.path.exists(FRONTEND_DIST):
-    logger.info(f"✅ Found frontend at {FRONTEND_DIST}")
-    # Mount assets
-    assets_dir = os.path.join(FRONTEND_DIST, "assets")
-    if os.path.exists(assets_dir):
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+if not settings.is_production:
+    if os.path.exists(FRONTEND_DIST):
+        logger.info(f"✅ Found frontend at {FRONTEND_DIST} (Dev Mode)")
+        # Mount assets
+        assets_dir = os.path.join(FRONTEND_DIST, "assets")
+        if os.path.exists(assets_dir):
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
-    # Serve robots.txt
-    @app.get("/robots.txt")
-    async def get_robots_txt():
-        robots_file = os.path.join(FRONTEND_DIST, "robots.txt")
-        if os.path.exists(robots_file):
-            return FileResponse(robots_file)
-        return {"error": "robots.txt not found"}
+        # Serve robots.txt
+        @app.get("/robots.txt")
+        async def get_robots_txt():
+            robots_file = os.path.join(FRONTEND_DIST, "robots.txt")
+            if os.path.exists(robots_file):
+                return FileResponse(robots_file)
+            return {"error": "robots.txt not found"}
 
-    # Serve sitemap.xml
-    @app.get("/sitemap.xml")
-    async def get_sitemap_xml():
-        sitemap_file = os.path.join(FRONTEND_DIST, "sitemap.xml")
-        if os.path.exists(sitemap_file):
-            return FileResponse(sitemap_file)
-        return {"error": "sitemap.xml not found"}
+        # Serve sitemap.xml
+        @app.get("/sitemap.xml")
+        async def get_sitemap_xml():
+            sitemap_file = os.path.join(FRONTEND_DIST, "sitemap.xml")
+            if os.path.exists(sitemap_file):
+                return FileResponse(sitemap_file)
+            return {"error": "sitemap.xml not found"}
 
-    # SPA Catch-all
-    @app.get("/{rest_of_path:path}")
-    async def serve_frontend(rest_of_path: str):
-        if rest_of_path.startswith("api/"):
-            raise HTTPException(status_code=404)
+        # SPA Catch-all
+        @app.get("/{rest_of_path:path}")
+        async def serve_frontend(rest_of_path: str):
+            if rest_of_path.startswith("api/"):
+                raise HTTPException(status_code=404)
 
-        index_file = os.path.join(FRONTEND_DIST, "index.html")
-        if os.path.exists(index_file):
-            return FileResponse(index_file)
-        return {"error": "index.html not found in dist"}
+            index_file = os.path.join(FRONTEND_DIST, "index.html")
+            if os.path.exists(index_file):
+                return FileResponse(index_file)
+            return {"error": "index.html not found in dist"}
+    else:
+        logger.warning(f"❌ Frontend dist not found at {FRONTEND_DIST}. Serving API only.")
+
+        @app.get("/")
+        async def root():
+            return {"message": "Gemini API Server is running. Frontend dist not found."}
 else:
-    logger.warning(f"❌ Frontend dist not found at {FRONTEND_DIST}. Serving API only.")
-
-    @app.get("/")
-    async def root():
-        return {"message": "Gemini API Server is running. Frontend dist not found."}
+    logger.info("🚀 Production Mode: Static files should be served by Nginx/CDN.")
 
 
 if __name__ == "__main__":

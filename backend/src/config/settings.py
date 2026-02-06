@@ -53,10 +53,24 @@ class Settings(BaseSettings):
     @field_validator("GEMINI_API_KEY")
     @classmethod
     def validate_gemini_key(cls, v: str) -> str:
-        """Gemini API 키 형식 검증 (값이 있을 때만)"""
-        if v and v != "your_gemini_api_key_here" and not v.startswith("AI"):
-            # 실제 키 같은데 형식이 틀린 경우만 에러 (플레이스홀더는 허용)
+        """Gemini API 키 형식 검증"""
+        # 필수 값 체크 (빈 문자열 허용 안 함)
+        if not v:
+            raise ValueError("GEMINI_API_KEY is required.")
+
+        if v != "your_gemini_api_key_here" and not v.startswith("AI"):
             raise ValueError("Invalid Gemini API key format (must start with 'AI')")
+        return v
+
+    @field_validator("JWT_SECRET")
+    @classmethod
+    def validate_jwt_secret(cls, v: str) -> str:
+        if not v:
+            raise ValueError("JWT_SECRET is required.")
+        if len(v) < 32:
+            # Just a warning in logs typically, but here we enforce it or allow it.
+            # Let's keep it simple for now, just existence check.
+            pass
         return v
 
     @property
@@ -74,10 +88,7 @@ class Settings(BaseSettings):
         """프로덕션 환경 여부"""
         return self.ENV.lower() == "production"
 
-    def validate(self):
-        """레거시 호환성을 위한 검증 메서드"""
-        if not self.GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY 설정이 필요합니다 (.env 또는 환경변수)")
+    # Legacy validate() method removed in favor of Pydantic validation
 
 
 settings = Settings()

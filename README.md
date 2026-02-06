@@ -19,11 +19,13 @@ Gemini API 활용한 테스트 코드 자동 생성 플랫폼.
 
 - **AI 테스트 생성**: Gemini한테 코드 던져주면 Pytest 코드 짜줌.
 - **실시간 스트리밍**: SSE(Server-Sent Events) 써서 한 글자씩 타이핑되는 효과 구현.
-- **보안**: JWT 인증, Cloudflare Turnstile(봇 방지), Fernet 데이터 암호화.
+- **보안**: JWT 인증, Turnstile, Fernet 암호화 (Fail-Closed 적용).
+  > **Note**: `DATA_ENCRYPTION_KEY`, `JWT_SECRET`, `GEMINI_API_KEY` 환경변수가 없으면 서버가 시작되지 않습니다.
 - **캐싱**: Redis 사용. AI 응답은 2시간 캐싱해서 비용 아낌.
 - **Hybrid 아키텍처**:
   - 웹/API: Cloud Run (Serverless)
   - 실행: GCE VM (Docker Sandbox) -> 보안 때문에 격리함.
+  - **안정성**: `put_archive` 기반의 안전한 코드 주입 & 비동기 실행 보장.
 
 ## 📚 모듈별 학습 메모 (Documentation)
 

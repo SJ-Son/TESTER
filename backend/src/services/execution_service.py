@@ -20,10 +20,10 @@ class ExecutionService:
         """
         Forwards execution request to the isolated Worker VM.
         """
-        if language != "python":
+        if language.lower() != "python":
             return {
                 "success": False,
-                "error": "Only Python is supported in sandbox currently",
+                "error": f"Only Python is supported. Got: {language}",
                 "output": "",
             }
 
