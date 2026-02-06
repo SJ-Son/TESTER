@@ -56,6 +56,7 @@ def test_repository_create(mock_enc_cls, mock_supabase_client):
         {
             "id": "123e4567-e89b-12d3-a456-426614174000",
             "input_code": "encrypted_code",
+            "generated_code": "encrypted_code",
             "language": "python",
             "model": "gpt-4",
             "created_at": "2024-01-01T00:00:00Z",
@@ -63,7 +64,7 @@ def test_repository_create(mock_enc_cls, mock_supabase_client):
     ]
 
     # Test Create
-    result = repo.create_history(None, "print('hello')", "python", "gpt-4")
+    result = repo.create_history(None, "print('hello')", "print('world')", "python", "gpt-4")
 
     assert result is not None
     assert result.input_code == "print('hello')"
