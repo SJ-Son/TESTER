@@ -14,7 +14,18 @@ export const useTesterStore = defineStore('tester', () => {
     const error = ref<string | null>(null)
     const streamEnded = ref(false)
     const userToken = ref(localStorage.getItem('tester_token') || '')
-    const history = ref<any[]>([])
+
+    // Initialize history from local storage safely
+    let initialHistory: any[] = []
+    try {
+        const stored = localStorage.getItem('tester_history')
+        if (stored) {
+            initialHistory = JSON.parse(stored)
+        }
+    } catch (e) {
+        console.error('Failed to parse history from local storage', e)
+    }
+    const history = ref<any[]>(initialHistory)
 
     const isSidebarOpen = ref(false)
     const isMobile = ref(window.innerWidth < MOBILE_BREAKPOINT)
@@ -81,27 +92,38 @@ export const useTesterStore = defineStore('tester', () => {
         try {
             const historyData = await generatorApi.fetchHistory(userToken.value)
             if (Array.isArray(historyData)) {
+                // Ensure we merge or replace cautiously. Here we replace for simplicity as per requirement.
                 history.value = historyData.map((item: any) => ({
                     id: item.id,
+                    input_code: item.input_code,
+                    generated_code: item.generated_code,
+                    language: item.language,
+                    created_at: item.created_at,
+                    // View helpers
                     timestamp: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    inputCode: item.input_code,
-                    result: item.generated_code,
-                    language: item.language
+                    inputCode: item.input_code, // Maintain compatibility with view
+                    result: item.generated_code // Maintain compatibility with view
                 }))
             }
         } catch (e) {
             console.error('Failed to load history from server, keeping local cache:', e)
-            // We don't clear history.value here to preserve the local storage data (flicker prevention)
+            // Do not clear history.value
         }
     }
 
     const addToHistory = (input: string, result: string, language: SupportedLanguage) => {
+        // Matches backend schema
+        const now = new Date().toISOString()
         const newItem = {
             id: 'temp-' + Date.now(),
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            input_code: input,
+            generated_code: result,
+            language: language,
+            created_at: now,
+            // View helpers
+            timestamp: new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             inputCode: input,
-            result: result,
-            language: language
+            result: result
         }
         history.value.unshift(newItem)
         if (history.value.length > MAX_HISTORY_ITEMS) {

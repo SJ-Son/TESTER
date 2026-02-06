@@ -38,11 +38,26 @@ async def test_execute_code_success(mock_httpx_client):
 
 
 @pytest.mark.asyncio
-async def test_execute_code_unsupported_language():
+async def test_execute_code_unsupported_language(mock_httpx_client):
     service = ExecutionService()
+
+    # Mock response for unsupported language from worker
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "success": False,
+        "error": "Language runner not implemented for javascript",
+        "output": ""
+    }
+
+    mock_client_instance = AsyncMock()
+    mock_client_instance.post.return_value = mock_response
+    mock_httpx_client.return_value.__aenter__.return_value = mock_client_instance
+
     result = await service.execute_code("console.log('hi')", "test_code", "javascript")
+
     assert result["success"] is False
-    assert "Only Python is supported" in result["error"]
+    assert "Language runner not implemented" in result["error"]
 
 
 @pytest.mark.asyncio

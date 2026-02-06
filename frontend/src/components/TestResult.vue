@@ -113,44 +113,48 @@ const runTest = async () => {
     </div>
 
     <div 
-      class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col min-h-[400px]"
-      :class="{ 'animate-pulse border-blue-500/20': store.isGenerating && !store.generatedCode }"
+      class="flex-1 bg-gray-900/50 backdrop-blur-md border border-gray-800 rounded-2xl overflow-hidden flex flex-col min-h-[400px] shadow-2xl"
+      :class="{ 'animate-pulse border-blue-500/30': store.isGenerating && !store.generatedCode }"
     >
-       <div class="bg-gray-800/50 px-4 md:px-6 py-3 border-b border-gray-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur-sm">
+       <div class="bg-gray-900/80 px-4 md:px-6 py-3 border-b border-gray-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
           <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-mono text-gray-300 uppercase">{{ store.selectedLanguage }} suite</span>
-            <span v-if="store.generatedCode" class="hidden sm:inline text-[10px] text-blue-300 font-medium">• Real-time rendering</span>
+            <div class="w-2 h-2 rounded-full bg-red-500"></div>
+            <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+            <span class="ml-2 text-[10px] font-mono text-gray-400 uppercase tracking-wider opacity-60">{{ store.selectedLanguage }} suite</span>
           </div>
           <div class="flex items-center space-x-2">
             <button 
                 v-if="store.generatedCode && store.selectedLanguage === 'python'"
                 @click="runTest"
                 :disabled="isExecuting"
-                class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-gray-700 shadow-lg disabled:opacity-50"
+                class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 hover:bg-gray-700/80 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-white/5 shadow-lg disabled:opacity-50 backdrop-blur-sm"
               >
                 <div v-if="isExecuting" class="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div>
                 <template v-else>
                     <component :is="Code" class="w-3 h-3" />
-                    <span>Run Test</span>
+                    <span>Run</span>
                 </template>
             </button>
 
             <button 
                 v-if="store.generatedCode"
                 @click="copyToClipboard"
-                class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-gray-700 shadow-lg"
-                :class="{ 'text-green-400 border-green-500/50': isCopied }"
+                class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 hover:bg-gray-700/80 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-white/5 shadow-lg backdrop-blur-sm"
+                :class="{ 'text-green-400 border-green-500/50 bg-green-900/20': isCopied }"
             >
                 <component :is="isCopied ? Check : Copy" class="w-3 h-3" />
-                <span>{{ isCopied ? 'Copied!' : 'Copy' }}</span>
+                <span>{{ isCopied ? 'Copied' : 'Copy' }}</span>
             </button>
           </div>
        </div>
-       <div class="flex-1 overflow-auto p-4 custom-scrollbar">
+       <div class="flex-1 overflow-auto p-6 custom-scrollbar bg-gray-950/30">
          <pre v-if="store.generatedCode" class="m-0"><code ref="codeBlock" :class="'language-' + store.selectedLanguage" class="hljs">{{ store.generatedCode }}</code></pre>
-         <div v-else-if="!store.isGenerating" class="h-full flex flex-col items-center justify-center text-gray-600 space-y-3 opacity-30">
-           <Code class="w-12 h-12" />
-           <p class="text-xs font-medium">Ready for generation</p>
+         <div v-else-if="!store.isGenerating" class="h-full flex flex-col items-center justify-center space-y-4 opacity-40">
+           <div class="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center border border-gray-700 rotate-3">
+             <Code class="w-8 h-8 text-gray-500" />
+           </div>
+           <p class="text-xs font-medium text-gray-500 uppercase tracking-widest">Ready to generate</p>
          </div>
        </div>
 
