@@ -3,6 +3,12 @@
 이 프로젝트의 모든 중요한 변경 사항은 이 파일에 문서화됩니다.
 
 
+## [0.5.2] - 2026-02-06
+
+### 🛡️ Security Hardening
+- **Fail-Closed 암호화**: `DATA_ENCRYPTION_KEY` 누락 시 서버 부팅 차단, 암호화/복호화 실패 시 평문 반환 대신 에러(RuntimeError) 발생으로 데이터 유출 원천 차단
+- **Strict Configuration**: `settings.py`에 Pydantic Validator 적용, `JWT_SECRET`, `GEMINI_API_KEY` 등 필수 환경변수 누락 시 즉시 에러 발생
+
 ## [0.5.1] - 2026-02-06
 
 ### ♻️ Refactoring (Worker)

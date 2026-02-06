@@ -34,6 +34,7 @@
 - 생성 이력(`generation_history`) 테이블 전담.
 - `generated_code` 포함한 데이터 저장.
 - **암호화 담당**: `EncryptionService` 사용하여 민감 데이터 암호화/복호화 수행.
+  - **Fail-Closed**: 키가 없거나 암호화 실패 시 절대 평문을 저장하지 않고 에러를 발생시킴.
 
 
 ## 의존성 흐름
