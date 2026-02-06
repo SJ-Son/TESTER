@@ -32,7 +32,7 @@ RESTful API 엔드포인트 정의 계층. FastAPI 라우터 패턴 사용.
 - IP 혹은 User ID 기반으로 5 request/minute 제한. (테스트 땐 좀 풀어줄 필요 있음)
 
 ### 의존성 주입 (DI)
-- `deps.py` 함수들(`get_test_generator_service` 등)을 `Depends()`로 주입받음.
+- `deps.py` 함수들(`get_test_generator_service`, `get_generation_repository` 등)을 `Depends()`로 주입받음.
 - 테스트 할 때 편함.
 
 ### 에러 처리

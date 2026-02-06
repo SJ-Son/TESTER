@@ -48,8 +48,11 @@ graph LR
     Server -->|Prompt| LLM[Google Gemini AI]
     LLM -->|Generated Code| Server
     Server -->|Validation| Cache[(Redis Cache)]
-    Server -->|Store| DB[(Supabase)]
+    Server -->|Store| Repo[Repository] --> DB[(Supabase)]
     Server -->|Response| User
+    Server -.->|Background Task| Repo
+    
+    note right of Repo: 암호화/저장 보장
     
     subgraph "Hybrid Execution"
     Server -->|HTTP/Auth| Worker[Worker VM]
