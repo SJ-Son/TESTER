@@ -26,9 +26,15 @@
 - `WORKER_URL` 환경변수 쓰고, 헤더에 토큰 넣어서 보냄.
 
 ### SupabaseService
-- DB 작업.
-- `user_id` 기반으로 히스토리 저장/조회.
-- Fernet으로 민감 데이터 암호화해서 넣음.
+- DB 클라이언트 관리 (Singleton).
+- **직접 사용하지 않음**: `GenerationRepository` 같은 Repository Layer를 통해서만 접근.
+- Lazy Loading 적용됨 (앱 시작 시점 Crash 방지).
+
+### GenerationRepository
+- 생성 이력(`generation_history`) 테이블 전담.
+- `generated_code` 포함한 데이터 저장.
+- **암호화 담당**: `EncryptionService` 사용하여 민감 데이터 암호화/복호화 수행.
+
 
 ## 의존성 흐름
-API -> TestGenerator -> LanguageFactory / Gemini -> Cache / Supabase
+API -> TestGenerator -> LanguageFactory / Gemini -> Cache / Repository -> Supabase

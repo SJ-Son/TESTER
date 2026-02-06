@@ -10,9 +10,13 @@ class BaseRepository(Generic[T]):
     """Supabase 기반 Generic Repository"""
 
     def __init__(self, supabase_service: SupabaseService, table_name: str, model_cls: type[T]):
-        self.client = supabase_service.client
+        self.supabase_service = supabase_service
         self.table_name = table_name
         self.model_cls = model_cls
+
+    @property
+    def client(self):
+        return self.supabase_service.client
 
     def create(self, data: T) -> Optional[T]:
         """데이터 생성"""
@@ -22,6 +26,9 @@ class BaseRepository(Generic[T]):
                 return self.model_cls(**response.data[0])
             return None
         except Exception as e:
+            # Re-raise or handle? Original code raised e.
+            # But if client access fails (RuntimeError), we should catch it?
+            # Original code: raise e
             raise e
 
     def get_by_id(self, id: Any) -> Optional[T]:

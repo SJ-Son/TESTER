@@ -5,6 +5,7 @@ from fastapi.security import APIKeyHeader
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from src.config.settings import settings
+from src.repositories.generation_repository import GenerationRepository
 from src.services.gemini_service import GeminiService
 from src.services.supabase_service import SupabaseService
 from src.services.test_generator_service import TestGeneratorService
@@ -53,3 +54,9 @@ def get_test_generator_service(
     gemini_service: GeminiService = Depends(get_gemini_service),
 ) -> TestGeneratorService:
     return TestGeneratorService(gemini_service=gemini_service)
+
+
+def get_generation_repository(
+    supabase_service: SupabaseService = Depends(get_supabase_service),
+) -> GenerationRepository:
+    return GenerationRepository(supabase_service=supabase_service)

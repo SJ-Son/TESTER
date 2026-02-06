@@ -12,6 +12,7 @@ class GenerationModel(BaseModel):
     id: Optional[UUID] = None
     user_id: Optional[UUID] = None
     input_code: str
+    generated_code: str
     language: str
     model: str
     created_at: Optional[datetime] = None
@@ -25,15 +26,25 @@ class GenerationRepository(BaseRepository[GenerationModel]):
         self.encryption = EncryptionService()
 
     def create_history(
-        self, user_id: Optional[UUID], input_code: str, language: str, model: str
+        self,
+        user_id: Optional[UUID],
+        input_code: str,
+        generated_code: str,
+        language: str,
+        model: str,
     ) -> Optional[GenerationModel]:
         """이력 생성 (암호화 저장)"""
 
         # 민감 데이터 암호화
-        encrypted_code = self.encryption.encrypt(input_code)
+        encrypted_input = self.encryption.encrypt(input_code)
+        encrypted_output = self.encryption.encrypt(generated_code)
 
         entry = GenerationModel(
-            user_id=user_id, input_code=encrypted_code, language=language, model=model
+            user_id=user_id,
+            input_code=encrypted_input,
+            generated_code=encrypted_output,
+            language=language,
+            model=model,
         )
         # exclude_none=True to let DB handle defaults like id, created_at
         data = entry.model_dump(exclude={"id", "created_at"}, exclude_none=True)
@@ -43,6 +54,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
             if response.data:
                 created_model = self.model_cls(**response.data[0])
                 created_model.input_code = self.encryption.decrypt(created_model.input_code)
+                created_model.generated_code = self.encryption.decrypt(created_model.generated_code)
                 return created_model
             return None
         except Exception:
