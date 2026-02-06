@@ -20,13 +20,6 @@ class ExecutionService:
         """
         Forwards execution request to the isolated Worker VM.
         """
-        if language.lower() != "python":
-            return {
-                "success": False,
-                "error": f"Only Python is supported. Got: {language}",
-                "output": "",
-            }
-
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 headers = {}

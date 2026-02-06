@@ -62,6 +62,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
 
     def get_user_history(self, user_id: str, limit: int = 50) -> list[GenerationModel]:
         """사용자 이력 조회 (복호화 반환)"""
+        # DB 쿼리 실패시 예외가 전파되도록 둠 (API layer에서 500 처리)
         response = (
             self.client.table(self.table_name)
             .select("*")
@@ -79,8 +80,8 @@ class GenerationRepository(BaseRepository[GenerationModel]):
                 model.input_code = self.encryption.decrypt(model.input_code)
                 model.generated_code = self.encryption.decrypt(model.generated_code)
                 results.append(model)
-            except Exception as e:
-                # 복호화 실패 시 로그 남기고 해당 항목은 결과에서 제외 (데이터 손상 방지)
-                self.logger.error(f"Failed to decrypt history item {model.id}: {e}")
-                # Optional: results.append(MarkedCorruptedModel)
+            except Exception:
+                # 복호화 실패 시 로그 남기고 해당 항목은 결과에서 제외
+                self.logger.error(f"Failed to decrypt history item {model.id}", exc_info=True)
+                # corrupted item skipped
         return results
