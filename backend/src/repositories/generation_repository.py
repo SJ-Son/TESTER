@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -24,6 +25,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
     def __init__(self, supabase_service: SupabaseService):
         super().__init__(supabase_service, "generation_history", GenerationModel)
         self.encryption = EncryptionService()
+        self.logger = logging.getLogger(__name__)
 
     def create_history(
         self,
@@ -49,42 +51,36 @@ class GenerationRepository(BaseRepository[GenerationModel]):
         # exclude_none=True to let DB handle defaults like id, created_at
         data = entry.model_dump(exclude={"id", "created_at"}, exclude_none=True)
 
-        try:
-            response = self.client.table(self.table_name).insert(data).execute()
-            if response.data:
-                created_model = self.model_cls(**response.data[0])
-                # Return decrypted data for immediate usage if needed
-                created_model.input_code = input_code
-                created_model.generated_code = generated_code
-                return created_model
-            return None
-        except Exception:
-            return None
+        response = self.client.table(self.table_name).insert(data).execute()
+        if response.data:
+            created_model = self.model_cls(**response.data[0])
+            # Return decrypted data for immediate usage if needed
+            created_model.input_code = input_code
+            created_model.generated_code = generated_code
+            return created_model
+        return None
 
     def get_user_history(self, user_id: str, limit: int = 50) -> list[GenerationModel]:
         """사용자 이력 조회 (복호화 반환)"""
-        try:
-            response = (
-                self.client.table(self.table_name)
-                .select("*")
-                .eq("user_id", user_id)
-                .order("created_at", desc=True)
-                .limit(limit)
-                .execute()
-            )
+        response = (
+            self.client.table(self.table_name)
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
 
-            results = []
-            for item in response.data:
-                model = self.model_cls(**item)
-                try:
-                    # 복호화 시도
-                    model.input_code = self.encryption.decrypt(model.input_code)
-                    model.generated_code = self.encryption.decrypt(model.generated_code)
-                except Exception:
-                    # 복호화 실패 시 원본 유지 혹은 에러 처리 (여기서는 조용히 넘어감)
-                    pass
+        results = []
+        for item in response.data:
+            model = self.model_cls(**item)
+            try:
+                # 복호화 시도
+                model.input_code = self.encryption.decrypt(model.input_code)
+                model.generated_code = self.encryption.decrypt(model.generated_code)
                 results.append(model)
-            return results
-
-        except Exception:
-            return []
+            except Exception as e:
+                # 복호화 실패 시 로그 남기고 해당 항목은 결과에서 제외 (데이터 손상 방지)
+                self.logger.error(f"Failed to decrypt history item {model.id}: {e}")
+                # Optional: results.append(MarkedCorruptedModel)
+        return results

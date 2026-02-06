@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import * as generatorApi from '../api/generator'
 import { MOBILE_BREAKPOINT, MAX_HISTORY_ITEMS } from '../utils/constants'
 import type { SupportedLanguage, GeminiModel } from '../types'
@@ -18,6 +18,11 @@ export const useTesterStore = defineStore('tester', () => {
 
     const isSidebarOpen = ref(false)
     const isMobile = ref(window.innerWidth < MOBILE_BREAKPOINT)
+
+    // Watchers for Offline-First Storage
+    watch(history, (newHistory) => {
+        localStorage.setItem('tester_history', JSON.stringify(newHistory))
+    }, { deep: true })
 
     // Computed
     const isLoggedIn = computed(() => !!userToken.value)
@@ -75,15 +80,18 @@ export const useTesterStore = defineStore('tester', () => {
 
         try {
             const historyData = await generatorApi.fetchHistory(userToken.value)
-            history.value = historyData.map((item: any) => ({
-                id: item.id,
-                timestamp: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                inputCode: item.input_code,
-                result: item.generated_code,
-                language: item.language
-            }))
+            if (Array.isArray(historyData)) {
+                history.value = historyData.map((item: any) => ({
+                    id: item.id,
+                    timestamp: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    inputCode: item.input_code,
+                    result: item.generated_code,
+                    language: item.language
+                }))
+            }
         } catch (e) {
-            console.error('Failed to load history', e)
+            console.error('Failed to load history from server, keeping local cache:', e)
+            // We don't clear history.value here to preserve the local storage data (flicker prevention)
         }
     }
 

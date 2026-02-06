@@ -116,21 +116,7 @@ const logout = async () => {
         </div>
       </div>
 
-      <div>
-        <label for="model-select" class="text-xs font-semibold text-gray-300 uppercase tracking-widest block mb-3">Model</label>
-        <div class="relative group">
-          <select 
-            id="model-select"
-            v-model="store.selectedModel"
-            class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
-          >
-            <option v-for="m in models" :value="m.id">{{ m.name }}</option>
-          </select>
-          <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300">
-            <ChevronRight class="w-4 h-4 rotate-90" />
-          </div>
-        </div>
-      </div>
+
 
       <!-- History Section -->
       <HistoryPanel />

@@ -33,36 +33,24 @@ class BaseRepository(Generic[T]):
 
     def get_by_id(self, id: Any) -> Optional[T]:
         """ID로 조회"""
-        try:
-            response = self.client.table(self.table_name).select("*").eq("id", id).execute()
-            if response.data:
-                return self.model_cls(**response.data[0])
-            return None
-        except Exception:
-            return None
+        response = self.client.table(self.table_name).select("*").eq("id", id).execute()
+        if response.data:
+            return self.model_cls(**response.data[0])
+        return None
 
     def get_all(self, limit: int = 100) -> list[T]:
         """전체 조회 (Limit 적용)"""
-        try:
-            response = self.client.table(self.table_name).select("*").limit(limit).execute()
-            return [self.model_cls(**item) for item in response.data]
-        except Exception:
-            return []
+        response = self.client.table(self.table_name).select("*").limit(limit).execute()
+        return [self.model_cls(**item) for item in response.data]
 
     def update(self, id: Any, data: dict) -> Optional[T]:
         """데이터 수정"""
-        try:
-            response = self.client.table(self.table_name).update(data).eq("id", id).execute()
-            if response.data:
-                return self.model_cls(**response.data[0])
-            return None
-        except Exception:
-            return None
+        response = self.client.table(self.table_name).update(data).eq("id", id).execute()
+        if response.data:
+            return self.model_cls(**response.data[0])
+        return None
 
     def delete(self, id: Any) -> bool:
         """데이터 삭제"""
-        try:
-            self.client.table(self.table_name).delete().eq("id", id).execute()
-            return True
-        except Exception:
-            return False
+        self.client.table(self.table_name).delete().eq("id", id).execute()
+        return True
