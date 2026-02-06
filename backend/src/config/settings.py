@@ -36,6 +36,8 @@ class Settings(BaseSettings):
 
     # Infrastructure
     REDIS_URL: str = Field(default="redis://localhost:6379", description="Redis Connection URL")
+    WORKER_URL: str = Field(default="http://localhost:5000", description="Execution Worker URL")
+    WORKER_AUTH_TOKEN: str = Field(default="", description="Token for Worker Authentication")
 
     # Supabase
     SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
