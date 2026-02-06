@@ -13,6 +13,11 @@ Hybrid 아키텍처의 핵심인 Worker VM 운영 및 관리 노트.
 - `Authorization: Bearer` 헤더로 토큰 검증함.
 - `setup.sh`는 배포 직후 삭제해서 토큰 유출 방지.
 
+## 주요 구현 사항 (v0.5.1 Refactor)
+- **Docker Client Reuse**: FastAPI `lifespan`으로 클라이언트를 전역 관리하여 리소스 효율화.
+- **Safe Code Injection**: `put_archive`를 통해 소스 코드를 tarball로 안전하게 컨테이너에 전달 (인코딩/특수문자 문제 해결).
+- **Async Execution**: `run_in_executor`로 동기 Docker API를 비동기처럼 처리하여 메인 스레드 차단 방지.
+
 ## 관리 명령어 (SSH)
 
 ### 1. 로그 확인

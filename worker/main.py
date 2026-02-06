@@ -1,8 +1,14 @@
+import asyncio
+import io
 import logging
 import os
+import tarfile
+import time
+from contextlib import asynccontextmanager
 from typing import Optional
 
 import docker
+from docker.client import DockerClient
 from docker.errors import ImageNotFound
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
@@ -11,14 +17,55 @@ from pydantic import BaseModel
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
-
 # Environment Variables
 WORKER_AUTH_TOKEN = os.getenv("WORKER_AUTH_TOKEN")
 DOCKER_IMAGE = "tester-sandbox"
 
+# Global Docker Client
+docker_client: Optional[DockerClient] = None
+
 if not WORKER_AUTH_TOKEN:
     logger.warning("WORKER_AUTH_TOKEN is not set! Security execution is disabled.")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Manage Docker client lifecycle.
+    Initializes the client on startup and closes it on shutdown.
+    """
+    global docker_client
+    try:
+        docker_client = docker.from_env()
+        logger.info("Docker client initialized successfully.")
+
+        # Pre-check image availability
+        try:
+            docker_client.images.get(DOCKER_IMAGE)
+            logger.info(f"Docker image '{DOCKER_IMAGE}' found.")
+        except ImageNotFound:
+            logger.warning(
+                f"Docker image '{DOCKER_IMAGE}' not found. "
+                "Requests will fail until 'docker build -t tester-sandbox -f Dockerfile.sandbox .' is run."
+            )
+        except Exception as e:
+            logger.warning(f"Failed to check Docker image: {e}")
+
+    except Exception as e:
+        logger.error(f"Failed to initialize Docker client: {e}")
+        docker_client = None
+
+    yield
+
+    if docker_client:
+        try:
+            docker_client.close()
+            logger.info("Docker client closed.")
+        except Exception as e:
+            logger.error(f"Error closing Docker client: {e}")
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 class ExecutionRequest(BaseModel):
@@ -42,90 +89,105 @@ def verify_token(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=403, detail="Invalid Worker Token")
 
 
+def create_tar_archive(file_name: str, content: str) -> bytes:
+    """
+    Create a tar archive containing a single file with the given content.
+    Returns bytes ready for put_archive.
+    """
+    file_data = content.encode("utf-8")
+    tar_stream = io.BytesIO()
+
+    with tarfile.open(fileobj=tar_stream, mode="w") as tar:
+        tar_info = tarfile.TarInfo(name=file_name)
+        tar_info.size = len(file_data)
+        tar_info.mtime = time.time()
+        tar.addfile(tarinfo=tar_info, fileobj=io.BytesIO(file_data))
+
+    return tar_stream.getvalue()
+
+
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "worker": "active"}
+    status = "active" if docker_client else "degraded (docker error)"
+    return {"status": "ok", "worker": status}
 
 
 @app.post("/execute", dependencies=[Depends(verify_token)])
-def execute_code(request: ExecutionRequest):
+async def execute_code(request: ExecutionRequest):
     """
     Executes code inside a secure Docker container.
-    This logic is moved from the main backend's ExecutionService.
+    Internal execution logic runs in a separate thread to prevent blocking main loop.
     """
-    try:
-        client = docker.from_env()
-    except Exception as e:
-        logger.error(f"Failed to initialize Docker client: {e}")
-        raise HTTPException(status_code=503, detail="Docker service unavailable on worker") from e
+    if not docker_client:
+        raise HTTPException(status_code=503, detail="Docker service unavailable on worker")
 
     if request.language != "python":
         raise HTTPException(status_code=400, detail="Only Python is supported in sandbox currently")
 
-    # Image Check
-    image_name = DOCKER_IMAGE
-    try:
-        client.images.get(image_name)
-    except ImageNotFound:
-        msg = f"Critical Error: Docker image '{image_name}' not found. Please run 'docker build -t {image_name} -f Dockerfile.sandbox .' on the worker."
-        logger.critical(msg)
-        raise HTTPException(status_code=500, detail=msg) from None
+    loop = asyncio.get_running_loop()
 
-    container = None
-    try:
-        # Combine Input Code and Test Code
-        combined_code = f"{request.input_code}\n\n# --- Test Code ---\n\n{request.test_code}"
+    # Define the blocking execution logic as a synchronous function
+    def _run_sync():
+        container = None
+        try:
+            # 1. Check Image (Fast check since we checked at startup, but good for safety)
+            try:
+                docker_client.images.get(DOCKER_IMAGE)
+            except ImageNotFound:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Docker image '{DOCKER_IMAGE}' not found. Please build it.",
+                ) from None
 
-        container = client.containers.run(
-            image_name,
-            command="tail -f /dev/null",  # Keep alive
-            detach=True,
-            mem_limit="128m",
-            nano_cpus=500000000,  # 0.5 CPU
-            network_disabled=True,
-            pids_limit=50,
-            security_opt=["no-new-privileges"],
-            cap_drop=["ALL"],
-            read_only=False,
-            remove=True,
-        )
+            # 2. Start Container
+            combined_code = f"{request.input_code}\n\n# --- Test Code ---\n\n{request.test_code}"
 
-        # Write combined code to file
-        setup_cmd = [
-            "python3",
-            "-c",
-            f"with open('test_run.py', 'w') as f: f.write({repr(combined_code)})",
-        ]
-        exit_code, output = container.exec_run(setup_cmd)
+            container = docker_client.containers.run(
+                DOCKER_IMAGE,
+                command="tail -f /dev/null",  # Keep alive
+                detach=True,
+                mem_limit="128m",
+                nano_cpus=500000000,  # 0.5 CPU
+                network_disabled=True,
+                pids_limit=50,
+                security_opt=["no-new-privileges"],
+                cap_drop=["ALL"],
+                read_only=False,  # We need write access to /app
+                remove=True,  # Auto-remove on stop is handled, but we explicitly kill/remove in finally
+            )
 
-        if exit_code != 0:
-            logger.error(f"Failed to write code to container: {output.decode('utf-8')}")
+            # 3. Inject Code using Tar Archive (Safe Method)
+            tar_data = create_tar_archive("test_run.py", combined_code)
+            container.put_archive("/app", tar_data)
+
+            # 4. Execute Test
+            # /app is WORKDIR defined in Dockerfile
+            run_cmd = ["timeout", "10s", "pytest", "test_run.py"]
+            exec_result = container.exec_run(run_cmd, workdir="/app")
+
+            output_str = exec_result.output.decode("utf-8", errors="replace")
+            success = exec_result.exit_code == 0
+
             return {
-                "success": False,
-                "error": "Failed to prepare execution environment",
-                "output": output.decode("utf-8"),
+                "success": success,
+                "output": output_str,
+                "error": "" if success else "Test execution failed",
             }
 
-        # Run pytest with timeout
-        run_cmd = ["timeout", "10s", "pytest", "test_run.py"]
-        exec_result = container.exec_run(run_cmd, workdir="/")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Execution failed: {e}")
+            return {"success": False, "error": str(e), "output": ""}
 
-        output_str = exec_result.output.decode("utf-8")
-        success = exec_result.exit_code == 0
+        finally:
+            # 5. Cleanup
+            if container:
+                try:
+                    container.kill()
+                except Exception as e:
+                    # Ignore 404/409 errors if container is already gone
+                    logger.warning(f"Container cleanup warning: {e}")
 
-        return {
-            "success": success,
-            "output": output_str,
-            "error": "" if success else "Test execution failed",
-        }
-
-    except Exception as e:
-        logger.error(f"Execution failed: {e}")
-        return {"success": False, "error": str(e), "output": ""}
-
-    finally:
-        if container:
-            try:
-                container.kill()
-            except Exception as e:
-                logger.warning(f"Failed to cleanup container: {e}")
+    # Offload blocking Docker calls to thread pool
+    return await loop.run_in_executor(None, _run_sync)

@@ -24,6 +24,7 @@ Gemini API 활용한 테스트 코드 자동 생성 플랫폼.
 - **Hybrid 아키텍처**:
   - 웹/API: Cloud Run (Serverless)
   - 실행: GCE VM (Docker Sandbox) -> 보안 때문에 격리함.
+  - **안정성**: `put_archive` 기반의 안전한 코드 주입 & 비동기 실행 보장.
 
 ## 📚 모듈별 학습 메모 (Documentation)
 

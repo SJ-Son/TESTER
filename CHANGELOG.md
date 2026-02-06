@@ -3,6 +3,14 @@
 이 프로젝트의 모든 중요한 변경 사항은 이 파일에 문서화됩니다.
 
 
+## [0.5.1] - 2026-02-06
+
+### ♻️ Refactoring (Worker)
+- **전역 Docker Client 관리**: FastAPI `lifespan` 도입으로 연결 재사용 및 리소스 누수 방지
+- **안전한 코드 주입**: `put_archive` 방식 도입으로 특수문자/인코딩 깨짐 문제 원천 차단
+- **비동기 실행 최적화**: Blocking Docker API 호출을 `run_in_executor`로 래핑하여 메인 스레드 차단 방지
+- **코드 품질**: `ruff` 린트 적용 및 Type safety 강화
+
 ## [0.5.0] - 2026-02-06
 
 ### 🏗️ Architecture Improvements
