@@ -101,22 +101,6 @@ const logout = async () => {
     <div class="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-1">
 
       <div>
-        <label for="lang-select" class="text-xs font-semibold text-gray-300 uppercase tracking-widest block mb-3">Language</label>
-        <div class="relative group">
-          <select 
-            id="lang-select"
-            v-model="store.selectedLanguage"
-            class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
-          >
-            <option v-for="l in languages" :value="l.id">{{ l.name }}</option>
-          </select>
-          <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300">
-            <ChevronRight class="w-4 h-4 rotate-90" />
-          </div>
-        </div>
-      </div>
-
-      <div>
         <label for="model-select" class="text-xs font-semibold text-gray-300 uppercase tracking-widest block mb-3">Model</label>
         <div class="relative group">
           <select 
@@ -131,6 +115,8 @@ const logout = async () => {
           </div>
         </div>
       </div>
+
+
 
       <!-- History Section -->
       <HistoryPanel />
