@@ -90,17 +90,7 @@ async def security_middleware(request: Request, call_next):
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
         # Content-Security-Policy (Flattened to avoid parsing warnings)
-        csp_policy = (
-            "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
-            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com https://www.googletagmanager.com; "
-            "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
-            "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com; "
-            "font-src 'self' https://fonts.gstatic.com data:; "
-            "connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; "
-            "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; "
-            "frame-ancestors 'self' https://accounts.google.com;"
-        )
-        response.headers["Content-Security-Policy"] = csp_policy
+        response.headers["Content-Security-Policy"] = settings.CONTENT_SECURITY_POLICY
 
         # Logging
         process_time = time.time() - start_time
@@ -111,11 +101,14 @@ async def security_middleware(request: Request, call_next):
     except ValidationError as e:
         logger.warning(f"Validation failed: {e.message}")
         # Return 200 OK with error payload to keep the browser console clean (no red lines for expected validation)
-        return {
-            "type": "error",
-            "status": "validation_error",
-            "detail": {"code": e.code, "message": e.message},
-        }
+        return JSONResponse(
+            status_code=200,
+            content={
+                "type": "error",
+                "status": "validation_error",
+                "detail": {"code": e.code, "message": e.message},
+            },
+        )
 
 
 # Include API Routers
