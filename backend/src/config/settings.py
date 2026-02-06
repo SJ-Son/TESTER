@@ -49,6 +49,21 @@ class Settings(BaseSettings):
     # Security (Encryption)
     DATA_ENCRYPTION_KEY: str = Field(default="", description="AES Key for column encryption")
 
+    # Content Security Policy
+    CONTENT_SECURITY_POLICY: str = Field(
+        default=(
+            "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
+            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com https://www.googletagmanager.com; "
+            "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
+            "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; "
+            "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; "
+            "frame-ancestors 'self' https://accounts.google.com;"
+        ),
+        description="Content Security Policy Header",
+    )
+
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"), env_file_encoding="utf-8", extra="ignore"
     )
