@@ -1,9 +1,8 @@
 import logging
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-
 from src.config.settings import settings
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ class ExecutionService:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=5),
         retry=retry_if_exception_type(httpx.RequestError),
-        reraise=True  # Reraise to be caught by the outer try-except for logging
+        reraise=True,  # Reraise to be caught by the outer try-except for logging
     )
     async def _send_request(self, client, payload, headers):
         return await client.post(
@@ -35,13 +34,6 @@ class ExecutionService:
         """
         Forwards execution request to the isolated Worker VM.
         """
-        if language.lower() != "python":
-            return {
-                "success": False,
-                "error": f"Only Python is supported. Got: {language}",
-                "output": "",
-            }
-
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 headers = {}
@@ -53,7 +45,7 @@ class ExecutionService:
                     response = await self._send_request(
                         client,
                         {"input_code": input_code, "test_code": test_code, "language": language},
-                        headers
+                        headers,
                     )
                 except httpx.RequestError as e:
                     # Explicitly catch the reraised exception from tenacity

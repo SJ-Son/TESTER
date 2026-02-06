@@ -20,20 +20,13 @@ export async function generateTestCode(
     })
 
     if (!response.ok) {
-        let errorMessage = '서버 연결에 실패했습니다'
+        let errorMessage = `에러 발생 (Status ${response.status})`
         try {
             const errorData = await response.json()
-            if (errorData.detail) {
-                if (typeof errorData.detail === 'string') {
-                    errorMessage = errorData.detail
-                } else if (errorData.detail.message) {
-                    errorMessage = errorData.detail.message
-                } else if (Array.isArray(errorData.detail)) {
-                    errorMessage = errorData.detail.map((e: any) => e.msg).join(', ')
-                }
-            }
+            // Simplified error extraction
+            errorMessage = errorData.detail?.message || errorData.detail || errorData.message || response.statusText || errorMessage
         } catch (e) {
-            errorMessage = `에러 발생 (Status ${response.status})`
+            // keep default
         }
         throw new Error(errorMessage)
     }

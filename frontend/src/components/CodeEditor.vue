@@ -42,16 +42,17 @@ const handleGenerate = () => {
     </div>
     
     <div class="flex-1 relative group">
+      <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500"></div>
       <textarea
         v-model="store.inputCode"
         placeholder="Paste your source code here..."
-        class="w-full h-full bg-gray-900 border border-gray-800 p-4 md:p-6 rounded-2xl outline-none focus:border-blue-500/50 transition-colors text-sm font-mono text-gray-300 resize-none custom-scrollbar"
+        class="relative w-full h-full bg-gray-900/80 backdrop-blur-sm border border-gray-800 p-4 md:p-6 rounded-2xl outline-none focus:border-blue-500/50 transition-all text-sm font-mono text-gray-300 resize-none custom-scrollbar focus:ring-1 focus:ring-blue-500/20"
       ></textarea>
       
       <button 
         @click="handleGenerate"
         :disabled="store.isGenerating || !store.inputCode.trim()"
-        class="absolute bottom-4 right-4 md:bottom-6 md:right-6 px-5 py-2.5 md:px-6 md:py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-xl shadow-2xl shadow-blue-900/20 transition-all flex items-center space-x-2 group-focus-within:scale-105 active:scale-95 z-20"
+        class="absolute bottom-4 right-4 md:bottom-6 md:right-6 px-5 py-2.5 md:px-6 md:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-600 text-white rounded-xl shadow-xl shadow-blue-900/20 transition-all flex items-center space-x-2 group-focus-within:scale-105 active:scale-95 z-20 border border-white/10"
       >
         <Send v-if="!store.isGenerating" class="w-4 h-4" />
         <RefreshCcw v-else class="w-4 h-4 animate-spin" />

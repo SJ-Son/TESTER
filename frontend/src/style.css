@@ -2,10 +2,18 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-gray-950: #0a0b10;
-  --color-gray-900: #1a1b26;
-  --color-gray-800: #24283b;
-  --color-gray-700: #414868;
+  --color-gray-950: #0a0a0c; /* Deep, almost black, blue-tinted */
+  --color-gray-900: #13141a; /* Rich dark blue-gray */
+  --color-gray-800: #1e1f29; /* Panel background */
+  --color-gray-750: #262736; /* Hover state */
+  --color-gray-700: #2e303e; /* Border */
+
+  --color-blue-600: #3b82f6; /* Primary Action */
+  --color-blue-500: #4f46e5; /* Indigo tone for gradients */
+  --color-purple-500: #a855f7; /* Accent for gradients */
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 :root {
@@ -14,7 +22,11 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--color-gray-950);
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Font loading fallback optimization */
@@ -28,19 +40,38 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #1a1b26;
+  background: transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #414868;
-  border-radius: 4px;
+  background: #2e303e;
+  border-radius: 9999px;
+  border: 1px solid var(--color-gray-900);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #565f89;
+  background: #4b5563;
+}
+
+/* Glass Utilities */
+.glass-panel {
+  background: rgba(30, 31, 41, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
