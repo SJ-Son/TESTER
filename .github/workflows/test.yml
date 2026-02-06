@@ -12,7 +12,7 @@ jobs:
     env:
       JWT_SECRET: "test_secret_for_ci_12345"
       GEMINI_API_KEY: "AI_test_key_for_ci_dummy"
-      DATA_ENCRYPTION_KEY: "test_key_must_be_base64_url_safe_and_long_enough"
+      DATA_ENCRYPTION_KEY: "S7CNzyjxtleDOj6bSzAKs1QxyutZTIxa0PQWiVx9tj8="
       ENV: "test"
     
     steps:
