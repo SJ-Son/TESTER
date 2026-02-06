@@ -2,9 +2,9 @@ import logging
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from src.api.v1.deps import get_supabase_service
+from src.api.v1.deps import get_generation_repository
 from src.auth import get_current_user
-from src.services.supabase_service import SupabaseService
+from src.repositories.generation_repository import GenerationRepository
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -23,8 +23,9 @@ class HistoryItem(BaseModel):
 async def get_history(
     limit: int = 50,
     current_user: dict = Depends(get_current_user),
-    supabase_service: SupabaseService = Depends(get_supabase_service),
+    repository: GenerationRepository = Depends(get_generation_repository),
 ):
     """Retrieve generation history for the current user."""
-    history = supabase_service.get_history(current_user["id"], limit)
+    # Repository now returns decrypted data models
+    history = repository.get_user_history(current_user["id"], limit)
     return history

@@ -69,3 +69,37 @@ def test_repository_create(mock_enc_cls, mock_supabase_client):
     assert result is not None
     assert result.input_code == "print('hello')"
     assert str(result.id) == "123e4567-e89b-12d3-a456-426614174000"
+
+
+@patch("src.repositories.generation_repository.EncryptionService")
+def test_repository_get_user_history(mock_enc_cls, mock_supabase_client):
+    # Mock Encryption
+    mock_enc = mock_enc_cls.return_value
+    mock_enc.decrypt.side_effect = lambda x: f"decrypted_{x}"
+
+    # Setup Service with mocked client
+    service = Mock(spec=SupabaseService)
+    service.client = mock_supabase_client
+
+    repo = GenerationRepository(service)
+
+    # Mock DB Response
+    mock_supabase_client.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value.data = [
+        {
+            "id": "123e4567-e89b-12d3-a456-426614174001",
+            "user_id": "google_123",
+            "input_code": "enc_input",
+            "generated_code": "enc_output",
+            "language": "python",
+            "model": "gpt-4",
+            "created_at": "2024-01-02T00:00:00Z",
+        }
+    ]
+
+    # Test Get History
+    history = repo.get_user_history("google_123", limit=10)
+
+    assert len(history) == 1
+    assert history[0].input_code == "decrypted_enc_input"
+    assert history[0].generated_code == "decrypted_enc_output"
+    assert history[0].user_id == "google_123"
