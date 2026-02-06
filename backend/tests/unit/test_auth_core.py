@@ -2,39 +2,46 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
-from jose import jwt
 from src.auth import (
     get_current_user,
     verify_turnstile,
 )
 from src.config.settings import settings
 
-# --- get_current_user Tests (Supabase JWT) ---
+# --- get_current_user Tests (Supabase Remote Auth) ---
 
 
 @pytest.mark.asyncio
-async def test_get_current_user_success():
+@patch("src.auth.httpx.AsyncClient")
+async def test_get_current_user_success(mock_client_cls):
     # Mock settings
-    settings.SUPABASE_JWT_SECRET = "test_supabase_secret"
+    settings.SUPABASE_URL = "https://test.supabase.co"
+    settings.SUPABASE_ANON_KEY = "test_anon_key"
 
-    # Create a valid Supabase-like token
-    payload = {
-        "sub": "user123",
+    # Mock httpx response
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "id": "user123",
         "email": "user@test.com",
-        "aud": "authenticated",
         "role": "authenticated",
     }
-    token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
-    user = await get_current_user(token)
+    mock_client = AsyncMock()
+    mock_client.get.return_value = mock_response
+    mock_client.__aenter__.return_value = mock_client
+    mock_client_cls.return_value = mock_client
+
+    user = await get_current_user("valid_token")
     assert user["id"] == "user123"
     assert user["email"] == "user@test.com"
 
 
 @pytest.mark.asyncio
-async def test_get_current_user_no_secret():
-    # Unset secret
-    settings.SUPABASE_JWT_SECRET = ""
+async def test_get_current_user_missing_config():
+    # Unset config
+    settings.SUPABASE_URL = ""
+    settings.SUPABASE_ANON_KEY = ""
 
     with pytest.raises(HTTPException) as exc:
         await get_current_user("any_token")
@@ -43,27 +50,43 @@ async def test_get_current_user_no_secret():
 
 
 @pytest.mark.asyncio
-async def test_get_current_user_invalid_token():
-    settings.SUPABASE_JWT_SECRET = "test_supabase_secret"
+@patch("src.auth.httpx.AsyncClient")
+async def test_get_current_user_invalid_token(mock_client_cls):
+    settings.SUPABASE_URL = "https://test.supabase.co"
+    settings.SUPABASE_ANON_KEY = "test_anon_key"
+
+    # Mock failure response from Supabase
+    mock_response = MagicMock()
+    mock_response.status_code = 401
+    mock_response.text = "Invalid token"
+
+    mock_client = AsyncMock()
+    mock_client.get.return_value = mock_response
+    mock_client.__aenter__.return_value = mock_client
+    mock_client_cls.return_value = mock_client
 
     with pytest.raises(HTTPException) as exc:
-        await get_current_user("invalid.token.string")
+        await get_current_user("invalid_token")
     assert exc.value.status_code == 401
-    assert "Could not validate" in exc.value.detail
+    assert "Could not validate credentials" in exc.value.detail
 
 
 @pytest.mark.asyncio
-async def test_get_current_user_missing_sub():
-    settings.SUPABASE_JWT_SECRET = "test_supabase_secret"
+@patch("src.auth.httpx.AsyncClient")
+async def test_get_current_user_service_error(mock_client_cls):
+    settings.SUPABASE_URL = "https://test.supabase.co"
+    settings.SUPABASE_ANON_KEY = "test_anon_key"
 
-    # Token without 'sub'
-    payload = {"email": "no_sub@test.com"}
-    token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
+    # Mock httpx raising an error (e.g. timeout)
+    mock_client = AsyncMock()
+    mock_client.get.side_effect = Exception("Connection timeout")
+    mock_client.__aenter__.return_value = mock_client
+    mock_client_cls.return_value = mock_client
 
     with pytest.raises(HTTPException) as exc:
-        await get_current_user(token)
+        await get_current_user("valid_token")
     assert exc.value.status_code == 401
-    assert "Invalid token" in exc.value.detail
+    assert "Authentication failed" in exc.value.detail
 
 
 # --- verify_turnstile Tests ---
