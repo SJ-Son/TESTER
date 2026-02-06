@@ -40,6 +40,10 @@ export const useTesterStore = defineStore('tester', () => {
         supabase.auth.onAuthStateChange((event, session) => {
             if (session?.access_token) {
                 setToken(session.access_token)
+                // Clean up URL hash if it contains auth tokens
+                if (window.location.hash && window.location.hash.includes('access_token')) {
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+                }
             } else if (event === 'SIGNED_OUT') {
                 clearToken()
             }
