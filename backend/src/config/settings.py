@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str = Field(
         default="", description="Supabase Service Role Key (for Admin Access)"
     )
+    SUPABASE_ANON_KEY: str = Field(
+        default="", description="Supabase Anon Key (for User Verification)"
+    )
 
     # Security (Encryption)
     DATA_ENCRYPTION_KEY: str = Field(default="", description="AES Key for column encryption")
