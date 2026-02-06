@@ -1,84 +1,30 @@
-from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from jose import jwt
 from src.auth import (
-    ALGORITHM,
-    create_access_token,
     get_current_user,
-    verify_google_token,
     verify_turnstile,
 )
 from src.config.settings import settings
 
-# --- create_access_token Tests ---
-
-
-def test_create_access_token_structure():
-    data = {"sub": "testuser", "email": "test@example.com"}
-    token = create_access_token(data)
-
-    # Decode to verify structure
-    payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[ALGORITHM])
-    assert payload["sub"] == "testuser"
-    assert payload["email"] == "test@example.com"
-    assert "exp" in payload
-
-
-def test_create_access_token_expiration():
-    data = {"sub": "testuser"}
-    expires = timedelta(minutes=5)
-    token = create_access_token(data, expires_delta=expires)
-
-    payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[ALGORITHM])
-    # exp exists validation is enough as exact time match is flaky
-    assert payload["exp"] > 0
-
-
-# --- verify_google_token Tests ---
-
-
-@patch("src.auth.id_token.verify_oauth2_token")
-def test_verify_google_token_success(mock_verify):
-    # Mocking successful verify response
-    mock_verify.return_value = {
-        "iss": "https://accounts.google.com",
-        "sub": "12345",
-        "email": "test@example.com",
-    }
-
-    result = verify_google_token("valid_token")
-    assert result is not None
-    assert result["email"] == "test@example.com"
-
-
-@patch("src.auth.id_token.verify_oauth2_token")
-def test_verify_google_token_wrong_issuer(mock_verify):
-    # Mocking wrong issuer
-    mock_verify.return_value = {"iss": "https://bad-issuer.com", "sub": "12345"}
-
-    result = verify_google_token("token_wrong_iss")
-    assert result is None
-
-
-@patch("src.auth.id_token.verify_oauth2_token")
-def test_verify_google_token_exception(mock_verify):
-    # Mocking exception during verification
-    mock_verify.side_effect = ValueError("Invalid token")
-
-    result = verify_google_token("invalid_token")
-    assert result is None
-
-
-# --- get_current_user Tests ---
+# --- get_current_user Tests (Supabase JWT) ---
 
 
 @pytest.mark.asyncio
 async def test_get_current_user_success():
-    # Create a real token
-    token = create_access_token({"sub": "user123", "email": "user@test.com"})
+    # Mock settings
+    settings.SUPABASE_JWT_SECRET = "test_supabase_secret"
+
+    # Create a valid Supabase-like token
+    payload = {
+        "sub": "user123",
+        "email": "user@test.com",
+        "aud": "authenticated",
+        "role": "authenticated",
+    }
+    token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
     user = await get_current_user(token)
     assert user["id"] == "user123"
@@ -86,14 +32,20 @@ async def test_get_current_user_success():
 
 
 @pytest.mark.asyncio
-async def test_get_current_user_no_token():
+async def test_get_current_user_no_secret():
+    # Unset secret
+    settings.SUPABASE_JWT_SECRET = ""
+
     with pytest.raises(HTTPException) as exc:
-        await get_current_user("")
-    assert exc.value.status_code == status.HTTP_401_UNAUTHORIZED
+        await get_current_user("any_token")
+    assert exc.value.status_code == 500
+    assert "Server misconfiguration" in exc.value.detail
 
 
 @pytest.mark.asyncio
 async def test_get_current_user_invalid_token():
+    settings.SUPABASE_JWT_SECRET = "test_supabase_secret"
+
     with pytest.raises(HTTPException) as exc:
         await get_current_user("invalid.token.string")
     assert exc.value.status_code == 401
@@ -102,9 +54,11 @@ async def test_get_current_user_invalid_token():
 
 @pytest.mark.asyncio
 async def test_get_current_user_missing_sub():
+    settings.SUPABASE_JWT_SECRET = "test_supabase_secret"
+
     # Token without 'sub'
     payload = {"email": "no_sub@test.com"}
-    token = jwt.encode(payload, settings.JWT_SECRET, algorithm=ALGORITHM)
+    token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
     with pytest.raises(HTTPException) as exc:
         await get_current_user(token)

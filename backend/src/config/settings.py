@@ -7,14 +7,12 @@ class Settings(BaseSettings):
 
     # API Keys
     GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
-    GOOGLE_CLIENT_ID: str = Field(default="", description="Google OAuth Client ID")
-    GOOGLE_CLIENT_SECRET: str = Field(default="", description="Google OAuth Client Secret")
     TURNSTILE_SECRET_KEY: str = Field(default="", description="Cloudflare Turnstile Secret")
 
     # Security
-    JWT_SECRET: str = Field(
-        ...,  # Required - no default value for security
-        description="JWT Signing Secret (REQUIRED)",
+    SUPABASE_JWT_SECRET: str = Field(
+        default="",
+        description="Supabase JWT Secret for token verification (Available in Supabase Dashboard > API)",
     )
     TESTER_INTERNAL_SECRET: str = Field(
         default="default-secret-change-me", description="Internal API Secret"
@@ -39,9 +37,11 @@ class Settings(BaseSettings):
     # Infrastructure
     REDIS_URL: str = Field(default="redis://localhost:6379", description="Redis Connection URL")
 
-    # Supabase (Optional for now)
+    # Supabase
     SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
-    SUPABASE_KEY: str = Field(default="", description="Supabase Anon/Service Key")
+    SUPABASE_SERVICE_ROLE_KEY: str = Field(
+        default="", description="Supabase Service Role Key (for Admin Access)"
+    )
 
     # Security (Encryption)
     DATA_ENCRYPTION_KEY: str = Field(default="", description="AES Key for column encryption")
@@ -60,17 +60,6 @@ class Settings(BaseSettings):
 
         if v != "your_gemini_api_key_here" and not v.startswith("AI"):
             raise ValueError("Invalid Gemini API key format (must start with 'AI')")
-        return v
-
-    @field_validator("JWT_SECRET")
-    @classmethod
-    def validate_jwt_secret(cls, v: str) -> str:
-        if not v:
-            raise ValueError("JWT_SECRET is required.")
-        if len(v) < 32:
-            # Just a warning in logs typically, but here we enforce it or allow it.
-            # Let's keep it simple for now, just existence check.
-            pass
         return v
 
     @property

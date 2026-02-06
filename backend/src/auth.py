@@ -1,12 +1,8 @@
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from google.auth.transport import requests
-from google.oauth2 import id_token
 from jose import JWTError, jwt
 from src.config.settings import settings
 
@@ -18,46 +14,46 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-def verify_google_token(token: str) -> Optional[dict]:
-    try:
-        # id_token.verify_oauth2_token 검증
-        idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
-
-        # 유효한 발행처인지 확인 (accounts.google.com)
-        if idinfo["iss"] not in ["accounts.google.com", "https://accounts.google.com"]:
-            raise ValueError("Wrong issuer.")
-
-        return idinfo
-    except Exception as e:
-        logger.error(f"Google token verification failed: {e}")
-        return None
+# create_access_token and verify_google_token removed as we delegate auth to Supabase
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """
+    Supabase JWT 검증 및 사용자 식별
+    """
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if not settings.SUPABASE_JWT_SECRET:
+        # JWT Secret이 설정되지 않은 경우 (개발 환경 등)
+        # 하지만 프로덕션에서는 필수입니다.
+        logger.error("SUPABASE_JWT_SECRET is not set! Cannot verify tokens.")
+        raise HTTPException(
+            status_code=500, detail="Server misconfiguration: Authentication unavailable"
+        )
+
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[ALGORITHM])
+        # Supabase JWT는 HS256 알고리즘 사용
+        payload = jwt.decode(
+            token,
+            settings.SUPABASE_JWT_SECRET,
+            algorithms=["HS256"],
+            audience="authenticated",  # Supabase 기본 aud
+            options={"verify_aud": False},  # aud가 다를 수 있으므로 일단 끔 (필요시 활성화)
+        )
+
         user_id: str = payload.get("sub")
         if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token: missing sub")
+
         return {"id": user_id, "email": payload.get("email")}
-    except JWTError:
+
+    except JWTError as e:
+        logger.warning(f"JWT Verification failed: {e}")
         raise HTTPException(status_code=401, detail="Could not validate credentials") from None
 
 

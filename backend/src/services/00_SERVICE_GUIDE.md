@@ -27,6 +27,7 @@
 
 ### SupabaseService
 - DB 클라이언트 관리 (Singleton).
+- **Service Role 사용**: `SUPABASE_SERVICE_ROLE_KEY`를 사용하여 RLS를 우회, 관리자 권한으로 데이터를 저장/관리함.
 - **직접 사용하지 않음**: `GenerationRepository` 같은 Repository Layer를 통해서만 접근.
 - Lazy Loading 적용됨 (앱 시작 시점 Crash 방지).
 

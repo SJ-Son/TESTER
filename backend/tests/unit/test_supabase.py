@@ -19,7 +19,7 @@ def test_supabase_service_init(mock_supabase_client):
 
     with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = "https://test.supabase.co"
-        mock_settings.SUPABASE_KEY = "test-key"
+        mock_settings.SUPABASE_SERVICE_ROLE_KEY = "test-key"
 
         service = SupabaseService()
 
@@ -31,7 +31,7 @@ def test_supabase_service_init(mock_supabase_client):
 def test_supabase_service_no_creds():
     with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = ""
-        mock_settings.SUPABASE_KEY = ""
+        mock_settings.SUPABASE_SERVICE_ROLE_KEY = ""
 
         service = SupabaseService()
 
