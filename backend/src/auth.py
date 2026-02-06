@@ -56,6 +56,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except httpx.RequestError as e:
         logger.error(f"Auth Service Internal Error: {e}")
         raise HTTPException(status_code=503, detail="Authentication service unavailable") from e
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Unexpected Auth Error: {e}")
         # 401을 반환해야 프론트엔드가 로그아웃 처리 등을 할 수 있음
