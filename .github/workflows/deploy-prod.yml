@@ -57,8 +57,9 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VITE_TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }}
-            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             VITE_TURNSTILE_SITE_KEY=${{ secrets.TURNSTILE_SITE_KEY }}
+            VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Set Image URL for Deployment
         run: |
@@ -72,7 +73,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --service-account tester-runtime-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=production,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }},TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }},JWT_SECRET=${{ secrets.JWT_SECRET }},SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_KEY=${{ secrets.SUPABASE_KEY }},WORKER_URL=${{ secrets.WORKER_URL }},WORKER_AUTH_TOKEN=${{ secrets.WORKER_AUTH_TOKEN }},DATA_ENCRYPTION_KEY=${{ secrets.DATA_ENCRYPTION_KEY }}" \
+            --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=production,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }},SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }},SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }},SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }},WORKER_URL=${{ secrets.WORKER_URL }},WORKER_AUTH_TOKEN=${{ secrets.WORKER_AUTH_TOKEN }},DATA_ENCRYPTION_KEY=${{ secrets.DATA_ENCRYPTION_KEY }}" \
             --port 8080
 
       - name: Prepare Firebase Public Directory

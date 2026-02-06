@@ -1,14 +1,6 @@
 // Type declarations for third-party global objects
 declare global {
     interface Window {
-        google?: {
-            accounts: {
-                id: {
-                    initialize: (config: any) => void
-                    renderButton: (element: HTMLElement | null, options: any) => void
-                }
-            }
-        }
         turnstile?: {
             render: (element: string | HTMLElement, options: any) => string
             reset: (widgetId?: string) => void
@@ -17,34 +9,7 @@ declare global {
     }
 }
 
-// Lazy load Google Sign-In
-let googleSignInLoaded = false
-let googleSignInPromise: Promise<void> | null = null
-
-export function loadGoogleSignIn(): Promise<void> {
-    if (googleSignInLoaded && typeof window.google !== 'undefined' && window.google.accounts) {
-        return Promise.resolve()
-    }
-
-    if (googleSignInPromise) {
-        return googleSignInPromise
-    }
-
-    googleSignInPromise = new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = 'https://accounts.google.com/gsi/client'
-        script.async = true
-        script.defer = true
-        script.onload = () => {
-            googleSignInLoaded = true
-            resolve()
-        }
-        script.onerror = () => reject(new Error('Failed to load Google Sign-In'))
-        document.head.appendChild(script)
-    })
-
-    return googleSignInPromise
-}
+// Google Sign-In logic removed (Replaced by Supabase Auth)
 
 // Lazy load Cloudflare Turnstile
 let turnstileLoaded = false

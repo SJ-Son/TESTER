@@ -10,10 +10,10 @@ test.describe('Code Generation Flow', () => {
 
         // Check if Generate button is actually a Login button or shows login requirement
         // In our UI: store.isLoggedIn ? 'Generate' : 'Login'
-        await expect(page.getByRole('button', { name: /Login/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Login with Google' })).toBeVisible();
 
         // Click button
-        await page.getByRole('button', { name: /Login/i }).click();
+        await page.getByRole('button', { name: 'Login with Google' }).click();
 
         // Should see a login prompt or redirection (assuming Google Login initiates)
         // For now, just verifying the initial state is good.

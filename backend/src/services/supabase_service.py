@@ -25,7 +25,7 @@ class SupabaseService:
 
         try:
             url = settings.SUPABASE_URL
-            key = settings.SUPABASE_KEY
+            key = settings.SUPABASE_SERVICE_ROLE_KEY
 
             if not url or not key:
                 logger.warning("Supabase credentials not found. DB features will be disabled.")
@@ -45,7 +45,7 @@ class SupabaseService:
 
     def get_connection_status(self) -> dict:
         """상세 연결 상태 반환"""
-        if not settings.SUPABASE_URL or not settings.SUPABASE_KEY:
+        if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
             return {"connected": False, "reason": "Environment variables missing"}
 
         if not self._client:

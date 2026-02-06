@@ -1,10 +1,13 @@
+-- Drop table if exists to allow clean recreate (Caution: Data loss!)
+drop table if exists public.generation_history;
+
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
 -- Generation History Table
 create table public.generation_history (
   id uuid default uuid_generate_v4() primary key,
-  user_id uuid references auth.users(id) on delete set null,
+  user_id uuid references auth.users(id) on delete set null, -- Restored to UUID and FK
   input_code text not null,
   generated_code text not null,
   language varchar(50) not null,
@@ -37,6 +40,4 @@ on public.generation_history for delete
 to authenticated
 using (auth.uid() = user_id);
 
--- 4. Policy: Protect against updates (History is usually immutable)
--- No UPDATE policy means updates are denied by default.
 

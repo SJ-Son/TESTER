@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.95.2",
     "highlight.js": "^11.11.1",
     "lodash": "^4.17.23",
     "lucide-vue-next": "^0.563.0",

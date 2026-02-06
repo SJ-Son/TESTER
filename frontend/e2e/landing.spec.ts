@@ -9,7 +9,7 @@ test.describe('Landing Page', () => {
         await expect(page).toHaveTitle(/QA Test Code Generator|Tester/i);
 
         // 3. Check for main elements
-        await expect(page.getByRole('button', { name: /Login/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Login with Google' })).toBeVisible();
         await expect(page.getByPlaceholder(/Paste your source code/i)).toBeVisible();
     });
 });

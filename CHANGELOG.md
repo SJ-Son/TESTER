@@ -3,6 +3,18 @@
 이 프로젝트의 모든 중요한 변경 사항은 이 파일에 문서화됩니다.
 
 
+## [0.6.0] - 2026-02-06
+
+### ✨ Authentication Overhaul (Supabase BaaS)
+- **Frontend**: Google 로그인을 Supabase Auth(`signInWithOAuth`)로 전면 교체하여 클라이언트 사이드 인증 간소화
+- **Backend**: 자체 JWT 발급 로직 제거 및 Supabase 발급 토큰(`HS256`, `SUPABASE_JWT_SECRET`) 검증 체계로 전환
+- **Stateless**: 백엔드에서 세션을 유지하지 않고, Supabase가 발급한 Access Token을 헤더로 전달받아 검증
+
+### 🛡️ Database & Security
+- **Schema 복구**: `generation_history` 테이블의 `user_id`를 `UUID`(FK to `auth.users`)로 복구하여 데이터 무결성 강화
+- **RLS 재적용**: Row Level Security 정책을 활성화하여 사용자 데이터 격리 및 보안 강화
+- **Secret 관리**: Github Actions 및 환경 변수에서 Legacy Key(`GOOGLE_CLIENT_ID` 등) 제거 및 Supabase Key(`SUPABASE_SERVICE_ROLE_KEY`) 도입
+
 ## [0.5.3] - 2026-02-06
 
 ### 🧹 Maintainability

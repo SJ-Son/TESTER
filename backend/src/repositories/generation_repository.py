@@ -10,7 +10,7 @@ from src.utils.security import EncryptionService
 
 class GenerationModel(BaseModel):
     id: Optional[UUID] = None
-    user_id: Optional[UUID] = None
+    user_id: Optional[str] = None  # Changed to str
     input_code: str
     generated_code: str
     language: str
@@ -27,7 +27,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
 
     def create_history(
         self,
-        user_id: Optional[UUID],
+        user_id: str,  # Changed to str
         input_code: str,
         generated_code: str,
         language: str,
@@ -53,9 +53,38 @@ class GenerationRepository(BaseRepository[GenerationModel]):
             response = self.client.table(self.table_name).insert(data).execute()
             if response.data:
                 created_model = self.model_cls(**response.data[0])
-                created_model.input_code = self.encryption.decrypt(created_model.input_code)
-                created_model.generated_code = self.encryption.decrypt(created_model.generated_code)
+                # Return decrypted data for immediate usage if needed
+                created_model.input_code = input_code
+                created_model.generated_code = generated_code
                 return created_model
             return None
         except Exception:
             return None
+
+    def get_user_history(self, user_id: str, limit: int = 50) -> list[GenerationModel]:
+        """사용자 이력 조회 (복호화 반환)"""
+        try:
+            response = (
+                self.client.table(self.table_name)
+                .select("*")
+                .eq("user_id", user_id)
+                .order("created_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+
+            results = []
+            for item in response.data:
+                model = self.model_cls(**item)
+                try:
+                    # 복호화 시도
+                    model.input_code = self.encryption.decrypt(model.input_code)
+                    model.generated_code = self.encryption.decrypt(model.generated_code)
+                except Exception:
+                    # 복호화 실패 시 원본 유지 혹은 에러 처리 (여기서는 조용히 넘어감)
+                    pass
+                results.append(model)
+            return results
+
+        except Exception:
+            return []

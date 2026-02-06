@@ -33,6 +33,43 @@ export const useTesterStore = defineStore('tester', () => {
         localStorage.removeItem('tester_token')
     }
 
+    // Initialize Auth Listener
+    // This should be called once, typically in App.vue or main.ts, but initializing store logic here works too.
+    // However, store setup function runs once.
+    import('../api/supabase').then(({ supabase }) => {
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session?.access_token) {
+                setToken(session.access_token)
+                // Clean up URL hash if it contains auth tokens
+                if (window.location.hash && window.location.hash.includes('access_token')) {
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+                }
+            } else if (event === 'SIGNED_OUT') {
+                clearToken()
+            }
+        })
+    })
+
+    const loginWithGoogle = async () => {
+        const { supabase } = await import('../api/supabase')
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin
+            }
+        })
+        if (error) {
+            console.error('Login failed:', error)
+            throw error
+        }
+    }
+
+    const logout = async () => {
+        const { supabase } = await import('../api/supabase')
+        await supabase.auth.signOut()
+        clearToken()
+    }
+
     const loadHistory = async () => {
         if (!isLoggedIn.value) return
 
@@ -51,10 +88,6 @@ export const useTesterStore = defineStore('tester', () => {
     }
 
     const addToHistory = (input: string, result: string, language: SupportedLanguage) => {
-        // Optimistic update or just reload. 
-        // For better UX, we can just push to local list, but ID will be missing.
-        // We will reload history when sidebar is opened or just push a temporary item.
-        // For now, let's just reload history silently if possible, or append simple item.
         const newItem = {
             id: 'temp-' + Date.now(),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -66,7 +99,6 @@ export const useTesterStore = defineStore('tester', () => {
         if (history.value.length > MAX_HISTORY_ITEMS) {
             history.value.pop()
         }
-        // In background, we could fetch fresh history.
     }
 
     const executeTest = async () => {
@@ -135,8 +167,8 @@ export const useTesterStore = defineStore('tester', () => {
         isSidebarOpen,
         isMobile,
         isLoggedIn,
-        setToken,
-        clearToken,
+        loginWithGoogle,
+        logout,
         loadHistory,
         addToHistory,
         restoreHistory,
