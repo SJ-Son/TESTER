@@ -3,6 +3,12 @@
 이 프로젝트의 모든 중요한 변경 사항은 이 파일에 문서화됩니다.
 
 
+## [0.5.3] - 2026-02-06
+
+### 🧹 Maintainability
+- **책임 분리**: `ExecutionService`의 중복 언어 검증 로직 제거 (Worker로 위임)
+- **미들웨어 최적화**: `main.py` 정적 파일 서빙 로직을 운영 환경(`is_production`)에서 비활성화 (Nginx/CDN 위임)
+
 ## [0.5.2] - 2026-02-06
 
 ### 🛡️ Security Hardening

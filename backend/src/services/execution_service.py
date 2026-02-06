@@ -20,12 +20,6 @@ class ExecutionService:
         """
         Forwards execution request to the isolated Worker VM.
         """
-        if language != "python":
-            return {
-                "success": False,
-                "error": "Only Python is supported in sandbox currently",
-                "output": "",
-            }
 
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
