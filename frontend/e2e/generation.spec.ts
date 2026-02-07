@@ -37,6 +37,14 @@ test.describe('Code Generation Flow', () => {
         // Reload to let Pinia pick up the token from localStorage
         await page.reload();
 
+        // 🚨 CRITICAL: Pinia store might be prone to hydration issues in test.
+        // We force the state to be logged in by manipulating the window object if accessing store is possible,
+        // or re-setting localStorage and dispatching a storage event to ensure reactivity.
+        await page.evaluate(() => {
+            localStorage.setItem('tester_token', 'mock_token');
+            window.dispatchEvent(new Event('storage'));
+        });
+
         // Verify button changes to "Generate" or locate the button by text content
         // In the Vue component: authStore.isLoggedIn ? 'Generate' : 'Login'
         // And there's a span inside the button
