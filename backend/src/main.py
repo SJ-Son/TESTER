@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -24,7 +25,30 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-app = FastAPI(title="QA Test Code Generator API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup and Shutdown events."""
+    # Startup: Validate Critical Secrets
+    missing_secrets = []
+    if not settings.DATA_ENCRYPTION_KEY:
+        missing_secrets.append("DATA_ENCRYPTION_KEY")
+    if not settings.SUPABASE_URL:
+        missing_secrets.append("SUPABASE_URL")
+    if not settings.SUPABASE_SERVICE_ROLE_KEY:
+        missing_secrets.append("SUPABASE_SERVICE_ROLE_KEY")
+
+    if missing_secrets:
+        logger.critical(f"🚨 CRITICAL: Missing Environment Variables: {', '.join(missing_secrets)}")
+        logger.critical("Application will likely fail on API requests requiring DB/Encryption.")
+    else:
+        logger.info("✅ All critical secrets loaded.")
+
+    yield
+    # Shutdown logic (if any)
+
+
+app = FastAPI(title="QA Test Code Generator API", lifespan=lifespan)
 
 # CORS Setup
 app.add_middleware(
@@ -48,6 +72,16 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
     return JSONResponse(
         status_code=400,
         content={"type": "error", "code": exc.code, "message": exc.message},
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler to catch unhandled errors."""
+    logger.error(f"Global Exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error", "detail": str(exc)},
     )
 
 
