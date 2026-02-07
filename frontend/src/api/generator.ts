@@ -107,8 +107,6 @@ export async function fetchHistory(token: string): Promise<any[]> {
     })
 
     if (!response.ok) {
-        console.error(`History fetch failed: ${response.status} ${response.statusText}`)
-        // Return empty array to avoid breaking the UI for now, but logged for debugging
         return []
     }
 

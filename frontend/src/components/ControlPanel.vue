@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useGeneratorStore } from '../stores/generator'
-import { useAuthStore } from '../stores/auth'
+import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, ChevronRight, X } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import type { SupportedLanguage, GeminiModel } from '../types'
 // @ts-ignore
 import changelogRaw from '../../../CHANGELOG.md?raw'
 
-const store = useGeneratorStore()
-const authStore = useAuthStore()
+const store = useTesterStore()
 
 const currentVersion = computed(() => {
   const match = changelogRaw.match(/## \[(\d+\.\d+\.\d+)\]/)
@@ -28,14 +26,14 @@ const models: { id: GeminiModel, name: string }[] = [
 
 const handleLogin = async () => {
   try {
-    await authStore.loginWithGoogle()
+    await store.loginWithGoogle()
   } catch (err: any) {
     store.error = 'Login failed: ' + err.message
   }
 }
 
 const logout = async () => {
-  await authStore.logout()
+  await store.logout()
 }
 </script>
 
@@ -65,7 +63,7 @@ const logout = async () => {
     <div class="space-y-4">
       <label class="text-xs font-semibold text-gray-400 uppercase tracking-widest block">Authentication</label>
       
-      <div v-if="!authStore.isLoggedIn" class="relative group">
+      <div v-if="!store.isLoggedIn" class="relative group">
         <button
           @click="handleLogin"
           class="w-full h-10 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-lg transition-all flex items-center justify-center space-x-2 shadow-lg shadow-white/5 active:scale-95"
@@ -140,7 +138,7 @@ const logout = async () => {
     </div>
     <!-- Footer -->
     <div class="pt-4 border-t border-gray-800/50 flex flex-col items-center space-y-2 pb-2">
-      <div v-if="authStore.isLoggedIn" class="flex items-center space-x-2 text-[10px] text-gray-400">
+      <div v-if="store.isLoggedIn" class="flex items-center space-x-2 text-[10px] text-gray-400">
         <router-link to="/terms" class="hover:text-blue-400 transition-colors">이용약관</router-link>
         <span>|</span>
         <router-link to="/privacy" class="hover:text-blue-400 transition-colors">개인정보처리방침</router-link>

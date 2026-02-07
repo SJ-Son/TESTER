@@ -62,39 +62,26 @@ class GenerationRepository(BaseRepository[GenerationModel]):
 
     def get_user_history(self, user_id: str, limit: int = 50) -> list[GenerationModel]:
         """사용자 이력 조회 (복호화 반환)"""
-        try:
-            response = (
-                self.client.table(self.table_name)
-                .select("*")
-                .eq("user_id", user_id)
-                .order("created_at", desc=True)
-                .limit(limit)
-                .execute()
-            )
+        # DB 쿼리 실패시 예외가 전파되도록 둠 (API layer에서 500 처리)
+        response = (
+            self.client.table(self.table_name)
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
 
-            # [수정] 방어 코드 추가: data가 None이면 빈 리스트 반환
-            if not response.data:
-                return []
-
-            results = []
-            for item in response.data:
-                # Pydantic 모델 변환
-                model = self.model_cls(**item)
-                try:
-                    # 복호화 시도
-                    # DB에 암호화되지 않은 기존 데이터가 있다면 여기서 에러가 발생하여 catch 블록으로 이동합니다.
-                    model.input_code = self.encryption.decrypt(model.input_code)
-                    model.generated_code = self.encryption.decrypt(model.generated_code)
-                    results.append(model)
-                except Exception:
-                    # 복호화 실패 시 로그 남기고 해당 항목은 결과에서 제외 (500 에러 방지)
-                    self.logger.error(f"Failed to decrypt history item {model.id}", exc_info=True)
-                    continue  # corrupted item skipped
-
-            return results
-
-        except Exception as e:
-            # DB 연결 실패 등 예상치 못한 에러 로깅
-            self.logger.error(f"Error fetching user history: {str(e)}", exc_info=True)
-            # 에러 발생 시 500을 띄우기보다 빈 리스트를 주거나, 상위로 에러를 전파
-            raise e
+        results = []
+        for item in response.data:
+            model = self.model_cls(**item)
+            try:
+                # 복호화 시도
+                model.input_code = self.encryption.decrypt(model.input_code)
+                model.generated_code = self.encryption.decrypt(model.generated_code)
+                results.append(model)
+            except Exception:
+                # 복호화 실패 시 로그 남기고 해당 항목은 결과에서 제외
+                self.logger.error(f"Failed to decrypt history item {model.id}", exc_info=True)
+                # corrupted item skipped
+        return results
