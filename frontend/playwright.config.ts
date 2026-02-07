@@ -10,6 +10,7 @@ export default defineConfig({
     use: {
         baseURL: 'http://localhost:5173',
         trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
     },
     projects: [
         {
@@ -21,6 +22,8 @@ export default defineConfig({
         command: 'npm run dev',
         url: 'http://localhost:5173',
         reuseExistingServer: !process.env.CI,
+        stdout: 'pipe',
+        stderr: 'pipe',
         env: {
             VITE_TURNSTILE_SITE_KEY: 'mock_site_key',
         },
