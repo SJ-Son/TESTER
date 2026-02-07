@@ -24,6 +24,12 @@ test.describe('Code Generation Flow', () => {
         await page.addInitScript(() => {
             localStorage.setItem('tester_token', 'mock_token');
             localStorage.setItem('tester_user', JSON.stringify({ name: 'Test User', email: 'test@example.com' }));
+            localStorage.setItem('E2E_TEST_MODE', 'true');
+        });
+
+        // Block actual Supabase connection to prevent token clearing
+        await page.route('**/*.supabase.co/**', async route => {
+            await route.abort(); // or fulfill with empty json
         });
 
         await page.goto('/');

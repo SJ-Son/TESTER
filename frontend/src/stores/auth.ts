@@ -28,6 +28,10 @@ export const useAuthStore = defineStore('auth', () => {
                         window.history.replaceState(null, '', window.location.pathname + window.location.search)
                     }
                 } else if (event === 'SIGNED_OUT') {
+                    // Prevent clearing token in E2E tests where we mock auth
+                    if (localStorage.getItem('E2E_TEST_MODE') === 'true') {
+                        return
+                    }
                     clearToken()
                 }
             })
