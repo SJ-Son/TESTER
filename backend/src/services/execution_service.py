@@ -1,34 +1,20 @@
 import logging
+import os
 
 import httpx
-from src.config.settings import settings
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 logger = logging.getLogger(__name__)
 
 
 class ExecutionService:
     def __init__(self):
-        self.worker_url = settings.WORKER_URL
-        self.worker_token = settings.WORKER_AUTH_TOKEN
+        self.worker_url = os.getenv("WORKER_URL", "http://localhost:5000")
+        self.worker_token = os.getenv("WORKER_AUTH_TOKEN")
 
         if not self.worker_token:
             logger.warning(
                 "WORKER_AUTH_TOKEN not set in main backend. Requests to worker may fail if auth is enabled."
             )
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=5),
-        retry=retry_if_exception_type(httpx.RequestError),
-        reraise=True,  # Reraise to be caught by the outer try-except for logging
-    )
-    async def _send_request(self, client, payload, headers):
-        return await client.post(
-            f"{self.worker_url}/execute",
-            json=payload,
-            headers=headers,
-        )
 
     async def execute_code(self, input_code: str, test_code: str, language: str) -> dict:
         """
@@ -40,21 +26,11 @@ class ExecutionService:
                 if self.worker_token:
                     headers["Authorization"] = f"Bearer {self.worker_token}"
 
-                # Use the retrying helper method
-                try:
-                    response = await self._send_request(
-                        client,
-                        {"input_code": input_code, "test_code": test_code, "language": language},
-                        headers,
-                    )
-                except httpx.RequestError as e:
-                    # Explicitly catch the reraised exception from tenacity
-                    logger.error(f"Failed to connect to execution worker after retries: {e}")
-                    return {
-                        "success": False,
-                        "error": "Execution service unavailable (Worker connection failed)",
-                        "output": "",
-                    }
+                response = await client.post(
+                    f"{self.worker_url}/execute",
+                    json={"input_code": input_code, "test_code": test_code, "language": language},
+                    headers=headers,
+                )
 
                 if response.status_code == 200:
                     return response.json()
@@ -74,6 +50,13 @@ class ExecutionService:
                         "output": error_msg,
                     }
 
+        except httpx.RequestError as e:
+            logger.error(f"Failed to connect to execution worker: {e}")
+            return {
+                "success": False,
+                "error": "Execution service unavailable (Worker connection failed)",
+                "output": "",
+            }
         except Exception as e:
             logger.error(f"Unexpected error in execution service: {e}")
             return {

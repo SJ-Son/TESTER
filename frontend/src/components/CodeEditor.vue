@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { useGeneratorStore } from '../stores/generator'
-import { useAuthStore } from '../stores/auth'
+import { useTesterStore } from '../stores/testerStore'
 import { Languages, Send, RefreshCcw, ShieldCheck } from 'lucide-vue-next'
 import type { SupportedLanguage } from '../types'
 
-const store = useGeneratorStore()
-const authStore = useAuthStore()
+const store = useTesterStore()
 
 const emit = defineEmits(['generate'])
 
@@ -56,10 +54,10 @@ const handleGenerate = () => {
       >
         <Send v-if="!store.isGenerating" class="w-4 h-4" />
         <RefreshCcw v-else class="w-4 h-4 animate-spin" />
-        <span class="font-bold text-xs md:text-base">{{ store.isGenerating ? (store.isMobile ? 'Wait' : 'Thinking...') : (authStore.isLoggedIn ? 'Generate' : 'Login') }}</span>
+        <span class="font-bold text-xs md:text-base">{{ store.isGenerating ? (store.isMobile ? 'Wait' : 'Thinking...') : (store.isLoggedIn ? 'Generate' : 'Login') }}</span>
       </button>
       
-      <div v-if="!authStore.isLoggedIn" class="absolute inset-0 bg-gray-950/40 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
+      <div v-if="!store.isLoggedIn" class="absolute inset-0 bg-gray-950/40 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
         <p class="text-xs font-medium text-white bg-blue-600 px-4 py-2 rounded-full shadow-xl">Please Login First</p>
       </div>
       

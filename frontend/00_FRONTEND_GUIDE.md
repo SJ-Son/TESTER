@@ -21,8 +21,7 @@ Vue 3, TypeScript, Pinia 기반 프론트엔드 구조 정리.
 
 ### 1. 전역 상태 관리 (Pinia)
 - `stores/testerStore.ts`에 핵심 데이터 몰아넣음.
-- **Auth Integration**: `supabase.auth` (`signInWithOAuth`) 사용하여 로그인 및 세션 관리.
-  - **Token Handling**: API 호출 시 Supabase에서 발급받은 `Access Token`을 Authorization 헤더에 자동으로 실어서 보냄.
+- **Auth Integration**: `supabase.auth`를 사용하여 로그인/로그아웃 및 세션 상태 동기화.
 - State: 입력 코드, 생성된 테스트 코드, 옵션, User Session 등.
 - Actions: API 호출 후 State 업데이트하는 비즈니스 로직 포함.
 

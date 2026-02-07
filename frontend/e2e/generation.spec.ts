@@ -14,9 +14,6 @@ test.describe('Code Generation Flow', () => {
 
         // Click button
         await page.getByRole('button', { name: 'Login with Google' }).click();
-
-        // Should see a login prompt or redirection (assuming Google Login initiates)
-        // For now, just verifying the initial state is good.
     });
 
     test('should Generate code when logged in (Mocked)', async ({ page }) => {
@@ -24,6 +21,19 @@ test.describe('Code Generation Flow', () => {
         await page.addInitScript(() => {
             localStorage.setItem('tester_token', 'mock_token');
             localStorage.setItem('tester_user', JSON.stringify({ name: 'Test User', email: 'test@example.com' }));
+        });
+
+        // Mock Turnstile properly (before page load to ensure window.turnstile exists)
+        await page.addInitScript(() => {
+             // @ts-ignore
+             window.turnstile = {
+                render: (el: any, options: any) => {
+                    options.callback('mock_turnstile_token');
+                    return 'widget_id';
+                },
+                remove: () => {},
+                reset: () => {}
+            };
         });
 
         await page.goto('/');
@@ -36,11 +46,9 @@ test.describe('Code Generation Flow', () => {
         await page.getByPlaceholder(/Paste your source code/i).fill(inputCode);
 
         // Debug Network and Console
-        page.on('request', request => console.log('>>', request.method(), request.url()));
-        page.on('response', response => console.log('<<', response.status(), response.url()));
         page.on('console', msg => console.log('LOG:', msg.text()));
 
-        // Mock API response for Generation
+        // Mock API response for Generation with correct SSE format
         await page.route(/\/api\/generate/, async route => {
             console.log('Intercepted route:', route.request().url());
             await route.fulfill({
@@ -50,21 +58,12 @@ test.describe('Code Generation Flow', () => {
             });
         });
 
-        // Mock Turnstile
-        await page.evaluate(() => {
-            // @ts-ignore
-            window.turnstile = {
-                render: (el: any, options: any) => {
-                    options.callback('mock_turnstile_token');
-                    return 'widget_id';
-                }
-            };
-        });
-
         // Click Generate
         await page.getByRole('button', { name: /Generate/i }).click();
 
         // Wait for result
+        // Use a more specific locator or wait for the text directly
+        await expect(page.locator('code')).toBeVisible({ timeout: 10000 });
         await expect(page.locator('code')).toContainText('def test_hello');
     });
 });

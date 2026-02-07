@@ -1,4 +1,4 @@
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,9 +35,18 @@ class Settings(BaseSettings):
     )
 
     # Infrastructure
-    REDIS_URL: str = Field(default="redis://localhost:6379", description="Redis Connection URL")
-    WORKER_URL: str = Field(default="http://localhost:5000", description="Execution Worker URL")
-    WORKER_AUTH_TOKEN: str = Field(default="", description="Token for Worker Authentication")
+    REDIS_HOST: str = Field(default="localhost", description="Redis Host")
+    REDIS_PORT: int = Field(default=6379, description="Redis Port")
+    REDIS_URL: str = Field(default="", description="Redis Connection URL")
+
+    @model_validator(mode="after")
+    def assemble_redis_url(self):
+        """Build REDIS_URL if not explicitly set"""
+        if not self.REDIS_URL:
+            host = self.REDIS_HOST
+            port = self.REDIS_PORT
+            self.REDIS_URL = f"redis://{host}:{port}"
+        return self
 
     # Supabase
     SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
@@ -50,21 +59,6 @@ class Settings(BaseSettings):
 
     # Security (Encryption)
     DATA_ENCRYPTION_KEY: str = Field(default="", description="AES Key for column encryption")
-
-    # Content Security Policy
-    CONTENT_SECURITY_POLICY: str = Field(
-        default=(
-            "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
-            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com https://www.googletagmanager.com; "
-            "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
-            "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com; "
-            "font-src 'self' https://fonts.gstatic.com data:; "
-            "connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; "
-            "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; "
-            "frame-ancestors 'self' https://accounts.google.com;"
-        ),
-        description="Content Security Policy Header",
-    )
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"), env_file_encoding="utf-8", extra="ignore"

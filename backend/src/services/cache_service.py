@@ -38,10 +38,16 @@ class CacheService:
 
     def _check_connection(self):
         try:
+            # Mask the password for logging
+            masked_url = self.redis_client.connection_pool.connection_kwargs.get("host", "unknown")
+            port = self.redis_client.connection_pool.connection_kwargs.get("port", "unknown")
+            logger.info(f"Attempting to connect to Redis at {masked_url}:{port}")
+
             self.redis_client.ping()
             logger.info("Connected to Redis successfully.")
-        except redis.ConnectionError:
-            logger.warning("Failed to connect to Redis. Caching might be disabled.")
+        except redis.ConnectionError as e:
+            logger.warning(f"Failed to connect to Redis at {masked_url}:{port}. Error: {e}")
+            logger.warning("Caching might be disabled.")
 
     def get(self, key: str) -> Optional[str]:
         """캐시된 값 조회"""
