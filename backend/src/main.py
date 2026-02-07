@@ -51,6 +51,16 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
     )
 
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler to catch unhandled errors."""
+    logger.error(f"Global Exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error", "detail": str(exc)},
+    )
+
+
 # Prometheus Metrics
 Instrumentator().instrument(app).expose(app)
 
