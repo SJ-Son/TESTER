@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime  # datetime 임포트 추가
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -16,7 +17,9 @@ class HistoryItem(BaseModel):
     generated_code: str
     language: str
     model: str
-    created_at: str
+    # [수정] str -> datetime으로 변경.
+    # FastAPI가 자동으로 ISO Format String으로 변환하여 응답합니다.
+    created_at: datetime
 
 
 @router.get("/", response_model=list[HistoryItem])
