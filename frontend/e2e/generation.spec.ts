@@ -40,7 +40,11 @@ test.describe('Code Generation Flow', () => {
         // Verify button changes to "Generate" or locate the button by text content
         // In the Vue component: authStore.isLoggedIn ? 'Generate' : 'Login'
         // And there's a span inside the button
-        await expect(page.locator('button span', { hasText: 'Generate' })).toBeVisible({ timeout: 10000 });
+        // Wait for the "Please Login First" overlay to disappear
+        await expect(page.locator('text=Please Login First')).not.toBeVisible({ timeout: 10000 });
+
+        // Verify button changes to "Generate"
+        await expect(page.locator('button', { hasText: 'Generate' })).toBeVisible({ timeout: 10000 });
 
         // Input code
         const inputCode = 'print("hello world")';
