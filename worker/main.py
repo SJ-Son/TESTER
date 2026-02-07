@@ -121,13 +121,17 @@ async def execute_code(request: ExecutionRequest):
     if not docker_client:
         raise HTTPException(status_code=503, detail="Docker service unavailable on worker")
 
-    if request.language != "python":
-        raise HTTPException(status_code=400, detail="Only Python is supported in sandbox currently")
-
     loop = asyncio.get_running_loop()
 
     # Define the blocking execution logic as a synchronous function
     def _run_sync():
+        if request.language.lower() != "python":
+            return {
+                "success": False,
+                "error": f"Language runner not implemented for {request.language}",
+                "output": "",
+            }
+
         container = None
         try:
             # 1. Check Image (Fast check since we checked at startup, but good for safety)

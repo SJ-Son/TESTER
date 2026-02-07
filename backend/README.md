@@ -35,6 +35,17 @@ TESTER 백엔드 아키텍처 및 핵심 로직 정리.
 - **이유**: Cloud Run에서는 Docker-in-Docker 실행이 까다롭고 보안상 좋지 않음. 실행 환경을 아예 물리적으로 격리해버림.
 - **통신**: `ExecutionService`가 `httpx`로 Worker API 호출. (`WORKER_AUTH_TOKEN`으로 인증)
 
+### 4. 보안 및 데이터 보호 (Authentication & Data Privacy)
+- **인증 (Authentication)**:
+  - **Stateless Architecture**: 백엔드는 세션을 저장하지 않음.
+  - **Supabase Auth**: 프론트엔드에서 받은 `Access Token`을 헤더로 전달받아, `SupabaseService`가 유효성을 검증하고 User ID를 추출함.
+- **데이터 암호화 (Encryption)**:
+  - **GenerationRepository**: 테스트 생성 이력(`generation_history`) 저장 시 민감한 코드 데이터는 암호화됨.
+  - **Fernet (Symmetric Encryption)**: `DATA_ENCRYPTION_KEY`를 사용하여 암호화/복호화 수행. 키 분실 시 데이터 복구 불가 
+- **데이터베이스 보안 (RLS)**:
+  - **Row Level Security**: DB 레벨에서 사용자별 데이터 접근을 엄격히 격리.
+  - **Service Role**: 백엔드 서버(`SupabaseService`)는 관리자 권한(`service_role`)으로 RLS를 우회하여 필요한 데이터 처리를 수행.
+
 ---
 
 ## 셋업 메모
