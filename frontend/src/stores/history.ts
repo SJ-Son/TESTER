@@ -14,6 +14,15 @@ export const useHistoryStore = defineStore('history', () => {
         localStorage.setItem('tester_history', JSON.stringify(newHistory))
     }, { deep: true })
 
+    // Automatically load history when user logs in (fixes refresh issue)
+    watch(() => authStore.isLoggedIn, (isLoggedIn) => {
+        if (isLoggedIn) {
+            loadHistory()
+        } else {
+            history.value = [] // Clear history on logout
+        }
+    }, { immediate: true })
+
     const loadHistory = async () => {
         if (!authStore.isLoggedIn) return
 
@@ -29,7 +38,8 @@ export const useHistoryStore = defineStore('history', () => {
                 }))
             }
         } catch (e) {
-            console.error('Failed to load history from server, keeping local cache:', e)
+            console.error('Failed to load history:', e)
+            // Note: In offline mode, this is expected behavior
         }
     }
 

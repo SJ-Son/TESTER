@@ -22,7 +22,6 @@ const updateIsMobile = () => {
 }
 
 onMounted(() => {
-  historyStore.loadHistory()
   window.addEventListener('resize', updateIsMobile)
   updateIsMobile()
 })
