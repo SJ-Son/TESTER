@@ -91,9 +91,22 @@ jobs:
       working-directory: ./frontend
       run: npm ci
 
+    - name: Get Playwright version
+      run: echo "PLAYWRIGHT_VERSION=$(npm show @playwright/test version)" >> $GITHUB_ENV
+
+    - name: Cache Playwright Browsers
+      uses: actions/cache@v4
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+
     - name: Install Playwright Browsers
       working-directory: ./frontend
       run: npx playwright install --with-deps chromium
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
 
     - name: Run Playwright tests
       working-directory: ./frontend

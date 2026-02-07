@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { useGeneratorStore } from '../stores/generator'
+import { useTesterStore } from '../stores/testerStore'
 import { Code, CheckCircle2, AlertCircle, Copy, Check } from 'lucide-vue-next'
 // import hljs from 'highlight.js' // Lazy loaded instead
 import debounce from 'lodash/debounce'
 
-const store = useGeneratorStore()
+const store = useTesterStore()
 const isCopied = ref(false)
 const codeBlock = ref<HTMLElement | null>(null)
 

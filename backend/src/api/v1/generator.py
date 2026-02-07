@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from src.api.v1.deps import (
@@ -38,6 +38,7 @@ def format_sse_event(event_type: str, data: dict) -> str:
 async def generate_test(
     request: Request,
     data: GenerateRequest,
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user),
     service: TestGeneratorService = Depends(get_test_generator_service),
     repository: GenerationRepository = Depends(get_generation_repository),
@@ -69,14 +70,13 @@ async def generate_test(
                     if chunk_count % 100 == 0:
                         await asyncio.sleep(0)
 
-            # [System] Explicit Async Save (Reliability Upgrade)
-            # Instead of relying on BackgroundTasks (which can be ambiguous with Generators),
-            # we await the save operation here to ensure data persistence before closing the stream.
+            # [System] Background Save Logic (Reliability Upgrade)
             try:
                 full_code = "".join(generated_content)
                 if full_code:
-                    logger.info("Saving generated code to repository...")
-                    await background_save_generation(
+                    logger.info("Scheduling background save task...")
+                    background_tasks.add_task(
+                        background_save_generation,
                         repository=repository,
                         user_id=current_user["id"],
                         input_code=data.input_code,
@@ -85,8 +85,7 @@ async def generate_test(
                         model=data.model,
                     )
             except Exception as e:
-                logger.error(f"Failed to save generated code: {e}", exc_info=True)
-                # We don't stop the stream here, but we log the error.
+                logger.error(f"Failed to schedule background task: {e}", exc_info=True)
 
             # Send completion event
             yield format_sse_event("message", {"type": "done"})

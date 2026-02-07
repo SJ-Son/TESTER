@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useGeneratorStore } from '../stores/generator'
-import { useHistoryStore } from '../stores/history'
+import { useTesterStore } from '../stores/testerStore'
 import { ref, onMounted } from 'vue'
 import { RefreshCcw } from 'lucide-vue-next'
 import ControlPanel from '../components/ControlPanel.vue'
@@ -9,8 +8,7 @@ import TestResult from '../components/TestResult.vue'
 import { loadTurnstile } from '../utils/lazyLoad'
 import { MOBILE_BREAKPOINT, TURNSTILE_TIMEOUT_MS } from '../utils/constants'
 
-const generatorStore = useGeneratorStore()
-const historyStore = useHistoryStore()
+const store = useTesterStore()
 const turnstileToken = ref<string | null>(null)
 let turnstileWidgetId: string | null = null
 
@@ -18,10 +16,11 @@ let turnstileWidgetId: string | null = null
 const viewMode = ref<'edit' | 'result'>('edit')
 
 const updateIsMobile = () => {
-  generatorStore.isMobile = window.innerWidth < MOBILE_BREAKPOINT
+  store.isMobile = window.innerWidth < MOBILE_BREAKPOINT
 }
 
 onMounted(() => {
+  store.loadHistory()
   window.addEventListener('resize', updateIsMobile)
   updateIsMobile()
 })
@@ -70,13 +69,13 @@ const handleGenerate = async () => {
       }
     })
 
-    await generatorStore.generateTestCode(token)
+    await store.generateTestCode(token)
     // Switch to result view on mobile after starting generation
-    if (generatorStore.isMobile) {
+    if (store.isMobile) {
       viewMode.value = 'result'
     }
   } catch (err: any) {
-    generatorStore.error = err.message
+    store.error = err.message
   }
 }
 </script>
@@ -85,14 +84,14 @@ const handleGenerate = async () => {
   <div class="flex h-[100dvh] bg-gray-950 text-gray-200 overflow-hidden font-sans selection:bg-blue-500/30">
     <!-- Sidebar / Drawer -->
     <div 
-      v-if="generatorStore.isMobile"
+      v-if="store.isMobile"
       class="fixed inset-0 z-50 transition-opacity duration-300"
-      :class="generatorStore.isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+      :class="store.isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'"
     >
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="generatorStore.isSidebarOpen = false"></div>
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="store.isSidebarOpen = false"></div>
       <div 
         class="absolute left-0 top-0 bottom-0 w-80 transform transition-transform duration-300 shadow-2xl"
-        :class="generatorStore.isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        :class="store.isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
       >
         <ControlPanel />
       </div>
@@ -105,8 +104,8 @@ const handleGenerate = async () => {
       <header class="h-16 border-b border-gray-800 px-4 md:px-8 flex items-center bg-gray-900/50 backdrop-blur-md sticky top-0 z-20 justify-between">
         <div class="flex items-center space-x-3 text-xs font-bold font-mono uppercase tracking-widest transition-all duration-300">
           <button 
-            v-if="generatorStore.isMobile"
-            @click="generatorStore.isSidebarOpen = true"
+            v-if="store.isMobile"
+            @click="store.isSidebarOpen = true"
             class="p-2 -ml-2 text-gray-400 hover:text-white"
             aria-label="Open sidebar"
           >
@@ -116,16 +115,16 @@ const handleGenerate = async () => {
           </button>
           <span class="text-gray-300 hidden sm:inline">Runner</span>
           <span class="text-gray-500 hidden sm:inline">></span>
-          <span class="text-blue-400 text-sm font-black">{{ generatorStore.selectedLanguage.toUpperCase() }}</span>
+          <span class="text-blue-400 text-sm font-black">{{ store.selectedLanguage.toUpperCase() }}</span>
           
-          <div v-if="generatorStore.isGenerating" class="ml-2 md:ml-4 flex items-center space-x-2 text-blue-500/60 animate-pulse">
+          <div v-if="store.isGenerating" class="ml-2 md:ml-4 flex items-center space-x-2 text-blue-500/60 animate-pulse">
             <RefreshCcw class="w-3 h-3 animate-spin" />
             <span class="text-[9px] lowercase italic">streaming...</span>
           </div>
         </div>
 
         <!-- Mobile View Toggle -->
-        <div v-if="generatorStore.isMobile" class="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
+        <div v-if="store.isMobile" class="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
           <button 
             @click="viewMode = 'edit'"
             class="px-3 py-1 rounded-md text-[10px] font-bold transition-all"
@@ -139,14 +138,14 @@ const handleGenerate = async () => {
             :class="viewMode === 'result' ? 'bg-blue-600 text-white' : 'text-gray-400'"
           >
             RESULT
-            <div v-if="generatorStore.isGenerating" class="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+            <div v-if="store.isGenerating" class="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
           </button>
         </div>
       </header>
 
       <div class="flex-1 overflow-hidden">
         <!-- Desktop Grid -->
-        <div v-if="!generatorStore.isMobile" class="h-full grid grid-cols-2 p-8 gap-8">
+        <div v-if="!store.isMobile" class="h-full grid grid-cols-2 p-8 gap-8">
           <CodeEditor @generate="handleGenerate" />
           <TestResult />
         </div>

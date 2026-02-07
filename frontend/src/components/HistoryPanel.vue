@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { useHistoryStore } from '../stores/history'
-import { useGeneratorStore } from '../stores/generator'
+import { useTesterStore } from '../stores/testerStore'
 import { History, Clock, Code2, ChevronRight } from 'lucide-vue-next'
 
-const historyStore = useHistoryStore()
-const generatorStore = useGeneratorStore()
+const store = useTesterStore()
 
 const handleRestore = (item: any) => {
-  generatorStore.restoreHistory(item)
+  store.restoreHistory(item)
 }
 </script>
 
@@ -18,13 +16,13 @@ const handleRestore = (item: any) => {
       <span>Recent History</span>
     </label>
 
-    <div v-if="historyStore.history.length === 0" class="p-4 rounded-xl border border-gray-800 bg-gray-900/50 text-center">
+    <div v-if="store.history.length === 0" class="p-4 rounded-xl border border-gray-800 bg-gray-900/50 text-center">
       <p class="text-[10px] text-gray-500 font-medium italic">No history yet</p>
     </div>
 
     <div v-else class="space-y-2">
       <button 
-        v-for="item in historyStore.history"
+        v-for="item in store.history"
         :key="item.id"
         @click="handleRestore(item)"
         class="w-full text-left p-3 rounded-xl border border-gray-800 bg-gray-900 hover:bg-gray-800 hover:border-gray-700 transition-all group relative overflow-hidden"
