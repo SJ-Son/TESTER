@@ -28,8 +28,19 @@ test.describe('Code Generation Flow', () => {
 
         await page.goto('/');
 
-        // Verify button changes to "Generate"
-        await expect(page.getByRole('button', { name: /Generate/i })).toBeVisible();
+        // Mock Login: Ensure storage is set before store initializes or force reload
+        await page.evaluate(() => {
+            localStorage.setItem('tester_token', 'mock_token');
+            localStorage.setItem('tester_user', JSON.stringify({ name: 'Test User', email: 'test@example.com' }));
+        });
+
+        // Reload to let Pinia pick up the token from localStorage
+        await page.reload();
+
+        // Verify button changes to "Generate" or locate the button by text content
+        // In the Vue component: authStore.isLoggedIn ? 'Generate' : 'Login'
+        // And there's a span inside the button
+        await expect(page.locator('button span', { hasText: 'Generate' })).toBeVisible({ timeout: 10000 });
 
         // Input code
         const inputCode = 'print("hello world")';
