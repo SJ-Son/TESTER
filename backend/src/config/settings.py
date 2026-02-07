@@ -1,4 +1,4 @@
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,7 +35,18 @@ class Settings(BaseSettings):
     )
 
     # Infrastructure
-    REDIS_URL: str = Field(default="redis://localhost:6379", description="Redis Connection URL")
+    REDIS_HOST: str = Field(default="localhost", description="Redis Host")
+    REDIS_PORT: int = Field(default=6379, description="Redis Port")
+    REDIS_URL: str = Field(default="", description="Redis Connection URL")
+
+    @model_validator(mode="after")
+    def assemble_redis_url(self):
+        """Build REDIS_URL if not explicitly set"""
+        if not self.REDIS_URL:
+            host = self.REDIS_HOST
+            port = self.REDIS_PORT
+            self.REDIS_URL = f"redis://{host}:{port}"
+        return self
 
     # Supabase
     SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
