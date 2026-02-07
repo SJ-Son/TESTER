@@ -57,8 +57,17 @@ test.describe('Code Generation Flow', () => {
         // Wait for the "Please Login First" overlay to disappear
         await expect(page.locator('text=Please Login First')).not.toBeVisible({ timeout: 10000 });
 
+        // Set Viewport to Desktop
+        await page.setViewportSize({ width: 1280, height: 720 });
+
         // Verify button changes to "Generate"
-        await expect(page.locator('button', { hasText: 'Generate' })).toBeVisible({ timeout: 10000 });
+        try {
+            await expect(page.locator('button', { hasText: 'Generate' })).toBeVisible({ timeout: 5000 });
+        } catch (e) {
+            console.log('Test Failed. Page Content:');
+            console.log(await page.content());
+            throw e;
+        }
 
         // Input code
         const inputCode = 'print("hello world")';
