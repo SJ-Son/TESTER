@@ -99,12 +99,12 @@ async def generate_test(
             )
 
         except Exception as e:
-            logger.error(f"Streaming error: {e}")
+            logger.error(f"Streaming error: {e}", exc_info=True)
             # Send as error event
             error_data = {
                 "type": "error",
                 "code": "GENERATION_ERROR",
-                "message": str(e),
+                "message": "An error occurred during generation. Please try again.",
             }
             yield format_sse_event("error", error_data)
 
