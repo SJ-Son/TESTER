@@ -7,10 +7,10 @@ const store = useTesterStore()
 
 const emit = defineEmits(['generate'])
 
-const supportedLanguages: { id: SupportedLanguage, label: string }[] = [
-  { id: 'python', label: 'PY' },
-  { id: 'javascript', label: 'JS' },
-  { id: 'java', label: 'JAVA' }
+const supportedLanguages: { id: SupportedLanguage, label: string, name: string }[] = [
+  { id: 'python', label: 'PY', name: 'Python' },
+  { id: 'javascript', label: 'JS', name: 'JavaScript' },
+  { id: 'java', label: 'JAVA', name: 'Java' }
 ]
 
 const handleGenerate = () => {
@@ -33,6 +33,7 @@ const handleGenerate = () => {
           @click="store.selectedLanguage = lang.id"
           class="px-2 py-1 rounded-md text-[9px] font-black transition-all duration-200 tracking-tighter"
           :class="store.selectedLanguage === lang.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-300'"
+          :aria-label="'Select ' + lang.name"
         >
           {{ lang.label }}
         </button>
@@ -45,6 +46,7 @@ const handleGenerate = () => {
         v-model="store.inputCode"
         placeholder="Paste your source code here..."
         class="relative w-full h-full bg-gray-900/80 backdrop-blur-sm border border-gray-800 p-4 md:p-6 rounded-2xl outline-none focus:border-blue-500/50 transition-all text-sm font-mono text-gray-300 resize-none custom-scrollbar focus:ring-1 focus:ring-blue-500/20"
+        aria-label="Source code input"
       ></textarea>
       
       <button 
