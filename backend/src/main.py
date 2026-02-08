@@ -102,7 +102,7 @@ async def attach_user_to_state(request: Request, call_next):
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
-            payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, settings.SUPABASE_JWT_SECRET, algorithms=[ALGORITHM])
             request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
         except Exception:
             request.state.user = None
