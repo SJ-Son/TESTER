@@ -72,45 +72,70 @@ graph LR
 
 ```
 TESTER/
-├── backend/                 # Main API Server
+├── backend/                 # Main API Server (FastAPI)
 │   ├── src/
-│   │   ├── api/             # Endpoints
+│   │   ├── api/             # API Endpoints
 │   │   ├── services/        # Business Logic
-│   │   └── languages/       # Strategies
-│   └── README.md            # Backend Study Memo
+│   │   ├── repositories/    # Data Access Layer (암호화 포함)
+│   │   ├── languages/       # Language Strategies
+│   │   └── utils/           # Utilities (암호화, 로깅 등)
+│   ├── tests/               # Backend Tests
+│   └── README.md            # Backend 상세 설명
 │
-├── frontend/                # Web Client
+├── frontend/                # Web Client (Vue 3)
 │   ├── src/
 │   │   ├── components/      # UI Components
 │   │   ├── stores/          # Pinia State
-│   │   └── ...
-│   └── 00_FRONTEND_GUIDE.md # Frontend Study Memo
+│   │   ├── views/           # Pages
+│   │   └── api/             # API Clients
+│   ├── e2e/                 # E2E Tests (Playwright)
+│   └── 00_FRONTEND_GUIDE.md # Frontend 상세 설명
 │
-├── worker/                  # Execution Worker (GCE)
+├── worker/                  # Execution Worker (GCE VM)
 │   ├── main.py              # Worker API
-│   └── 00_WORKER_GUIDE.md   # Worker Study Memo
+│   ├── Dockerfile.sandbox   # Sandbox 이미지
+│   └── 00_WORKER_GUIDE.md   # Worker 상세 설명
 │
 └── .github/workflows/       # CI/CD Pipelines
 ```
 
 ## 🚀 빠른 시작 (Local)
 
+### 1. 클론
 ```bash
-# 1. 클론
 git clone https://github.com/SJ-Son/TESTER.git
 cd TESTER
+```
 
-# 2. 백엔드 실행
+### 2. 백엔드 실행
+```bash
 cd backend
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
-uvicorn src.main:app --reload
 
-# 3. 프론트엔드 실행
+# 환경 변수 설정
+cp .env.example .env
+# .env 파일을 편집하여 필수 환경 변수 입력:
+# - GEMINI_API_KEY (필수)
+# - SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET (필수)
+# - DATA_ENCRYPTION_KEY (필수)
+# - 기타 설정값들
+
+uvicorn src.main:app --reload
+```
+
+### 3. 프론트엔드 실행
+```bash
 cd frontend
 npm install
-cp .env.example .env
+
+# 환경 변수 설정
+cp .env.example .env.local
+# .env.local 편집:
+# - VITE_SUPABASE_URL
+# - VITE_SUPABASE_ANON_KEY
+# - VITE_TURNSTILE_SITE_KEY
+
 npm run dev
 ```
 

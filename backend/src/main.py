@@ -44,6 +44,36 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("✅ All critical secrets loaded.")
 
+    # Infrastructure Health Checks
+    logger.info("🔍 Running infrastructure health checks...")
+
+    # Redis Connection Check
+    try:
+        from src.services.cache_service import CacheService
+
+        cache = CacheService()
+        cache.redis_client.ping()
+        logger.info("✅ Redis connection verified")
+    except Exception as e:
+        logger.warning(f"⚠️ Redis connection failed: {e}")
+        logger.warning("Caching will be disabled - expect higher latency and API costs")
+
+    # Supabase Connection & Table Check
+    try:
+        from src.services.supabase_service import SupabaseService
+
+        supabase = SupabaseService()
+        status = supabase.get_connection_status()
+        if status["connected"]:
+            logger.info("✅ Supabase connection verified (table exists)")
+        else:
+            logger.warning(f"⚠️ Supabase health check failed: {status['reason']}")
+            logger.warning("History features may not work properly")
+    except Exception as e:
+        logger.warning(f"⚠️ Supabase health check error: {e}")
+
+    logger.info("🚀 Application startup complete")
+
     yield
     # Shutdown logic (if any)
 
@@ -78,10 +108,16 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler to catch unhandled errors."""
+    # Log the full error for internal debugging
     logger.error(f"Global Exception: {exc}", exc_info=True)
+
+    # Return a generic error message to the client to prevent information leakage
     return JSONResponse(
         status_code=500,
-        content={"message": "Internal Server Error", "detail": str(exc)},
+        content={
+            "message": "Internal Server Error",
+            "detail": "An internal server error occurred. Please contact support.",
+        },
     )
 
 
@@ -96,7 +132,7 @@ async def attach_user_to_state(request: Request, call_next):
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
-            payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, settings.SUPABASE_JWT_SECRET, algorithms=[ALGORITHM])
             request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
         except Exception:
             request.state.user = None
@@ -152,7 +188,53 @@ async def security_middleware(request: Request, call_next):
         }
 
 
-# Include API Routers
+# Health Check Endpoint (for monitoring and load balancers)
+@app.get("/health")
+async def health_check():
+    """
+    Infrastructure health check endpoint.
+    Returns detailed status of Redis and Supabase connections.
+    """
+    redis_ok = False
+    supabase_ok = False
+    redis_error = None
+    supabase_error = None
+
+    # Check Redis
+    try:
+        from src.services.cache_service import CacheService
+
+        cache = CacheService()
+        cache.redis_client.ping()
+        redis_ok = True
+    except Exception as e:
+        redis_error = str(e)
+
+    # Check Supabase
+    try:
+        from src.services.supabase_service import SupabaseService
+
+        supabase = SupabaseService()
+        status = supabase.get_connection_status()
+        supabase_ok = status["connected"]
+        if not supabase_ok:
+            supabase_error = status["reason"]
+    except Exception as e:
+        supabase_error = str(e)
+
+    overall_status = "healthy" if (redis_ok and supabase_ok) else "degraded"
+
+    return {
+        "status": overall_status,
+        "timestamp": time.time(),
+        "services": {
+            "redis": {"status": "ok" if redis_ok else "error", "error": redis_error},
+            "supabase": {"status": "ok" if supabase_ok else "error", "error": supabase_error},
+        },
+    }
+
+
+# API Routes
 app.include_router(api_router, prefix="/api")
 
 # --- Static File Serving (Production) ---

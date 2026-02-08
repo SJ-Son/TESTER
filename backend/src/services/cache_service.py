@@ -28,22 +28,32 @@ class CacheStrategy(str, Enum):
 logger = logging.getLogger(__name__)
 
 
+# Global cache for Redis clients to avoid recreating connection pools
+_redis_clients = {}
+
+
 class CacheService:
     """Redis 기반 캐싱 서비스"""
 
     def __init__(self, redis_url: str = settings.REDIS_URL, ttl: int = 3600):
-        self.redis_client = redis.from_url(redis_url, decode_responses=True)
-        self.ttl = ttl  # 기본 1시간
-        self._check_connection()
+        global _redis_clients
 
-    def _check_connection(self):
+        if redis_url not in _redis_clients:
+            client = redis.from_url(redis_url, decode_responses=True)
+            self._check_connection(client)
+            _redis_clients[redis_url] = client
+
+        self.redis_client = _redis_clients[redis_url]
+        self.ttl = ttl  # 기본 1시간
+
+    def _check_connection(self, client):
         try:
             # Mask the password for logging
-            masked_url = self.redis_client.connection_pool.connection_kwargs.get("host", "unknown")
-            port = self.redis_client.connection_pool.connection_kwargs.get("port", "unknown")
+            masked_url = client.connection_pool.connection_kwargs.get("host", "unknown")
+            port = client.connection_pool.connection_kwargs.get("port", "unknown")
             logger.info(f"Attempting to connect to Redis at {masked_url}:{port}")
 
-            self.redis_client.ping()
+            client.ping()
             logger.info("Connected to Redis successfully.")
         except redis.ConnectionError as e:
             logger.warning(f"Failed to connect to Redis at {masked_url}:{port}. Error: {e}")

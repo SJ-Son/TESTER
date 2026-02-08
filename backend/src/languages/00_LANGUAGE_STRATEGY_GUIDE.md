@@ -30,7 +30,15 @@ Strategy Pattern + Factory Pattern 조합.
 1. `languages/새언어.py` 만들고 `LanguageStrategy` 상속 구현.
 2. `languages/factory.py` 딕셔너리에 등록.
 3. 프론트엔드 셀렉트 박스에 옵션 추가.
+4. **중요**: Worker의 `Dockerfile.sandbox`에 해당 언어 런타임 및 테스트 프레임워크 설치 필요.
+   - 예: Python → `pytest` 포함, JavaScript → Node.js + Jest 설치
+
+## 지원 언어 목록
+- ✅ **Python** (pytest)
+- ✅ **JavaScript** (Jest)
+- ✅ **Java** (JUnit 5)
 
 ## 보안 원칙 (Security)
 - Blacklist 방식 키워드 필터링 사용 (완벽하진 않지만 1차 방어선).
 - 너무 긴 코드(10만자 이상)는 API 비용 문제로 거절.
+- 최종 실행은 격리된 Docker 샌드박스에서만 수행.

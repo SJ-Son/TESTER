@@ -19,9 +19,10 @@ class ExecutionService:
     async def execute_code(self, input_code: str, test_code: str, language: str) -> dict:
         """
         Forwards execution request to the isolated Worker VM.
+        Timeout is set to 60 seconds to allow for test execution.
         """
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=60.0) as client:
                 headers = {}
                 if self.worker_token:
                     headers["Authorization"] = f"Bearer {self.worker_token}"
