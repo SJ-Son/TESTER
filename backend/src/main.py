@@ -44,6 +44,36 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("✅ All critical secrets loaded.")
 
+    # Infrastructure Health Checks
+    logger.info("🔍 Running infrastructure health checks...")
+
+    # Redis Connection Check
+    try:
+        from src.services.cache_service import CacheService
+
+        cache = CacheService()
+        cache.redis_client.ping()
+        logger.info("✅ Redis connection verified")
+    except Exception as e:
+        logger.warning(f"⚠️ Redis connection failed: {e}")
+        logger.warning("Caching will be disabled - expect higher latency and API costs")
+
+    # Supabase Connection & Table Check
+    try:
+        from src.services.supabase_service import SupabaseService
+
+        supabase = SupabaseService()
+        status = supabase.get_connection_status()
+        if status["connected"]:
+            logger.info("✅ Supabase connection verified (table exists)")
+        else:
+            logger.warning(f"⚠️ Supabase health check failed: {status['reason']}")
+            logger.warning("History features may not work properly")
+    except Exception as e:
+        logger.warning(f"⚠️ Supabase health check error: {e}")
+
+    logger.info("🚀 Application startup complete")
+
     yield
     # Shutdown logic (if any)
 
@@ -158,7 +188,53 @@ async def security_middleware(request: Request, call_next):
         }
 
 
-# Include API Routers
+# Health Check Endpoint (for monitoring and load balancers)
+@app.get("/health")
+async def health_check():
+    """
+    Infrastructure health check endpoint.
+    Returns detailed status of Redis and Supabase connections.
+    """
+    redis_ok = False
+    supabase_ok = False
+    redis_error = None
+    supabase_error = None
+
+    # Check Redis
+    try:
+        from src.services.cache_service import CacheService
+
+        cache = CacheService()
+        cache.redis_client.ping()
+        redis_ok = True
+    except Exception as e:
+        redis_error = str(e)
+
+    # Check Supabase
+    try:
+        from src.services.supabase_service import SupabaseService
+
+        supabase = SupabaseService()
+        status = supabase.get_connection_status()
+        supabase_ok = status["connected"]
+        if not supabase_ok:
+            supabase_error = status["reason"]
+    except Exception as e:
+        supabase_error = str(e)
+
+    overall_status = "healthy" if (redis_ok and supabase_ok) else "degraded"
+
+    return {
+        "status": overall_status,
+        "timestamp": time.time(),
+        "services": {
+            "redis": {"status": "ok" if redis_ok else "error", "error": redis_error},
+            "supabase": {"status": "ok" if supabase_ok else "error", "error": supabase_error},
+        },
+    }
+
+
+# API Routes
 app.include_router(api_router, prefix="/api")
 
 # --- Static File Serving (Production) ---
