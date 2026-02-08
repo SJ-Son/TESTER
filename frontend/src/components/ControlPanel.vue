@@ -96,7 +96,7 @@ const logout = async () => {
             <div class="text-[10px] text-blue-300/70">Ready to test</div>
           </div>
         </div>
-        <button @click="logout" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Logout">
+        <button @click="logout" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Logout" aria-label="Logout">
           <LogOut class="w-4 h-4" />
         </button>
       </div>
