@@ -6,10 +6,17 @@ from src.services.cache_service import CacheService
 
 @pytest.fixture
 def mock_redis():
+    # Clear the global cache before each test
+    from src.services.cache_service import _redis_clients
+    _redis_clients.clear()
+
     with patch("redis.from_url") as mock_from_url:
         mock_client = Mock()
         mock_from_url.return_value = mock_client
         yield mock_client
+
+    # Clear it after test too
+    _redis_clients.clear()
 
 
 def test_cache_service_init(mock_redis):
