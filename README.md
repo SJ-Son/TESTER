@@ -4,145 +4,153 @@
   
 **AI-Powered Test Code Generator**
 
-Gemini API 활용한 테스트 코드 자동 생성 플랫폼.
+Google Gemini API를 활용한 테스트 코드 자동 생성 웹 서비스
 
-[![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)](https://vuejs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
+[Documentation](#-documentation) · [Quick Start](#-quick-start)
 
 </div>
 
 ---
 
-## 📌 프로젝트 개요 및 특징
+## ✨ Features
 
-- **AI 테스트 생성**: Gemini한테 코드 던져주면 Pytest 코드 짜줌.
-- **실시간 스트리밍**: SSE(Server-Sent Events) 써서 한 글자씩 타이핑되는 효과 구현.
-- **보안**: Supabase Auth 연동, Turnstile, Fernet 암호화 (Fail-Closed 적용).
-  > **Note**: `SUPABASE_JWT_SECRET`, `DATA_ENCRYPTION_KEY`, `GEMINI_API_KEY` 환경변수가 없으면 서버가 시작되지 않습니다.
-- **캐싱**: Redis 사용. AI 응답은 2시간 캐싱해서 비용 아낌.
-- **Hybrid 아키텍처**:
-  - 웹/API: Cloud Run (Serverless)
-  - 실행: GCE VM (Docker Sandbox) -> 보안 때문에 격리함.
-  - **안정성**: `put_archive` 기반의 안전한 코드 주입 & 비동기 실행 보장.
+- 🤖 **AI Test Generation** - Gemini API로 Python/JavaScript/Java 테스트 코드 자동 생성
+- ⚡ **Real-time Streaming** - SSE로 생성 과정 실시간 스트리밍
+- 🔒 **Secure Architecture** - Supabase Auth + Fail-Closed 암호화 + Isolated Docker Execution
+- 💾 **Smart Caching** - Redis 캐싱으로 비용 절감 및 응답 속도 향상
+- 📱 **Responsive Design** - 모바일/데스크탑 최적화
 
-## 📚 모듈별 학습 메모 (Documentation)
-
-각 파트별 상세 구현 내용이나 설계 의도는 아래 메모 참고.
-
-| 모듈 | 설명 | 링크 |
-| :--- | :--- | :--- |
-| **Backend** | FastAPI 구조, 비동기, 레이어 | [👉 Backend 메모](./backend/README.md) |
-| &nbsp;&nbsp; _API_ | API 엔드포인트 설계 | [👉 API 가이드](./backend/src/api/00_API_GUIDE.md) |
-| &nbsp;&nbsp; _Services_ | 비즈니스 로직 상세 | [👉 Service 가이드](./backend/src/services/00_SERVICE_GUIDE.md) |
-| &nbsp;&nbsp; _Strategies_ | 언어별 전략 패턴 구현 | [👉 Strategy 가이드](./backend/src/languages/00_LANGUAGE_STRATEGY_GUIDE.md) |
-| **Frontend** | Vue 3, Pinia, 컴포넌트 설계 | [👉 Frontend 메모](./frontend/00_FRONTEND_GUIDE.md) |
-| &nbsp;&nbsp; _Components_ | UI 컴포넌트 역할 | [👉 Component 가이드](./frontend/src/components/00_COMPONENTS_GUIDE.md) |
-| **Worker** | Docker 샌드박스 VM 운영 | [👉 Worker 메모](./worker/00_WORKER_GUIDE.md) |
-| **History** | 변경 이력 | [👉 CHANGELOG](./CHANGELOG.md) |
-
-## 🏗️ 아키텍처
+## 🏗️ Architecture
 
 ```mermaid
-graph LR
-    User([User]) -->|Request| Server[FastAPI Server]
-    Server -->|Prompt| LLM[Google Gemini AI]
-    LLM -->|Generated Code| Server
-    Server -->|Validation| Cache[(Redis Cache)]
-    Server -->|Store| Repo[Repository] --> DB[(Supabase)]
-    Server -->|Response| User
-    Server -.->|Background Task| Repo
-    
-    note right of Repo: 암호화/저장 보장
-    
-    subgraph "Hybrid Execution"
-    Server -->|HTTP/Auth| Worker[Worker VM]
-    Worker -->|Docker| Sandbox[Test Container]
+graph TB
+    subgraph Client
+        U[User Browser]
     end
+    
+    subgraph "Cloud Run - Serverless"
+        FE[Vue 3 Frontend]
+        BE[FastAPI Backend]
+    end
+    
+    subgraph External
+        G[Gemini API]
+        S[(Supabase)]
+        R[(Redis)]
+    end
+    
+    subgraph "GCE - Worker VM"
+        W[Worker API]
+        D[Docker Sandbox]
+    end
+    
+    U -->|HTTPS| FE
+    FE <-->|REST| BE
+    BE -->|Generate| G
+    BE <-->|Cache| R
+    BE <-->|Auth/DB| S
+    BE -->|Execute| W
+    W -->|Run| D
+    
+    style FE fill:#42b883,stroke:#333,color:#fff
+    style BE fill:#009688,stroke:#333,color:#fff
+    style G fill:#4285f4,stroke:#333,color:#fff
+    style W fill:#326ce5,stroke:#333,color:#fff
 ```
 
-## 🛠 기술 스택
+**Hybrid 실행 환경:**
+- **Web/API**: Cloud Run (Serverless, Auto-scaling)
+- **Code Execution**: GCE VM (Docker Sandbox, Isolated)
 
-- **Backend**: Python 3.12, FastAPI, Gemini, Supabase(Postgres), Redis
-- **Frontend**: Vue 3, TypeScript, Pinia, TailwindCSS, Vite
-- **Infra**: Cloud Run, GCE, Docker, GitHub Actions
+## 🛠 Tech Stack
 
-## 📁 프로젝트 구조
+**Frontend:** Vue 3 · TypeScript · Pinia · TailwindCSS · Vite  
+**Backend:** FastAPI · Python 3.12 · Gemini API  
+**Database:** Supabase (PostgreSQL) · Redis  
+**Infrastructure:** Cloud Run · GCE · Docker · GitHub Actions
 
-```
-TESTER/
-├── backend/                 # Main API Server (FastAPI)
-│   ├── src/
-│   │   ├── api/             # API Endpoints
-│   │   ├── services/        # Business Logic
-│   │   ├── repositories/    # Data Access Layer (암호화 포함)
-│   │   ├── languages/       # Language Strategies
-│   │   └── utils/           # Utilities (암호화, 로깅 등)
-│   ├── tests/               # Backend Tests
-│   └── README.md            # Backend 상세 설명
-│
-├── frontend/                # Web Client (Vue 3)
-│   ├── src/
-│   │   ├── components/      # UI Components
-│   │   ├── stores/          # Pinia State
-│   │   ├── views/           # Pages
-│   │   └── api/             # API Clients
-│   ├── e2e/                 # E2E Tests (Playwright)
-│   └── 00_FRONTEND_GUIDE.md # Frontend 상세 설명
-│
-├── worker/                  # Execution Worker (GCE VM)
-│   ├── main.py              # Worker API
-│   ├── Dockerfile.sandbox   # Sandbox 이미지
-│   └── 00_WORKER_GUIDE.md   # Worker 상세 설명
-│
-└── .github/workflows/       # CI/CD Pipelines
-```
+## 🚀 Quick Start
 
-## 🚀 빠른 시작 (Local)
-
-### 1. 클론
+### Prerequisites
 ```bash
-git clone https://github.com/SJ-Son/TESTER.git
-cd TESTER
+Python 3.12+ · Node.js 20+ · Redis (optional)
 ```
 
-### 2. 백엔드 실행
+### Backend
 ```bash
 cd backend
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# 환경 변수 설정
+# Setup .env file
 cp .env.example .env
-# .env 파일을 편집하여 필수 환경 변수 입력:
-# - GEMINI_API_KEY (필수)
-# - SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET (필수)
-# - DATA_ENCRYPTION_KEY (필수)
-# - 기타 설정값들
+# Edit .env with required values
 
 uvicorn src.main:app --reload
 ```
 
-### 3. 프론트엔드 실행
+**Required Environment Variables:**
+```env
+GEMINI_API_KEY=your_key
+SUPABASE_URL=your_url
+SUPABASE_SERVICE_ROLE_KEY=your_key  
+SUPABASE_JWT_SECRET=your_secret
+DATA_ENCRYPTION_KEY=your_32byte_base64_key
+```
+
+### Frontend
 ```bash
 cd frontend
 npm install
 
-# 환경 변수 설정
 cp .env.example .env.local
-# .env.local 편집:
-# - VITE_SUPABASE_URL
-# - VITE_SUPABASE_ANON_KEY
-# - VITE_TURNSTILE_SITE_KEY
+# Edit .env.local
 
 npm run dev
 ```
 
-**접속**: http://localhost:5173
+**Required Environment Variables:**
+```env
+VITE_SUPABASE_URL=your_url
+VITE_SUPABASE_ANON_KEY=your_key
+VITE_TURNSTILE_SITE_KEY=your_key
+```
 
-## 📄 라이선스
+**Open:** http://localhost:5173
 
-MIT License 
+## 📚 Documentation
+
+| Module | Description |
+|--------|-------------|
+| [Backend Guide](./backend/README.md) | FastAPI 구조, 비동기 처리, 레이어 아키텍처 |
+| [Frontend Guide](./frontend/00_FRONTEND_GUIDE.md) | Vue 3, Pinia, 컴포넌트 설계 |
+| [Worker Guide](./worker/00_WORKER_GUIDE.md) | Docker 샌드박스, VM 운영 |
+| [Changelog](./CHANGELOG.md) | 버전별 변경 이력 |
+
+## 🧪 Testing
+
+```bash
+# Backend Tests
+pytest --cov=src tests/
+
+# Frontend E2E
+npx playwright test
+```
+
+## 📊 Monitoring
+
+```bash
+# Health Check
+curl http://localhost:8000/health
+```
+
+## 📄 License
+
+MIT License
 
 ---
