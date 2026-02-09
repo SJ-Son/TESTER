@@ -76,16 +76,26 @@ class RedisConnectionManager:
             redis.Redis: Redis 클라이언트 인스턴스.
         """
         if self._client is None:
+            # Build socket keepalive options based on available platform constants
+            keepalive_options = {}
+            # Linux uses TCP_KEEPIDLE, macOS uses TCP_KEEPALIVE
+            if hasattr(socket, "TCP_KEEPIDLE"):
+                keepalive_options[socket.TCP_KEEPIDLE] = 60
+            elif hasattr(socket, "TCP_KEEPALIVE"):
+                keepalive_options[socket.TCP_KEEPALIVE] = 60
+
+            if hasattr(socket, "TCP_KEEPINTVL"):
+                keepalive_options[socket.TCP_KEEPINTVL] = 10
+
+            if hasattr(socket, "TCP_KEEPCNT"):
+                keepalive_options[socket.TCP_KEEPCNT] = 3
+
             self._client = redis.from_url(
                 redis_url,
                 decode_responses=True,
                 max_connections=10,  # 연결 풀 크기 제한
                 socket_keepalive=True,  # TCP Keepalive 활성화
-                socket_keepalive_options={
-                    socket.TCP_KEEPIDLE: 60,  # 60초 idle 후 keepalive 시작
-                    socket.TCP_KEEPINTVL: 10,  # 10초 간격으로 keepalive 전송
-                    socket.TCP_KEEPCNT: 3,  # 3번 실패 시 연결 종료
-                },
+                socket_keepalive_options=keepalive_options if keepalive_options else None,
             )
         return self._client
 
@@ -94,6 +104,23 @@ class RedisConnectionManager:
         if self._client:
             self._client.close()
             self._client = None
+
+
+# LRU 캐시를 사용한 키 해싱 (성능 최적화)
+@lru_cache(maxsize=1000)
+def _compute_cache_key(key_input: str) -> str:
+    """캐시 키 해싱 함수 (LRU 캐시 적용).
+
+    동일한 입력에 대해 반복적인 SHA256 연산을 피하기 위해
+    최근 1000개의 결과를 메모리에 캐싱합니다.
+
+    Args:
+        key_input: 해시할 입력 문자열.
+
+    Returns:
+        str: SHA256 해시값 (hexdigest).
+    """
+    return hashlib.sha256(key_input.encode()).hexdigest()
 
 
 class CacheService:
@@ -187,23 +214,6 @@ class CacheService:
                 operation="set",
                 key=key,
             ) from e
-
-
-# LRU 캐시를 사용한 키 해싱 (성능 최적화)
-@lru_cache(maxsize=1000)
-def _compute_cache_key(key_input: str) -> str:
-    """캐시 키 해싱 함수 (LRU 캐시 적용).
-
-    동일한 입력에 대해 반복적인 SHA256 연산을 피하기 위해
-    최근 1000개의 결과를 메모리에 캐싱합니다.
-
-    Args:
-        key_input: 해시할 입력 문자열.
-
-    Returns:
-        str: SHA256 해시값 (hexdigest).
-    """
-    return hashlib.sha256(key_input.encode()).hexdigest()
 
     def generate_key(
         self,

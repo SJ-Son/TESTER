@@ -34,7 +34,7 @@ class ExecutionService:
                 )
 
                 if response.status_code == 200:
-                    return response.json()
+                    return await response.json()
                 elif response.status_code == 401 or response.status_code == 403:
                     logger.error(f"Worker authentication failed: {response.text}")
                     return {
