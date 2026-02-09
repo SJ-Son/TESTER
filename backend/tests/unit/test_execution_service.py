@@ -30,7 +30,7 @@ class TestExecutionService:
     @pytest.mark.asyncio
     async def test_execute_code_success(self, service):
         """코드 실행 성공 시나리오."""
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("httpx.AsyncClient") as mock_client_cls:
             # Mock response 설정
             mock_response = AsyncMock()
             mock_response.status_code = 200
@@ -40,9 +40,10 @@ class TestExecutionService:
                 "exit_code": 0,
             }
 
-            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
-                return_value=mock_response
-            )
+            # AsyncClient context manager와 post 메서드 설정
+            mock_client = AsyncMock()
+            mock_client.post.return_value = mock_response
+            mock_client_cls.return_value.__aenter__.return_value = mock_client
 
             result = await service.execute_code(
                 input_code="def add(a, b): return a + b",
@@ -94,7 +95,7 @@ class TestExecutionService:
     @pytest.mark.asyncio
     async def test_execute_code_test_failure(self, service):
         """테스트 실패 시나리오."""
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("httpx.AsyncClient") as mock_client_cls:
             mock_response = AsyncMock()
             mock_response.status_code = 200
             mock_response.json.return_value = {
@@ -103,9 +104,9 @@ class TestExecutionService:
                 "exit_code": 1,
             }
 
-            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
-                return_value=mock_response
-            )
+            mock_client = AsyncMock()
+            mock_client.post.return_value = mock_response
+            mock_client_cls.return_value.__aenter__.return_value = mock_client
 
             result = await service.execute_code("code", "test", "python")
 
