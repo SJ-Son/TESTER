@@ -3,6 +3,7 @@ from src.languages.factory import LanguageFactory
 from src.languages.java import JavaStrategy
 from src.languages.javascript import JavaScriptStrategy
 from src.languages.python import PythonStrategy
+from src.types import ValidationResult
 
 
 class TestLanguageFactory:
@@ -30,15 +31,17 @@ class TestPythonStrategy:
 
     def test_validate_valid_code(self):
         code = "def foo(): pass"
-        valid, msg = self.strategy.validate_code(code)
-        assert valid is True
-        assert msg == ""
+        result = self.strategy.validate_code(code)
+        assert isinstance(result, ValidationResult)
+        assert result.is_valid is True
+        assert result.error_message == ""
 
     def test_validate_invalid_code(self):
         code = "def foo(:"  # Syntax Error
-        valid, msg = self.strategy.validate_code(code)
-        assert valid is False
-        assert "유효한 파이썬 코드가 아닙니다" in msg
+        result = self.strategy.validate_code(code)
+        assert isinstance(result, ValidationResult)
+        assert result.is_valid is False
+        assert "유효한 파이썬 코드가 아닙니다" in result.error_message
 
 
 class TestJavaScriptStrategy:
@@ -48,14 +51,16 @@ class TestJavaScriptStrategy:
 
     def test_validate_valid_code(self):
         code = "const foo = () => {};"
-        valid, msg = self.strategy.validate_code(code)
-        assert valid is True
+        result = self.strategy.validate_code(code)
+        assert isinstance(result, ValidationResult)
+        assert result.is_valid is True
 
     def test_validate_invalid_code(self):
         code = "Just some random text"
-        valid, msg = self.strategy.validate_code(code)
-        assert valid is False
-        assert "유효한 JavaScript 코드가 아닌" in msg
+        result = self.strategy.validate_code(code)
+        assert isinstance(result, ValidationResult)
+        assert result.is_valid is False
+        assert "유효한 JavaScript 코드가 아닙니다" in result.error_message
 
 
 class TestJavaStrategy:
@@ -65,8 +70,9 @@ class TestJavaStrategy:
 
     def test_validate_valid_code(self):
         code = "public class MyClass {}"
-        valid, msg = self.strategy.validate_code(code)
-        assert valid is True
+        result = self.strategy.validate_code(code)
+        assert isinstance(result, ValidationResult)
+        assert result.is_valid is True
 
     def test_system_instruction_contains_target_keywords(self):
         instruction = self.strategy.get_system_instruction()

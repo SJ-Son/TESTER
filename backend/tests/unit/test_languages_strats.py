@@ -1,6 +1,7 @@
 from src.languages.java import JavaStrategy
 from src.languages.javascript import JavaScriptStrategy
 from src.languages.python import PythonStrategy
+from src.types import ValidationResult
 
 
 class TestLanguageStrategies:
@@ -15,12 +16,14 @@ class TestLanguageStrategies:
 
     def test_python_strategy_validate(self):
         strategy = PythonStrategy()
-        valid, msg = strategy.validate_code("def foo(): pass")
-        assert valid is True
+        result = strategy.validate_code("def foo(): pass")
+        assert isinstance(result, ValidationResult)
+        assert result.is_valid is True
 
-        valid, msg = strategy.validate_code("")
-        assert valid is False
-        assert msg == "코드를 입력해주세요."
+        result = strategy.validate_code("")
+        assert isinstance(result, ValidationResult)
+        assert result.is_valid is False
+        assert result.error_message == "코드를 입력해주세요."
 
     def test_java_strategy_instruction(self):
         strategy = JavaStrategy()

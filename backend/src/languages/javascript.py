@@ -55,7 +55,7 @@ class JavaScriptStrategy(LanguageStrategy):
         if not has_js_keyword:
             return ValidationResult(
                 is_valid=False,
-                error_message=ValidationConstants.JAVASCRIPT_SYNTAX_ERROR,
+                error_message=ValidationConstants.JAVASCRIPT_SYNTAX_ERROR + " (JS 키워드가 발견되지 않았습니다)",
             )
 
         return ValidationResult(is_valid=True)
