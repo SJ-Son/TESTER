@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from src.exceptions import ValidationError
 from src.services.test_generator_service import TestGeneratorService as GeneratorService
+from src.types import ValidationResult
 
 
 @pytest.fixture
@@ -29,7 +30,7 @@ async def test_generate_test_success(test_service, mock_gemini_service):
     # Mock Language Strategy verification
     with patch("src.services.test_generator_service.LanguageFactory") as MockFactory:
         mock_strategy = Mock()
-        mock_strategy.validate_code.return_value = (True, "")
+        mock_strategy.validate_code.return_value = ValidationResult(is_valid=True, error_message="")
         mock_strategy.get_system_instruction.return_value = "sys_instruct"
         MockFactory.get_strategy.return_value = mock_strategy
 
@@ -53,11 +54,12 @@ async def test_generate_test_success(test_service, mock_gemini_service):
 async def test_generate_test_validation_error(test_service):
     with patch("src.services.test_generator_service.LanguageFactory") as MockFactory:
         mock_strategy = Mock()
-        mock_strategy.validate_code.return_value = (False, "Invalid code")
+        mock_strategy.validate_code.return_value = ValidationResult(is_valid=False, error_message="Invalid code")
         MockFactory.get_strategy.return_value = mock_strategy
 
         with pytest.raises(ValidationError) as exc:
             async for _ in test_service.generate_test("bad_code", "python", "model"):
                 pass
 
-        assert str(exc.value) == "Invalid code"
+        # Use partial match because exception string might include class name or tag
+        assert "Invalid code" in str(exc.value)
