@@ -1,25 +1,59 @@
+"""Python 언어 전략 구현.
+
+Python 코드를 검증하고 테스트 코드 생성을 위한 프롬프트를 제공합니다.
+"""
+
 import ast
 
+from src.config.constants import ValidationConstants
 from src.languages.base import LanguageStrategy
+from src.types import ValidationResult
 
 
 class PythonStrategy(LanguageStrategy):
-    def validate_code(self, code: str) -> tuple[bool, str]:
-        if not code.strip():
-            return False, "코드를 입력해주세요."
+    """Python 프로그래밍 언어를 위한 전략 클래스.
 
-        # 1. Negative Check: 다른 언어(JS, Java) 패턴 감지
-        valid, msg = self.check_negative_patterns(code, "python")
-        if not valid:
-            return False, msg
+    AST 파싱을 통한 문법 검증과 pytest 기반 테스트 코드 생성을 지원합니다.
+    """
+
+    def validate_code(self, code: str) -> ValidationResult:
+        """Python 코드의 유효성을 검증합니다.
+
+        Args:
+            code: 검증할 Python 소스 코드.
+
+        Returns:
+            ValidationResult: 검증 결과.
+                - 빈 코드: 에러
+                - 다른 언어 패턴 감지: 에러
+                - 문법 오류: 에러
+                - 정상: 성공
+        """
+        if not code.strip():
+            return ValidationResult(
+                is_valid=False,
+                error_message=ValidationConstants.EMPTY_CODE_ERROR,
+            )
+
+        negative_check = self.check_negative_patterns(code, "python")
+        if negative_check.failed:
+            return negative_check
 
         try:
             ast.parse(code)
-            return True, ""
+            return ValidationResult(is_valid=True)
         except SyntaxError:
-            return False, "유효한 파이썬 코드가 아닙니다."
+            return ValidationResult(
+                is_valid=False,
+                error_message=ValidationConstants.PYTHON_SYNTAX_ERROR,
+            )
 
     def get_system_instruction(self) -> str:
+        """Python 테스트 코드 생성을 위한 시스템 프롬프트를 반환합니다.
+
+        Returns:
+            pytest 기반 테스트 코드 생성 규칙을 명시한 프롬프트.
+        """
         return """
 당신은 Google의 전문 QA 엔지니어입니다.
 사용자가 입력한 파이썬 코드를 분석하여 테스트 코드를 작성합니다.
@@ -39,7 +73,17 @@ class PythonStrategy(LanguageStrategy):
 """
 
     def get_placeholder(self) -> str:
+        """Python 코드 입력창의 플레이스홀더를 반환합니다.
+
+        Returns:
+            간단한 Python 함수 예시.
+        """
         return "def add(a, b):\n    return a + b"
 
     def get_syntax_name(self) -> str:
+        """Syntax Highlighting을 위한 언어 식별자를 반환합니다.
+
+        Returns:
+            'python'
+        """
         return "python"

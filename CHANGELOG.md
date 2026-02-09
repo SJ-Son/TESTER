@@ -2,6 +2,33 @@
 
 TESTER의 주요 업데이트 내역입니다.
 
+## [0.7.0] - 2026-02-09
+
+### ♻️ 코드 리팩토링
+- **타입 시스템**: `types.py` 모듈 추가
+  - `ValidationResult`, `CacheMetadata` 불변 데이터 구조
+  - `UserId`, `CacheKey` 등 도메인 타입 정의
+- **상수 관리**: `constants.py` 개선
+  - `Final` 타입 어노테이션 적용
+  - 도메인별 클래스 그룹화 (API, Cache, AI, Security, Validation)
+- **예외 처리**: `exceptions.py` 개선
+  - 계층적 예외 구조 및 컨텍스트 정보 추가
+  - 도메인별 예외 클래스 구현
+- **언어 전략**: Python/JavaScript/Java 전략 리팩토링
+  - `ValidationResult` 타입 반환
+  - Guard clauses 적용
+  - 불변 키워드 패턴 사용
+- **서비스 레이어**: CacheService, GeminiService, EncryptionService 리팩토링
+  - Frozen dataclass 기반 데이터 구조
+  - 명시적 예외 전파
+  - `CacheMetadata` 반환 타입
+
+### 📚 문서화
+- Google-style docstring 적용
+- 한글 문서 추가
+- 불필요한 주석 제거
+
+
 ## [0.6.0] - 2026-02-06
 
 ### ✨ 로그인 방식 개선

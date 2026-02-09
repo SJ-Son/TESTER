@@ -17,6 +17,36 @@ TESTER 백엔드 아키텍처 및 핵심 로직 정리.
 
 ---
 
+## 코드 리팩토링 (v0.7.0+)
+
+### 타입 시스템
+- **`types.py`**: 도메인 타입 정의
+  - `ValidationResult`, `CacheMetadata`: frozen dataclass
+  - `UserId`, `CacheKey`: NewType 기반 타입
+  - `LanguageCode`, `ModelName`: Literal 타입
+  
+- **`config/constants.py`**: 상수 관리
+  - `Final` 타입 어노테이션
+  - 도메인별 클래스 그룹화
+  - 한글 docstring
+  
+- **`exceptions.py`**: 예외 처리
+  - 계층적 예외 구조
+  - 컨텍스트 정보 포함
+  - 도메인별 예외 클래스
+
+### 코드 패턴
+- Frozen dataclass 사용
+- 튜플 대신 명명된 타입 반환
+- 예외 명시적 전파
+- Guard clauses 적용
+
+### 문서화
+- Google-style docstring
+- 한글 주석
+
+---
+
 ## 주요 구현 포인트
 
 ### 1. 실시간 스트리밍 (SSE)
