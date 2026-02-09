@@ -20,15 +20,6 @@ class TestGeminiServiceExtended:
         with patch("src.services.gemini_service.genai.configure"):
             return GeminiService(model_name="gemini-3-flash-preview")
 
-    def test_api_key_missing(self):
-        # Temporarily unset API KEY
-        original_key = settings.GEMINI_API_KEY
-        settings.GEMINI_API_KEY = ""
-        try:
-            with pytest.raises(ValueError, match="GEMINI_API_KEY"):
-                GeminiService()
-        finally:
-            settings.GEMINI_API_KEY = original_key
 
     @pytest.mark.asyncio
     async def test_empty_source_code(self, service):

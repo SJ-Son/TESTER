@@ -11,19 +11,9 @@ class GeminiService:
     def __init__(self, model_name: str | None = None):
         self.logger = get_logger(__name__)
         self.model_name = model_name or settings.DEFAULT_GEMINI_MODEL
-        self._configure_api()
+        # API configuration is handled in main.py lifespan
         # CacheService 초기화 (Redis 연결)
         self.cache = CacheService()
-
-    def _configure_api(self) -> None:
-        try:
-            api_key = settings.GEMINI_API_KEY
-            if not api_key:
-                raise ValueError("GEMINI_API_KEY 미설정")
-            genai.configure(api_key=api_key)
-        except Exception as e:
-            self.logger.error(f"API 설정 실패: {e}")
-            raise
 
     def _get_model(self, model_name: str, system_instruction: str = None):
         """모델 인스턴스 생성"""
