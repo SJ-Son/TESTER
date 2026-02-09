@@ -16,7 +16,15 @@ env/
 venv/
 *.log
 
-# --- Environments & Secrets ---
+# --- 테스트 & 커버리지 ---
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.hypothesis/
+
+# --- 환경 변수 & 비밀 정보 ---
 .env
 *.json
 !package.json
@@ -34,8 +42,14 @@ gcp-key.json
 *.swp
 *.bak
 
+# --- 린터 & 포매터 캐시 ---
+.ruff_cache/
+.mypy_cache/
+.Jules/
+
 # --- Infrastructure ---
 .terraform/
+
 # --- Playwright ---
 test-results/
 playwright-report/

@@ -3,6 +3,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 
+import google.generativeai as genai
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,6 +44,13 @@ async def lifespan(app: FastAPI):
         logger.critical("Application will likely fail on API requests requiring DB/Encryption.")
     else:
         logger.info("✅ All critical secrets loaded.")
+
+    # Initialize Gemini API
+    try:
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        logger.info("✅ Gemini API configured")
+    except Exception as e:
+        logger.warning(f"⚠️ Gemini API configuration failed: {e}")
 
     # Infrastructure Health Checks
     logger.info("🔍 Running infrastructure health checks...")
