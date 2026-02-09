@@ -29,13 +29,19 @@ def test_supabase_service_init(mock_supabase_client):
 
 
 def test_supabase_service_no_creds():
+    # Reset Singleton
+    SupabaseService._instance = None
+    SupabaseService._client = None
+
     with patch("src.services.supabase_service.settings") as mock_settings:
         mock_settings.SUPABASE_URL = ""
         mock_settings.SUPABASE_SERVICE_ROLE_KEY = ""
 
-        service = SupabaseService()
+        # After refactoring, SupabaseService raises ConfigurationError on init
+        from src.exceptions import ConfigurationError
 
-        assert service.is_connected() is False
+        with pytest.raises(ConfigurationError):
+            SupabaseService()
 
 
 @patch("src.repositories.generation_repository.EncryptionService")

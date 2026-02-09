@@ -8,10 +8,11 @@ from src.types import CacheMetadata
 
 @pytest.fixture
 def mock_redis():
-    # Clear the global cache before each test
-    from src.services.cache_service import _redis_clients
+    # Clear the singleton instance before each test
+    from src.services.cache_service import RedisConnectionManager
 
-    _redis_clients.clear()
+    RedisConnectionManager._instance = None
+    RedisConnectionManager._redis = None
 
     with patch("redis.from_url") as mock_from_url:
         mock_client = Mock()
@@ -21,7 +22,8 @@ def mock_redis():
         yield mock_client
 
     # Clear it after test too
-    _redis_clients.clear()
+    RedisConnectionManager._instance = None
+    RedisConnectionManager._redis = None
 
 
 def test_cache_service_init(mock_redis):

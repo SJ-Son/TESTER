@@ -46,7 +46,7 @@ async def test_get_current_user_missing_config():
     with pytest.raises(HTTPException) as exc:
         await get_current_user("any_token")
     assert exc.value.status_code == 500
-    assert "Server misconfiguration" in exc.value.detail
+    assert "인증 서비스를 사용할 수 없습니다" in exc.value.detail
 
 
 @pytest.mark.asyncio
@@ -68,7 +68,7 @@ async def test_get_current_user_invalid_token(mock_client_cls):
     with pytest.raises(HTTPException) as exc:
         await get_current_user("invalid_token")
     assert exc.value.status_code == 401
-    assert "Could not validate credentials" in exc.value.detail
+    assert "인증 정보가 올바르지 않습니다" in exc.value.detail
 
 
 @pytest.mark.asyncio
@@ -86,7 +86,7 @@ async def test_get_current_user_service_error(mock_client_cls):
     with pytest.raises(HTTPException) as exc:
         await get_current_user("valid_token")
     assert exc.value.status_code == 401
-    assert "Authentication failed" in exc.value.detail
+    assert "인증에 실패했습니다" in exc.value.detail
 
 
 # --- verify_turnstile Tests ---
