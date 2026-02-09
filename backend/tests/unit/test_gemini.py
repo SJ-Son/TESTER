@@ -2,13 +2,22 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from src.services.gemini_service import GeminiService
+from src.types import CacheKey, CacheMetadata
 
 
 class TestGeminiService:
     @pytest.fixture
     def service(self):
         with patch("src.services.gemini_service.genai.configure"):
-            return GeminiService(model_name="gemini-3-flash-preview")
+            with patch("src.services.gemini_service.CacheService") as MockCache:
+                # Mock CacheService to return CacheMetadata
+                mock_cache = MockCache.return_value
+                # CacheMetadata only has key and ttl fields
+                mock_cache.generate_key.return_value = CacheMetadata(
+                    key=CacheKey("test_key"), ttl=3600
+                )
+                mock_cache.get.return_value = None
+                return GeminiService(model_name="gemini-3-flash-preview")
 
     @pytest.mark.asyncio
     async def test_service_initialization(self, service):

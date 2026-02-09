@@ -205,8 +205,13 @@ class ConfigurationError(TesterException):
         self,
         message: str,
         config_key: str | None = None,
+        missing_keys: list[str] | None = None,
     ) -> None:
-        context = {"config_key": config_key} if config_key else {}
+        context = {}
+        if config_key:
+            context["config_key"] = config_key
+        if missing_keys:
+            context["missing_keys"] = missing_keys
         super().__init__(message, code="CONFIG_ERROR", context=context)
 
 

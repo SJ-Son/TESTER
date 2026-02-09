@@ -39,9 +39,9 @@ class TestGeneratorService:
         strategy = LanguageFactory.get_strategy(language)
 
         # 2. 코드 검증
-        is_valid, error_msg = strategy.validate_code(code)
-        if not is_valid:
-            raise ValidationError(error_msg)
+        result = strategy.validate_code(code)
+        if not result.is_valid:
+            raise ValidationError(result.error_message)
 
         # 3. 시스템 프롬프트 생성
         system_instruction = strategy.get_system_instruction()

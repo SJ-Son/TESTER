@@ -1,7 +1,20 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from src.auth import get_current_user, verify_turnstile
 from src.main import app
+
+
+def pytest_configure(config):
+    """Set up test environment variables before imports."""
+    os.environ.setdefault("GEMINI_API_KEY", "AIzaSyDummyTestKey123456789012345678")
+    os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+    os.environ.setdefault("TURNSTILE_SECRET_KEY", "test_turnstile_key")
+    os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
+    os.environ.setdefault("SUPABASE_KEY", "test_supabase_key")
+    os.environ.setdefault("SUPABASE_JWT_SECRET", "test_jwt_secret_32_bytes_long!!")
+    os.environ.setdefault("DATA_ENCRYPTION_KEY", "test_encryption_key_32_bytes_long!")
 
 
 @pytest.fixture
