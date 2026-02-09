@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
-import { Code, CheckCircle2, AlertCircle, Copy, Check } from 'lucide-vue-next'
+import { Code, CheckCircle2, AlertCircle, Copy, Check, X } from 'lucide-vue-next'
 // import hljs from 'highlight.js' // Lazy loaded instead
 import debounce from 'lodash/debounce'
 
@@ -129,6 +129,8 @@ const runTest = async () => {
                 @click="runTest"
                 :disabled="isExecuting"
                 class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 hover:bg-gray-700/80 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-white/5 shadow-lg disabled:opacity-50 backdrop-blur-sm"
+                aria-label="Run test suite"
+                title="Run test suite"
               >
                 <div v-if="isExecuting" class="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full"></div>
                 <template v-else>
@@ -142,6 +144,8 @@ const runTest = async () => {
                 @click="copyToClipboard"
                 class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 hover:bg-gray-700/80 text-gray-300 hover:text-white transition-all text-[10px] font-bold border border-white/5 shadow-lg backdrop-blur-sm"
                 :class="{ 'text-green-400 border-green-500/50 bg-green-900/20': isCopied }"
+                aria-label="Copy code to clipboard"
+                title="Copy code to clipboard"
             >
                 <component :is="isCopied ? Check : Copy" class="w-3 h-3" />
                 <span>{{ isCopied ? 'Copied' : 'Copy' }}</span>
@@ -159,10 +163,12 @@ const runTest = async () => {
        </div>
 
        <!-- Execution Result Console -->
-       <div v-if="showOutput" class="border-t border-gray-800 bg-black/80 backdrop-blur p-4 h-1/3 overflow-auto transition-all duration-300 flex flex-col min-h-[150px]">
+       <div v-if="showOutput" class="border-t border-gray-800 bg-black/80 backdrop-blur p-4 h-1/3 overflow-auto transition-all duration-300 flex flex-col min-h-[150px]" aria-live="polite">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-xs font-mono font-bold text-gray-400">Execution Output</span>
-                <button @click="showOutput = false" class="text-gray-500 hover:text-gray-300">✕</button>
+                <button @click="showOutput = false" class="text-gray-500 hover:text-gray-300" aria-label="Close output panel">
+                  <X class="w-4 h-4" />
+                </button>
             </div>
             
             <div v-if="isExecuting" class="text-gray-400 text-xs font-mono animate-pulse">Running tests in sandbox...</div>
