@@ -38,6 +38,8 @@ async def lifespan(app: FastAPI):
         missing_secrets.append("SUPABASE_URL")
     if not settings.SUPABASE_SERVICE_ROLE_KEY:
         missing_secrets.append("SUPABASE_SERVICE_ROLE_KEY")
+    if not settings.SUPABASE_JWT_SECRET:
+        missing_secrets.append("SUPABASE_JWT_SECRET")
 
     if missing_secrets:
         logger.critical(f"🚨 CRITICAL: Missing Environment Variables: {', '.join(missing_secrets)}")
@@ -140,8 +142,15 @@ async def attach_user_to_state(request: Request, call_next):
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
-            payload = jwt.decode(token, settings.SUPABASE_JWT_SECRET, algorithms=[ALGORITHM])
-            request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
+            # SECURITY FIX: Prevent usage of empty secret which allows token forgery
+            if not settings.SUPABASE_JWT_SECRET:
+                logger.warning(
+                    "SUPABASE_JWT_SECRET not set. Ignoring Authorization header to prevent security risk."
+                )
+                request.state.user = None
+            else:
+                payload = jwt.decode(token, settings.SUPABASE_JWT_SECRET, algorithms=[ALGORITHM])
+                request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
         except Exception:
             request.state.user = None
     else:
