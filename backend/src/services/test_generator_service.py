@@ -17,6 +17,20 @@ class TestGeneratorService:
 
     def __init__(self, gemini_service: GeminiService):
         self.gemini_service = gemini_service
+        self._service_cache: dict[str, GeminiService] = {}
+
+    def _get_gemini_service(self, model: str) -> GeminiService:
+        """모델별 GeminiService 인스턴스를 캐싱하여 반환합니다.
+
+        Args:
+            model: 사용할 AI 모델명
+
+        Returns:
+            GeminiService: 모델에 맞는 서비스 인스턴스
+        """
+        if model not in self._service_cache:
+            self._service_cache[model] = GeminiService(model_name=model)
+        return self._service_cache[model]
 
     async def generate_test(
         self, code: str, language: str, model: str, is_regenerate: bool = False
@@ -46,11 +60,11 @@ class TestGeneratorService:
         # 3. 시스템 프롬프트 생성
         system_instruction = strategy.get_system_instruction()
 
-        # 4. Gemini 모델 설정 (필요시)
-        self.gemini_service.model_name = model
+        # 4. 모델별 Gemini 서비스 인스턴스 가져오기
+        gemini_service = self._get_gemini_service(model)
 
         # 5. AI 생성 호출 (캐싱은 GeminiService 내부에서 처리됨)
-        async for chunk in self.gemini_service.generate_test_code(
+        async for chunk in gemini_service.generate_test_code(
             source_code=code,
             system_instruction=system_instruction,
             stream=True,

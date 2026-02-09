@@ -5,8 +5,11 @@
 """
 
 import hashlib
+import socket
+import threading
 from collections.abc import Mapping
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Final, Optional
 
 import redis
@@ -43,8 +46,54 @@ class CacheStrategy:
         return CacheStrategy(name=name, ttl=ttl)
 
 
-# Redis 클라이언트 전역 캐시 (연결 풀 재사용)
-_redis_clients: dict[str, redis.Redis] = {}
+class RedisConnectionManager:
+    """Singleton Redis 연결 관리자.
+
+    스레드 세이프한 방식으로 Redis 클라이언트를 관리하며,
+    연결 풀 재사용을 통해 리소스를 효율적으로 사용합니다.
+    """
+
+    _instance: Optional["RedisConnectionManager"] = None
+    _client: Optional[redis.Redis] = None
+    _lock = threading.Lock()
+
+    @classmethod
+    def get_instance(cls) -> "RedisConnectionManager":
+        """Singleton 인스턴스를 반환합니다."""
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
+    def get_client(self, redis_url: str) -> redis.Redis:
+        """Redis 클라이언트를 반환합니다.
+
+        Args:
+            redis_url: Redis 연결 URL.
+
+        Returns:
+            redis.Redis: Redis 클라이언트 인스턴스.
+        """
+        if self._client is None:
+            self._client = redis.from_url(
+                redis_url,
+                decode_responses=True,
+                max_connections=10,  # 연결 풀 크기 제한
+                socket_keepalive=True,  # TCP Keepalive 활성화
+                socket_keepalive_options={
+                    socket.TCP_KEEPIDLE: 60,  # 60초 idle 후 keepalive 시작
+                    socket.TCP_KEEPINTVL: 10,  # 10초 간격으로 keepalive 전송
+                    socket.TCP_KEEPCNT: 3,  # 3번 실패 시 연결 종료
+                },
+            )
+        return self._client
+
+    def close(self) -> None:
+        """Redis 연결을 종료합니다."""
+        if self._client:
+            self._client.close()
+            self._client = None
 
 
 class CacheService:
@@ -70,13 +119,9 @@ class CacheService:
         self.logger = get_logger(__name__)
         self.default_ttl: Final[int] = ttl
 
-        global _redis_clients
-        if redis_url not in _redis_clients:
-            client = redis.from_url(redis_url, decode_responses=True)
-            self._verify_connection(client)
-            _redis_clients[redis_url] = client
-
-        self.redis_client: Final[redis.Redis] = _redis_clients[redis_url]
+        manager = RedisConnectionManager.get_instance()
+        self.redis_client: Final[redis.Redis] = manager.get_client(redis_url)
+        self._verify_connection(self.redis_client)
 
     def _verify_connection(self, client: redis.Redis) -> None:
         """Redis 연결 상태를 검증합니다.
@@ -143,6 +188,23 @@ class CacheService:
                 key=key,
             ) from e
 
+
+# LRU 캐시를 사용한 키 해싱 (성능 최적화)
+@lru_cache(maxsize=1000)
+def _compute_cache_key(key_input: str) -> str:
+    """캐시 키 해싱 함수 (LRU 캐시 적용).
+
+    동일한 입력에 대해 반복적인 SHA256 연산을 피하기 위해
+    최근 1000개의 결과를 메모리에 캐싱합니다.
+
+    Args:
+        key_input: 해시할 입력 문자열.
+
+    Returns:
+        str: SHA256 해시값 (hexdigest).
+    """
+    return hashlib.sha256(key_input.encode()).hexdigest()
+
     def generate_key(
         self,
         *args: str,
@@ -165,7 +227,9 @@ class CacheService:
         """
         cache_strategy = CacheStrategy.from_name(strategy)
         key_input = f"{cache_strategy.name}:" + ":".join(str(arg) for arg in args)
-        hashed_key = hashlib.sha256(key_input.encode()).hexdigest()
+
+        # LRU 캐싱된 해시 함수 사용
+        hashed_key = _compute_cache_key(key_input)
 
         return CacheMetadata(
             key=CacheKey(hashed_key),

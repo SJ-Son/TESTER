@@ -1,4 +1,5 @@
 from src.config.settings import settings
+from src.exceptions import ConfigurationError
 from src.utils.logger import get_logger
 from supabase import Client, create_client
 
@@ -11,31 +12,33 @@ class SupabaseService:
     _instance = None
     _client: Client = None
 
-    def __new__(cls):
-        """Singleton 패턴: 인스턴스가 하나만 생성되도록 보장"""
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialize_client()
-        return cls._instance
-
-    def _initialize_client(self):
-        """클라이언트 초기화 (한 번만 실행)"""
+    def __init__(self):
+        """Supabase 데이터베이스 클라이언트 래퍼."""
+        # Singleton 패턴: 이미 초기화된 경우 스킵
         if self._client is not None:
-            return  # 이미 초기화됨
+            return
+
+        # 필수 설정 검증
+        if not settings.SUPABASE_URL:
+            raise ConfigurationError(
+                "Supabase URL이 설정되지 않았습니다. 환경 변수 SUPABASE_URL을 확인해주세요.",
+                missing_keys=["SUPABASE_URL"],
+            )
+
+        if not settings.SUPABASE_SERVICE_ROLE_KEY:
+            raise ConfigurationError(
+                "Supabase Service Role Key가 설정되지 않았습니다. 환경 변수 SUPABASE_SERVICE_ROLE_KEY를 확인해주세요.",
+                missing_keys=["SUPABASE_SERVICE_ROLE_KEY"],
+            )
 
         try:
-            url = settings.SUPABASE_URL
-            key = settings.SUPABASE_SERVICE_ROLE_KEY
-
-            if not url or not key:
-                logger.warning("Supabase credentials not found. DB features will be disabled.")
-                return
-
-            self._client = create_client(url, key)
-            logger.info("Supabase client initialized successfully.")
+            self._client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
+            logger.info("✅ Supabase 클라이언트 초기화 성공")
         except Exception as e:
-            logger.error(f"Failed to initialize Supabase client: {e}")
-            self._client = None
+            raise ConfigurationError(
+                f"Supabase 클라이언트 생성 실패: {e}",
+                missing_keys=["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+            ) from e
 
     @property
     def client(self) -> Client:

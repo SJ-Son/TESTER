@@ -3,7 +3,6 @@ import os
 import time
 from contextlib import asynccontextmanager
 
-import google.generativeai as genai
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +16,7 @@ from slowapi.errors import RateLimitExceeded
 from src.api.routers import api_router
 from src.api.v1.deps import limiter
 from src.auth import ALGORITHM
+from src.config.constants import NetworkConstants
 from src.config.settings import settings
 from src.exceptions import TurnstileError, ValidationError
 
@@ -29,63 +29,68 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup and Shutdown events."""
-    # Startup: Validate Critical Secrets
-    missing_secrets = []
-    if not settings.DATA_ENCRYPTION_KEY:
-        missing_secrets.append("DATA_ENCRYPTION_KEY")
-    if not settings.SUPABASE_URL:
-        missing_secrets.append("SUPABASE_URL")
-    if not settings.SUPABASE_SERVICE_ROLE_KEY:
-        missing_secrets.append("SUPABASE_SERVICE_ROLE_KEY")
-    if not settings.SUPABASE_JWT_SECRET:
-        missing_secrets.append("SUPABASE_JWT_SECRET")
+    """
+    Startup and Shutdown events.
+    """
+    # === Startup ===
+    logger.info("🚀 Starting TESTER API...")
 
-    if missing_secrets:
-        logger.critical(f"🚨 CRITICAL: Missing Environment Variables: {', '.join(missing_secrets)}")
-        logger.critical("Application will likely fail on API requests requiring DB/Encryption.")
-    else:
-        logger.info("✅ All critical secrets loaded.")
+    logger.info("✅ gemini API configured.")
 
-    # Initialize Gemini API
-    try:
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        logger.info("✅ Gemini API configured")
-    except Exception as e:
-        logger.warning(f"⚠️ Gemini API configuration failed: {e}")
+    # Validate Config
+    if not settings.GEMINI_API_KEY:
+        logger.critical("🔴 CRITICAL: GEMINI_API_KEY is missing!")
+        # Application will fail at GeminiService __init__ level
 
-    # Infrastructure Health Checks
-    logger.info("🔍 Running infrastructure health checks...")
-
-    # Redis Connection Check
-    try:
-        from src.services.cache_service import CacheService
-
-        cache = CacheService()
-        cache.redis_client.ping()
-        logger.info("✅ Redis connection verified")
-    except Exception as e:
-        logger.warning(f"⚠️ Redis connection failed: {e}")
-        logger.warning("Caching will be disabled - expect higher latency and API costs")
-
-    # Supabase Connection & Table Check
+    # Supabase 연결 검증
     try:
         from src.services.supabase_service import SupabaseService
 
-        supabase = SupabaseService()
-        status = supabase.get_connection_status()
-        if status["connected"]:
-            logger.info("✅ Supabase connection verified (table exists)")
-        else:
-            logger.warning(f"⚠️ Supabase health check failed: {status['reason']}")
-            logger.warning("History features may not work properly")
+        SupabaseService()  # Singleton 초기화
+        logger.info("✅ Supabase 연결 검증 완료")
     except Exception as e:
-        logger.warning(f"⚠️ Supabase health check error: {e}")
+        logger.error(f"❌ Supabase 연결 실패: {e}")
+        logger.warning("⚠️ 일부 기능이 제한될 수 있습니다")
 
-    logger.info("🚀 Application startup complete")
+    # Redis Check
+    try:
+        from src.services.cache_service import CacheService
+
+        cache_service = CacheService()
+        cache_service.redis_client.ping()
+        logger.info("✅ Redis connected.")
+    except Exception as e:
+        logger.error(f"❌ Redis connection failed: {e}")
+        logger.warning(
+            "⚠️  Caching will be unavailable. Application may run with degraded performance."
+        )
+
+    # Encryption Check
+    try:
+        from src.utils.security import EncryptionService
+
+        EncryptionService()
+        logger.info("✅ Encryption service ready.")
+    except Exception as e:
+        logger.critical(f"🔴 CRITICAL: Encryption setup failed: {e}")
+
+    logger.info("🎉 TESTER API is ready!")
 
     yield
-    # Shutdown logic (if any)
+
+    # === Shutdown ===
+    logger.info("🛑 Shutting down TESTER API...")
+
+    # Redis cleanup
+    try:
+        from src.services.cache_service import RedisConnectionManager
+
+        RedisConnectionManager.get_instance().close()
+        logger.info("✅ Redis connections closed")
+    except Exception as e:
+        logger.warning(f"⚠️  Redis cleanup warning: {e}")
+
+    logger.info("👋 Goodbye!")
 
 
 app = FastAPI(title="QA Test Code Generator API", lifespan=lifespan)
@@ -100,7 +105,7 @@ app.add_middleware(
 )
 
 # GZip Compression
-app.add_middleware(GZipMiddleware, minimum_size=500)
+app.add_middleware(GZipMiddleware, minimum_size=NetworkConstants.GZIP_MIN_SIZE_BYTES)
 
 # Rate Limiting Setup
 app.state.limiter = limiter
@@ -209,46 +214,81 @@ async def security_middleware(request: Request, call_next):
 @app.get("/health")
 async def health_check():
     """
-    Infrastructure health check endpoint.
-    Returns detailed status of Redis and Supabase connections.
-    """
-    redis_ok = False
-    supabase_ok = False
-    redis_error = None
-    supabase_error = None
+    상세 인프라 헬스 체크 엔드포인트.
 
-    # Check Redis
+    Redis, Supabase, Gemini API 설정 상태를 확인하고
+    각 서비스별 지연시간을 측정하여 반환합니다.
+    """
+    from datetime import datetime
+
+    health_status = {
+        "status": "healthy",  # healthy, degraded, unhealthy
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "0.7.0",
+        "services": {},
+    }
+
+    overall_healthy = True
+
+    # === Redis Check ===
     try:
         from src.services.cache_service import CacheService
 
         cache = CacheService()
+        start_time = time.time()
         cache.redis_client.ping()
-        redis_ok = True
-    except Exception as e:
-        redis_error = str(e)
+        latency_ms = (time.time() - start_time) * 1000
 
-    # Check Supabase
+        pool_info = cache.redis_client.connection_pool
+        health_status["services"]["redis"] = {
+            "status": "up",
+            "latency_ms": round(latency_ms, 2),
+            "connection_pool": {
+                "max_connections": pool_info.max_connections,
+                "available": pool_info.max_connections - len(pool_info._available_connections),
+            },
+        }
+    except Exception as e:
+        overall_healthy = False
+        health_status["services"]["redis"] = {
+            "status": "down",
+            "error": str(e)[:100],  # 에러 메시지 길이 제한
+        }
+
+    # === Supabase Check ===
     try:
         from src.services.supabase_service import SupabaseService
 
         supabase = SupabaseService()
-        status = supabase.get_connection_status()
-        supabase_ok = status["connected"]
-        if not supabase_ok:
-            supabase_error = status["reason"]
+        start_time = time.time()
+        # Simple table existence check
+        supabase.client.table("generation_history").select("id").limit(1).execute()
+        latency_ms = (time.time() - start_time) * 1000
+
+        health_status["services"]["supabase"] = {
+            "status": "up",
+            "latency_ms": round(latency_ms, 2),
+            "table_accessible": True,
+        }
     except Exception as e:
-        supabase_error = str(e)
+        overall_healthy = False
+        health_status["services"]["supabase"] = {"status": "down", "error": str(e)[:100]}
 
-    overall_status = "healthy" if (redis_ok and supabase_ok) else "degraded"
-
-    return {
-        "status": overall_status,
-        "timestamp": time.time(),
-        "services": {
-            "redis": {"status": "ok" if redis_ok else "error", "error": redis_error},
-            "supabase": {"status": "ok" if supabase_ok else "error", "error": supabase_error},
-        },
+    # === Gemini API Check ===
+    gemini_configured = bool(settings.GEMINI_API_KEY)
+    health_status["services"]["gemini"] = {
+        "status": "configured" if gemini_configured else "not_configured",
+        "model": settings.DEFAULT_GEMINI_MODEL,
     }
+
+    if not gemini_configured:
+        overall_healthy = False
+
+    # === Overall Status ===
+    if not overall_healthy:
+        health_status["status"] = "degraded"
+
+    return health_status
 
 
 # API Routes

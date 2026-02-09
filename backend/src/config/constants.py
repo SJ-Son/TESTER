@@ -4,7 +4,6 @@
 상수는 불변성을 보장하며, 도메인별로 그룹화되어 있습니다.
 """
 
-from collections.abc import Mapping
 from typing import Final
 
 # === API 레이어 상수 ===
@@ -33,26 +32,20 @@ class APIConstants:
 
 
 class CacheConstants:
-    """Redis 캐싱 관련 상수."""
+    """캐싱 관련 상수"""
 
-    GEMINI_RESPONSE_TTL: Final[int] = 7200
-    """Gemini API 응답 캐시 유지 시간: 2시간"""
+    # TTL 설정 (초 단위)
+    GEMINI_CACHE_TTL: Final[int] = 7200  # 2시간 (AI 응답은 재활용 가치 높음)
+    VALIDATION_CACHE_TTL: Final[int] = 3600  # 1시간 (문법 검증은 변경 적음)
+    HISTORY_CACHE_TTL: Final[int] = 600  # 10분 (사용자 이력은 자주 변경됨)
+    DEFAULT_TTL: Final[int] = 3600  # 1시간
 
-    USER_HISTORY_TTL: Final[int] = 1800
-    """사용자 히스토리 캐시 유지 시간: 30분"""
-
-    VALIDATION_RULE_TTL: Final[int] = 86400
-    """검증 규칙 캐시 유지 시간: 24시간"""
-
-    DEFAULT_TTL: Final[int] = 3600
-    """기본 캐시 유지 시간: 1시간"""
-
-    TTL_MAPPING: Final[Mapping[str, int]] = {
-        "gemini": GEMINI_RESPONSE_TTL,
-        "history": USER_HISTORY_TTL,
-        "validation": VALIDATION_RULE_TTL,
+    # TTL 매핑
+    TTL_MAPPING: Final[dict[str, int]] = {
+        "gemini": GEMINI_CACHE_TTL,
+        "validation": VALIDATION_CACHE_TTL,
+        "history": HISTORY_CACHE_TTL,
     }
-    """캐시 전략별 TTL 매핑 (불변)"""
 
 
 # === AI 모델 상수 ===
@@ -139,3 +132,70 @@ class ValidationConstants:
 
     JAVA_SYNTAX_ERROR: Final[str] = "유효한 Java 코드가 아닙니다."
     """Java 문법 오류 메시지"""
+
+
+# === 에러 메시지 상수 ===
+
+
+class ErrorMessages:
+    """사용자 대면 에러 메시지 (한글)."""
+
+    # === 인증 관련 ===
+    AUTH_FAILED: Final[str] = "인증에 실패했습니다"
+    AUTH_TOKEN_MISSING: Final[str] = "인증 토큰이 필요합니다"
+    AUTH_SERVICE_UNAVAILABLE: Final[str] = "인증 서비스를 사용할 수 없습니다"
+    AUTH_INVALID_CREDENTIALS: Final[str] = "인증 정보가 올바르지 않습니다"
+
+    # === 검증 관련 ===
+    CODE_EMPTY: Final[str] = "코드를 입력해주세요"
+    CODE_INVALID_SYNTAX: Final[str] = "코드 문법이 올바르지 않습니다"
+    LANGUAGE_NOT_SUPPORTED: Final[str] = "지원하지 않는 프로그래밍 언어입니다"
+
+    # === 서비스 관련 ===
+    CACHE_CONNECTION_FAILED: Final[str] = "캐시 서버 연결에 실패했습니다"
+    DB_CONNECTION_FAILED: Final[str] = "데이터베이스 연결에 실패했습니다"
+    AI_SERVICE_ERROR: Final[str] = "AI 서비스 오류가 발생했습니다"
+    GENERATION_FAILED: Final[str] = "코드 생성 중 오류가 발생했습니다"
+
+    # === 데이터 관련 ===
+    ENCRYPTION_FAILED: Final[str] = "데이터 암호화에 실패했습니다"
+    DECRYPTION_FAILED: Final[str] = "데이터 복호화에 실패했습니다"
+    SAVE_FAILED: Final[str] = "데이터 저장에 실패했습니다"
+    HISTORY_SAVE_WARNING: Final[
+        str
+    ] = "코드 저장에 실패했습니다. 생성된 코드를 복사하여 별도로 저장해주세요."
+
+    # === Turnstile 관련 ===
+    TURNSTILE_VERIFICATION_FAILED: Final[str] = "보안 검증에 실패했습니다"
+    TURNSTILE_TOKEN_MISSING: Final[str] = "보안 토큰이 필요합니다"
+
+
+# === 네트워크 상수 ===
+
+
+class NetworkConstants:
+    """네트워크 및 연결 관련 상수."""
+
+    # HTTP Timeouts
+    HTTP_TIMEOUT_SECONDS: Final[int] = 10
+    """기본 HTTP 요청 타임아웃"""
+
+    TURNSTILE_TIMEOUT_SECONDS: Final[int] = 5
+    """Turnstile 검증 타임아웃"""
+
+    # Compression
+    GZIP_MIN_SIZE_BYTES: Final[int] = 500
+    """GZip 압축 최소 크기"""
+
+    # Redis Connection Pool
+    REDIS_MAX_CONNECTIONS: Final[int] = 10
+    """Redis 최대 연결 수"""
+
+    REDIS_KEEPALIVE_IDLE: Final[int] = 60
+    """TCP Keepalive idle 시간 (초)"""
+
+    REDIS_KEEPALIVE_INTERVAL: Final[int] = 10
+    """TCP Keepalive 전송 간격 (초)"""
+
+    REDIS_KEEPALIVE_COUNT: Final[int] = 3
+    """TCP Keepalive 최대 재시도 횟수"""
