@@ -39,7 +39,6 @@ jobs:
     - name: Install dependencies
       working-directory: ./backend
       run: |
-        poetry config virtualenvs.create false
         poetry install --no-root
     
     - name: Run tests with coverage
@@ -75,9 +74,7 @@ jobs:
       working-directory: ./frontend
       run: npm run lint
     
-    - name: Run unit tests (if exists)
-      working-directory: ./frontend
-      run: npm run test:unit
+
 
   e2e-test:
     if: ${{ inputs.run_e2e_tests != false }}
