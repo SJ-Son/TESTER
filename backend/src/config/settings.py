@@ -64,6 +64,16 @@ class Settings(BaseSettings):
         env_file=(".env", "backend/.env"), env_file_encoding="utf-8", extra="ignore"
     )
 
+    @model_validator(mode="after")
+    def validate_production_security(self):
+        """Production Security Validation"""
+        if self.ENV.lower() != "development":
+            if self.TESTER_INTERNAL_SECRET == "default-secret-change-me":
+                raise RuntimeError(
+                    "❌ SECURITY ERROR: TESTER_INTERNAL_SECRET is set to default value in non-development environment!"
+                )
+        return self
+
     @field_validator("GEMINI_API_KEY")
     @classmethod
     def validate_gemini_key(cls, v: str) -> str:

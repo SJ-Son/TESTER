@@ -94,8 +94,16 @@ class SupabaseService:
             logger.error(f"Failed to save generation history: {e}")
             return None
 
-    def get_history(self, user_id: str, limit: int = 50):
-        """사용자 기록 조회"""
+    def get_history(self, user_id: str, limit: int = 50) -> list[dict]:
+        """사용자의 생성 이력을 조회합니다.
+
+        Args:
+            user_id: 사용자 ID.
+            limit: 조회할 레코드 수 (기본값: 50).
+
+        Returns:
+            list[dict]: 생성 이력 리스트. 실패 시 빈 리스트 반환.
+        """
         if not self._client:
             return []
 
