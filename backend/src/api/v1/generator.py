@@ -5,6 +5,8 @@ import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
+
 from src.api.v1.deps import (
     get_generation_repository,
     get_test_generator_service,
@@ -74,7 +76,8 @@ async def generate_test(
             if full_code:
                 try:
                     logger.info("Saving generation history...")
-                    saved = await repository.create_history(
+                    saved = await run_in_threadpool(
+                        repository.create_history,
                         user_id=current_user["id"],
                         input_code=data.input_code,
                         generated_code=full_code,

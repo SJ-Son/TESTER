@@ -20,7 +20,7 @@ class HistoryItem(BaseModel):
 
 
 @router.get("/", response_model=list[HistoryItem])
-async def get_history(
+def get_history(
     limit: int = 50,
     current_user: dict = Depends(get_current_user),
     repository: GenerationRepository = Depends(get_generation_repository),
