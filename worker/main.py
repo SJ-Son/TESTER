@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Environment Variables
 WORKER_AUTH_TOKEN = os.getenv("WORKER_AUTH_TOKEN")
+DOCKER_RUNTIME = os.getenv("DOCKER_RUNTIME", "runsc")  # Default to gVisor (runsc) for security
 DOCKER_IMAGE = "tester-sandbox"
 
 # Global Docker Client
@@ -85,7 +86,10 @@ def verify_token(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid Authorization Header Format")
 
     token = authorization.split(" ")[1]
-    if token != WORKER_AUTH_TOKEN:
+    # Use constant-time comparison to prevent timing attacks
+    import secrets
+
+    if not secrets.compare_digest(token, WORKER_AUTH_TOKEN):
         raise HTTPException(status_code=403, detail="Invalid Worker Token")
 
 
@@ -158,6 +162,7 @@ async def execute_code(request: ExecutionRequest):
                 cap_drop=["ALL"],
                 read_only=False,  # We need write access to /app
                 remove=True,  # Auto-remove on stop is handled, but we explicitly kill/remove in finally
+                runtime=DOCKER_RUNTIME,  # Configurable runtime (default: runsc)
             )
 
             # 3. Inject Code using Tar Archive (Safe Method)

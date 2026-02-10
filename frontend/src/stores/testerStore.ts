@@ -6,13 +6,21 @@ import type { SupportedLanguage, GeminiModel } from '../types'
 
 export const useTesterStore = defineStore('tester', () => {
     // State
+    /** The source code input by the user */
     const inputCode = ref('')
+    /** The generated test code from the API */
     const generatedCode = ref('')
+    /** The programming language selected */
     const selectedLanguage = ref<SupportedLanguage>('python')
+    /** The selected Gemini model */
     const selectedModel = ref<GeminiModel>('gemini-3-flash-preview')
+    /** Whether code generation is in progress */
     const isGenerating = ref(false)
+    /** Error message if any operation fails */
     const error = ref<string | null>(null)
+    /** Whether the streaming response has ended */
     const streamEnded = ref(false)
+    /** The user's authentication token */
     const userToken = ref(localStorage.getItem('tester_token') || '')
 
     // Initialize history from local storage safely
@@ -148,6 +156,12 @@ export const useTesterStore = defineStore('tester', () => {
         streamEnded.value = true
     }
 
+    /**
+     * Generates test code using the Gemini API.
+     * Handles streaming responses and updates the state in real-time.
+     *
+     * @param turnstileToken - The Cloudflare Turnstile token for verification.
+     */
     const generateTestCode = async (turnstileToken: string) => {
         if (!inputCode.value.trim() || !isLoggedIn.value) return
 

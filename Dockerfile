@@ -39,11 +39,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean
 
 # Python 의존성 파일만 먼저 복사 (레이어 캐싱)
-COPY backend/requirements.txt ./backend/
+COPY backend/pyproject.toml backend/poetry.lock ./backend/
 
-# Python 의존성 설치 (소스 코드 변경 시에도 캐시 유지)
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r backend/requirements.txt
+# Poetry 설치 및 의존성 설치
+RUN pip install poetry && \
+    cd backend && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-root --only main
 
 # 백엔드 소스 코드 복사
 COPY backend ./backend

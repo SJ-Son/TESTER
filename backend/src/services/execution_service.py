@@ -7,7 +7,17 @@ logger = logging.getLogger(__name__)
 
 
 class ExecutionService:
+    """Service for handling code execution via an isolated worker.
+
+    This service proxies requests to a dedicated worker VM that runs code
+    in a secure, sandboxed Docker environment.
+    """
+
     def __init__(self):
+        """Initializes the ExecutionService with worker URL and auth token.
+
+        Logs a warning if WORKER_AUTH_TOKEN is missing.
+        """
         self.worker_url = os.getenv("WORKER_URL", "http://localhost:5000")
         self.worker_token = os.getenv("WORKER_AUTH_TOKEN")
 
@@ -17,6 +27,17 @@ class ExecutionService:
             )
 
     async def execute_code(self, input_code: str, test_code: str, language: str):
+        """Executes the provided code and test code on the worker VM.
+
+        Args:
+            input_code: The source code to be tested.
+            test_code: The test code to run against the source code.
+            language: The programming language of the code (e.g., 'python').
+
+        Returns:
+            dict: The result of the execution, including success status, output, and potential errors.
+                  Structure: {"success": bool, "output": str, "error": str}
+        """
         """
         Forwards execution request to the isolated Worker VM.
         Timeout is set to 60 seconds to allow for test execution.
