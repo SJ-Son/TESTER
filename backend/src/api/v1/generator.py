@@ -5,8 +5,6 @@ import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from starlette.concurrency import run_in_threadpool
-
 from src.api.v1.deps import (
     get_generation_repository,
     get_test_generator_service,
@@ -16,6 +14,8 @@ from src.auth import get_current_user, verify_turnstile
 from src.exceptions import TurnstileError, ValidationError
 from src.repositories.generation_repository import GenerationRepository
 from src.services.test_generator_service import TestGeneratorService
+from src.types import AuthenticatedUser
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ async def generate_test(
     request: Request,
     data: GenerateRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     service: TestGeneratorService = Depends(get_test_generator_service),
     repository: GenerationRepository = Depends(get_generation_repository),
 ):

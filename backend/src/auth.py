@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from src.config.constants import ErrorMessages, NetworkConstants, SecurityConstants
 from src.config.settings import settings
+from src.types import AuthenticatedUser
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 # create_access_token and verify_google_token removed as we delegate auth to Supabase
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> AuthenticatedUser:
     """
     Supabase JWT 검증 및 사용자 식별 (via Remote API)
     """

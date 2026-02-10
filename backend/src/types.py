@@ -5,9 +5,22 @@
 """
 
 from dataclasses import dataclass
-from typing import Literal, NewType
+from typing import Literal, NewType, TypedDict
 
 # === 도메인 타입 정의 ===
+
+
+class AuthenticatedUser(TypedDict):
+    """Supabase JWT 검증으로부터 반환된 인증된 사용자 데이터.
+
+    Attributes:
+        id: 사용자 고유 식별자 (UUID를 문자열로 표현)
+        email: 사용자 이메일 주소 (선택적)
+    """
+
+    id: str
+    email: str | None
+
 
 UserId = NewType("UserId", str)
 """사용자 식별자 타입."""
