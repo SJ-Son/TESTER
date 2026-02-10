@@ -120,3 +120,34 @@ class SupabaseService:
         except Exception as e:
             logger.error(f"Failed to fetch history: {e}")
             return []
+
+    def check_weekly_quota(self, user_id: str) -> int:
+        """최근 7일간의 생성 횟수를 확인합니다.
+
+        Args:
+            user_id: 사용자 ID.
+
+        Returns:
+            int: 최근 7일간 생성 횟수.
+        """
+        if not self._client:
+            return 0
+
+        try:
+            from datetime import datetime, timedelta
+
+            seven_days_ago = datetime.utcnow() - timedelta(days=7)
+
+            # count='exact', head=True로 실제 데이터는 가져오지 않고 개수만 확인
+            response = (
+                self._client.table("generation_history")
+                .select("id", count="exact", head=True)
+                .eq("user_id", user_id)
+                .gte("created_at", seven_days_ago.isoformat())
+                .execute()
+            )
+            return response.count if response.count is not None else 0
+        except Exception as e:
+            logger.error(f"Failed to check weekly quota: {e}")
+            # 에러 발생 시 사용자 경험을 위해 0 반환 (Open Fail)
+            return 0
