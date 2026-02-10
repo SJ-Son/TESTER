@@ -86,19 +86,41 @@ const logout = async () => {
         </p>
       </div>
       
-      <div v-else class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-500/10 to-transparent border border-blue-500/20 rounded-xl">
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-            <User class="w-4 h-4" />
+      <div v-else class="flex flex-col space-y-3 p-3 bg-gradient-to-r from-blue-500/10 to-transparent border border-blue-500/20 rounded-xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+              <User class="w-4 h-4" />
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-white">Authenticated</div>
+              <div class="text-[10px] text-blue-300/70">Ready to test</div>
+            </div>
           </div>
-          <div>
-            <div class="text-xs font-semibold text-white">Authenticated</div>
-            <div class="text-[10px] text-blue-300/70">Ready to test</div>
-          </div>
+          <button @click="logout" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Logout" aria-label="Logout">
+            <LogOut class="w-4 h-4" />
+          </button>
         </div>
-        <button @click="logout" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Logout" aria-label="Logout">
-          <LogOut class="w-4 h-4" />
-        </button>
+        
+        <!-- Weekly Quota Display -->
+        <div class="pt-2 border-t border-blue-500/10">
+            <div class="flex justify-between items-center text-[10px] text-gray-400 mb-1">
+                <span>Weekly Usage</span>
+                <span :class="{'text-red-400': store.usageStats.remaining === 0, 'text-blue-400': store.usageStats.remaining > 0}">
+                    {{ store.usageStats.weekly_usage }} / {{ store.usageStats.weekly_limit }}
+                </span>
+            </div>
+            <div class="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
+                <div 
+                    class="h-full rounded-full transition-all duration-500"
+                    :class="store.usageStats.remaining === 0 ? 'bg-red-500' : 'bg-blue-500'"
+                    :style="{ width: `${Math.min((store.usageStats.weekly_usage / store.usageStats.weekly_limit) * 100, 100)}%` }"
+                ></div>
+            </div>
+            <div class="text-[9px] text-gray-500 mt-1 text-right">
+                {{ store.usageStats.remaining }} requests remaining
+            </div>
+        </div>
       </div>
     </div>
 

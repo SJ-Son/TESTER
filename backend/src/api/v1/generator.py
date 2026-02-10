@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from src.api.v1.deps import (
@@ -49,6 +49,26 @@ async def generate_test(
     # 1. Turnstile Verify
     if not await verify_turnstile(data.turnstile_token):
         raise TurnstileError()
+
+    # 2. Weekly Quota Check (30/week)
+    try:
+        from src.services.supabase_service import SupabaseService
+
+        supabase = SupabaseService()
+        current_usage = await run_in_threadpool(supabase.check_weekly_quota, current_user["id"])
+
+        WEEKLY_LIMIT = 30
+        if current_usage >= WEEKLY_LIMIT:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Weekly quota exceeded. You used {current_usage}/{WEEKLY_LIMIT} requests in the last 7 days.",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Quota check failed: {e}")
+        # Fail open if check fails, but log error
+        pass
 
     async def generate_stream():
         generated_content = []

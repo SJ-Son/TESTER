@@ -22,6 +22,8 @@ export const useTesterStore = defineStore('tester', () => {
     const streamEnded = ref(false)
     /** The user's authentication token */
     const userToken = ref(localStorage.getItem('tester_token') || '')
+    /** User's weekly usage statistics */
+    const usageStats = ref({ weekly_usage: 0, weekly_limit: 30, remaining: 30 })
 
     // Initialize history from local storage safely
     let initialHistory: any[] = []
@@ -64,6 +66,7 @@ export const useTesterStore = defineStore('tester', () => {
         supabase.auth.onAuthStateChange((event, session) => {
             if (session?.access_token) {
                 setToken(session.access_token)
+                fetchUserStatus() // Fetch status on login
                 // Clean up URL hash if it contains auth tokens
                 if (window.location.hash && window.location.hash.includes('access_token')) {
                     window.history.replaceState(null, '', window.location.pathname + window.location.search)
@@ -92,6 +95,40 @@ export const useTesterStore = defineStore('tester', () => {
         const { supabase } = await import('../api/supabase')
         await supabase.auth.signOut()
         clearToken()
+    }
+
+    const fetchUserStatus = async () => {
+        if (!isLoggedIn.value) return
+
+        try {
+            const { supabase } = await import('../api/supabase')
+            // Using direct fetch wrapper for custom endpoint if available, but here we can just fetch
+            // Or ideally use the generatorApi or a new userApi. Let's stick to fetch for now as it's simple.
+            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user/status`, {
+                // Wait, the backend is not a supabase function, it's our FastAPI backend.
+                // We need to use the same base URL logic as generatorApi.
+                // Let's assume relative path /api/user/status connects to our FastAPI backend proxy or direct.
+                // Since we are in the same domain (or proxy), let's use /api/user/status
+            })
+
+            // Correct approach: Use the authenticated fetch
+            const res = await fetch('/api/user/status', {
+                headers: {
+                    'Authorization': `Bearer ${userToken.value}`
+                }
+            })
+
+            if (res.ok) {
+                const data = await res.json()
+                usageStats.value = {
+                    weekly_usage: data.weekly_usage,
+                    weekly_limit: data.weekly_limit,
+                    remaining: data.remaining
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch user status', e)
+        }
     }
 
     const loadHistory = async () => {
@@ -194,6 +231,7 @@ export const useTesterStore = defineStore('tester', () => {
 
             if (generatedCode.value && !error.value) {
                 addToHistory(inputCode.value, generatedCode.value, selectedLanguage.value)
+                fetchUserStatus() // Update quota after generation
             }
         }
     }
@@ -217,6 +255,8 @@ export const useTesterStore = defineStore('tester', () => {
         addToHistory,
         restoreHistory,
         generateTestCode,
-        executeTest
+        executeTest,
+        usageStats,
+        fetchUserStatus
     }
 })
