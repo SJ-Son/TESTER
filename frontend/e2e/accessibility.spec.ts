@@ -17,5 +17,15 @@ test.describe('Accessibility Checks', () => {
 
         const javaBtn = page.getByRole('button', { name: 'Select Java', exact: true });
         await expect(javaBtn).toBeVisible();
+
+        // Verify Language Selection Buttons have aria-pressed state
+        await expect(pythonBtn).toHaveAttribute('aria-pressed', 'true'); // Python is default
+        await expect(jsBtn).toHaveAttribute('aria-pressed', 'false');
+        await expect(javaBtn).toHaveAttribute('aria-pressed', 'false');
+
+        // Verify clicking changes state
+        await jsBtn.click();
+        await expect(jsBtn).toHaveAttribute('aria-pressed', 'true');
+        await expect(pythonBtn).toHaveAttribute('aria-pressed', 'false');
     });
 });
