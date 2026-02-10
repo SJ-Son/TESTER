@@ -22,6 +22,7 @@ jobs:
       SUPABASE_ANON_KEY: "test_anon_key_for_ci"
       GEMINI_API_KEY: "AI_test_key_for_ci_dummy"
       DATA_ENCRYPTION_KEY: "S7CNzyjxtleDOj6bSzAKs1QxyutZTIxa0PQWiVx9tj8="
+      TESTER_INTERNAL_SECRET: "test_internal_secret_for_ci"
       ENV: "test"
     
     steps:
