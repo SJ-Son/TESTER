@@ -10,11 +10,12 @@ from src.api.v1.deps import (
     get_test_generator_service,
     limiter,
 )
-from src.api.v1.generator_helper import background_save_generation
 from src.auth import get_current_user, verify_turnstile
 from src.exceptions import TurnstileError, ValidationError
 from src.repositories.generation_repository import GenerationRepository
 from src.services.test_generator_service import TestGeneratorService
+from src.types import AuthenticatedUser
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ async def generate_test(
     request: Request,
     data: GenerateRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
     service: TestGeneratorService = Depends(get_test_generator_service),
     repository: GenerationRepository = Depends(get_generation_repository),
 ):
@@ -70,22 +71,30 @@ async def generate_test(
                     if chunk_count % 100 == 0:
                         await asyncio.sleep(0)
 
-            # [System] Background Save Logic (Reliability Upgrade)
-            try:
-                full_code = "".join(generated_content)
-                if full_code:
-                    logger.info("Scheduling background save task...")
-                    background_tasks.add_task(
-                        background_save_generation,
-                        repository=repository,
+            # 생성된 코드 저장 (동기 처리로 변경 - 데이터 손실 방지)
+            full_code = "".join(generated_content)
+            if full_code:
+                try:
+                    logger.info("Saving generation history...")
+                    saved = await run_in_threadpool(
+                        repository.create_history,
                         user_id=current_user["id"],
                         input_code=data.input_code,
                         generated_code=full_code,
                         language=data.language,
                         model=data.model,
                     )
-            except Exception as e:
-                logger.error(f"Failed to schedule background task: {e}", exc_info=True)
+                    if saved:
+                        logger.info(f"History saved successfully: {saved.id}")
+                except Exception as e:
+                    logger.error(f"Failed to save history: {e}", exc_info=True)
+                    # 사용자에게 경고 전송
+                    yield format_sse_event(
+                        "warning",
+                        {
+                            "message": "코드 저장에 실패했습니다. 생성된 코드를 복사하여 별도로 저장해주세요."
+                        },
+                    )
 
             # Send completion event
             yield format_sse_event("message", {"type": "done"})

@@ -26,7 +26,11 @@ const handleGenerate = () => {
         <span>Source Code</span>
       </h2>
       
-      <div class="flex items-center bg-gray-900 border border-gray-800 p-0.5 rounded-lg">
+      <div
+        role="group"
+        aria-label="Target language"
+        class="flex items-center bg-gray-900 border border-gray-800 p-0.5 rounded-lg"
+      >
         <button 
           v-for="lang in supportedLanguages" 
           :key="lang.id"
@@ -34,6 +38,7 @@ const handleGenerate = () => {
           class="px-2 py-1 rounded-md text-[9px] font-black transition-all duration-200 tracking-tighter"
           :class="store.selectedLanguage === lang.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-300'"
           :aria-label="'Select ' + lang.name"
+          :aria-pressed="store.selectedLanguage === lang.id"
         >
           {{ lang.label }}
         </button>
@@ -52,6 +57,7 @@ const handleGenerate = () => {
       <button 
         @click="handleGenerate"
         :disabled="store.isGenerating || !store.inputCode.trim()"
+        :aria-busy="store.isGenerating"
         class="absolute bottom-4 right-4 md:bottom-6 md:right-6 px-5 py-2.5 md:px-6 md:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-600 text-white rounded-xl shadow-xl shadow-blue-900/20 transition-all flex items-center space-x-2 group-focus-within:scale-105 active:scale-95 z-20 border border-white/10"
       >
         <Send v-if="!store.isGenerating" class="w-4 h-4" />

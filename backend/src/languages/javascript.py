@@ -1,37 +1,71 @@
-import re
+"""JavaScript 언어 전략 구현.
 
+JavaScript/TypeScript 코드를 검증하고 Jest 테스트 코드 생성을 위한 프롬프트를 제공합니다.
+"""
+
+import re
+from typing import Final
+
+from src.config.constants import ValidationConstants
 from src.languages.base import LanguageStrategy
+from src.types import ValidationResult
 
 
 class JavaScriptStrategy(LanguageStrategy):
-    def validate_code(self, code: str) -> tuple[bool, str]:
+    """JavaScript 프로그래밍 언어를 위한 전략 클래스.
+
+    키워드 패턴 매칭을 통한 검증과 Jest 기반 테스트 코드 생성을 지원합니다.
+    """
+
+    _JS_KEYWORDS: Final[tuple[str, ...]] = (
+        r"\bfunction\b",
+        r"\bconst\b",
+        r"\blet\b",
+        r"=>",
+        r"\bconsole\.log\b",
+        r"\bwindow\.",
+        r"\bdocument\.",
+    )
+    """JavaScript 코드 식별을 위한 키워드 패턴 (불변)"""
+
+    def validate_code(self, code: str) -> ValidationResult:
+        """JavaScript 코드의 유효성을 검증합니다.
+
+        Args:
+            code: 검증할 JavaScript 소스 코드.
+
+        Returns:
+            ValidationResult: 검증 결과.
+                - 빈 코드: 에러
+                - 다른 언어 패턴 감지: 에러
+                - JS 키워드 없음: 에러
+                - 정상: 성공
+        """
         if not code.strip():
-            return False, "코드를 입력해주세요."
-
-        # 1. Negative Check: 다른 언어(Python, Java 등)의 강력한 특징이 있는가?
-        valid, msg = self.check_negative_patterns(code, "javascript")
-        if not valid:
-            return False, msg
-
-        # 2. Positive Check: JS 키워드가 있는가?
-        js_keywords = [
-            r"\bfunction\b",
-            r"\bconst\b",
-            r"\blet\b",
-            r"=>",
-            r"\bconsole\.log\b",
-            r"\bwindow\.",
-            r"\bdocument\.",
-        ]
-        if not any(re.search(k, code) for k in js_keywords):
-            return (
-                False,
-                "유효한 JavaScript 코드가 아닌 것 같습니다. (함수나 변수 선언이 필요합니다)",
+            return ValidationResult(
+                is_valid=False,
+                error_message=ValidationConstants.EMPTY_CODE_ERROR,
             )
 
-        return True, ""
+        negative_check = self.check_negative_patterns(code, "javascript")
+        if negative_check.failed:
+            return negative_check
+
+        has_js_keyword = any(re.search(keyword, code) for keyword in self._JS_KEYWORDS)
+        if not has_js_keyword:
+            return ValidationResult(
+                is_valid=False,
+                error_message=ValidationConstants.JAVASCRIPT_SYNTAX_ERROR,
+            )
+
+        return ValidationResult(is_valid=True)
 
     def get_system_instruction(self) -> str:
+        """JavaScript 테스트 코드 생성을 위한 시스템 프롬프트를 반환합니다.
+
+        Returns:
+            Jest 기반 테스트 코드 생성 규칙을 명시한 프롬프트.
+        """
         return """
 당신은 Google의 전문 JavaScript QA 엔지니어입니다.
 사용자가 입력한 자바스크립트 코드를 분석하여 `Jest` 테스트 코드를 작성합니다.
@@ -50,7 +84,17 @@ class JavaScriptStrategy(LanguageStrategy):
 """
 
     def get_placeholder(self) -> str:
+        """JavaScript 코드 입력창의 플레이스홀더를 반환합니다.
+
+        Returns:
+            간단한 JavaScript 함수 예시.
+        """
         return "const add = (a, b) => {\n  return a + b;\n};"
 
     def get_syntax_name(self) -> str:
+        """Syntax Highlighting을 위한 언어 식별자를 반환합니다.
+
+        Returns:
+            'javascript'
+        """
         return "javascript"

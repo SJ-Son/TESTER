@@ -1,7 +1,35 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from src.auth import get_current_user, verify_turnstile
 from src.main import app
+
+
+def pytest_configure(config):
+    """Set up test environment variables before imports."""
+    os.environ.setdefault("GEMINI_API_KEY", "AIzaSyDummyTestKey123456789012345678")
+    os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+    os.environ.setdefault("TURNSTILE_SECRET_KEY", "test_turnstile_key")
+    os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
+    os.environ.setdefault("SUPABASE_KEY", "test_supabase_key")
+    os.environ.setdefault("SUPABASE_JWT_SECRET", "test_jwt_secret_min_32_chars_len!")
+    # Valid Fernet key generated with Fernet.generate_key()
+    os.environ.setdefault("DATA_ENCRYPTION_KEY", "6J5FNvK8aF2hq0rP3xZ9yWcN7dB1mT4vL8jG2kH5sX0=")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mock_redis_globally():
+    """Mock Redis globally for all tests to prevent connection errors in CI."""
+    from unittest.mock import Mock, patch
+
+    with patch("redis.from_url") as mock_from_url:
+        mock_client = Mock()
+        mock_client.ping.return_value = True
+        mock_client.get.return_value = None
+        mock_client.setex.return_value = True
+        mock_from_url.return_value = mock_client
+        yield mock_client
 
 
 @pytest.fixture

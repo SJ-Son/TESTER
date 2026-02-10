@@ -16,7 +16,7 @@ class ExecutionService:
                 "WORKER_AUTH_TOKEN not set in main backend. Requests to worker may fail if auth is enabled."
             )
 
-    async def execute_code(self, input_code: str, test_code: str, language: str) -> dict:
+    async def execute_code(self, input_code: str, test_code: str, language: str):
         """
         Forwards execution request to the isolated Worker VM.
         Timeout is set to 60 seconds to allow for test execution.

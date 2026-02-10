@@ -3,12 +3,14 @@ import logging
 import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from src.config.constants import ErrorMessages, NetworkConstants, SecurityConstants
 from src.config.settings import settings
+from src.types import AuthenticatedUser
 
 logger = logging.getLogger(__name__)
 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+ALGORITHM = SecurityConstants.JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = SecurityConstants.JWT_EXPIRE_MINUTES
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
@@ -16,21 +18,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 # create_access_token and verify_google_token removed as we delegate auth to Supabase
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> AuthenticatedUser:
     """
     Supabase JWT 검증 및 사용자 식별 (via Remote API)
     """
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail=ErrorMessages.AUTH_TOKEN_MISSING,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     # Supabase URL이 설정되지 않은 경우
     if not settings.SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
         logger.error("SUPABASE_URL or SUPABASE_ANON_KEY is not set!")
-        raise HTTPException(status_code=500, detail="Server misconfiguration: Auth keys missing")
+        raise HTTPException(status_code=500, detail=ErrorMessages.AUTH_SERVICE_UNAVAILABLE)
 
     try:
         # Remote Verification: Supabase Auth Server에 직접 토큰 유효성 확인
@@ -42,12 +44,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
                     "Authorization": f"Bearer {token}",
                     "apikey": settings.SUPABASE_ANON_KEY,
                 },
-                timeout=10.0,
+                timeout=NetworkConstants.HTTP_TIMEOUT_SECONDS,
             )
 
             if response.status_code != 200:
                 logger.warning(f"Supabase Token Verification Failed: {response.text}")
-                raise HTTPException(status_code=401, detail="Could not validate credentials")
+                raise HTTPException(status_code=401, detail=ErrorMessages.AUTH_INVALID_CREDENTIALS)
 
             user_data = response.json()
             # user_data 구조: {"id": "...", "email": "...", ...}
@@ -55,13 +57,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
     except httpx.RequestError as e:
         logger.error(f"Auth Service Internal Error: {e}")
-        raise HTTPException(status_code=503, detail="Authentication service unavailable") from e
+        raise HTTPException(status_code=503, detail=ErrorMessages.AUTH_SERVICE_UNAVAILABLE) from e
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected Auth Error: {e}")
         # 401을 반환해야 프론트엔드가 로그아웃 처리 등을 할 수 있음
-        raise HTTPException(status_code=401, detail="Authentication failed") from e
+        raise HTTPException(status_code=401, detail=ErrorMessages.AUTH_FAILED) from e
 
 
 async def verify_turnstile(token: str) -> bool:
