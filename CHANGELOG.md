@@ -2,6 +2,14 @@
 
 TESTER의 주요 업데이트 내역입니다.
 
+## [0.7.1] - 2026-02-10
+
+### 🐛 버그 수정
+- **History API 응답 오류 수정**: `/api/history/` 엔드포인트에서 발생하던 ResponseValidationError 해결
+  - Pydantic 모델 타입을 실제 데이터와 일치시킴 (`UUID`, `datetime` 타입 정합성)
+  - `from_attributes = True` 설정 추가로 ORM 객체 자동 변환 활성화
+  - 26개 검증 오류가 모두 해결됨
+
 ## [0.7.0] - 2026-02-09
 
 ### ✨ 새로운 기능

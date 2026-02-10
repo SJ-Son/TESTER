@@ -1,4 +1,6 @@
 import logging
+from datetime import datetime
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -11,12 +13,15 @@ logger = logging.getLogger(__name__)
 
 
 class HistoryItem(BaseModel):
-    id: str
+    id: UUID
     input_code: str
     generated_code: str
     language: str
     model: str
-    created_at: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True  # Pydantic v2: orm_mode 대체
 
 
 @router.get("/", response_model=list[HistoryItem])
