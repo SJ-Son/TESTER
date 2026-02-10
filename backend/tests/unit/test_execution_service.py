@@ -1,6 +1,6 @@
 """ExecutionService 단위 테스트."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -34,11 +34,13 @@ class TestExecutionService:
             # Mock response 설정
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {
-                "success": True,
-                "output": "All tests passed!",
-                "exit_code": 0,
-            }
+            mock_response.json = MagicMock(
+                return_value={
+                    "success": True,
+                    "output": "All tests passed!",
+                    "exit_code": 0,
+                }
+            )
 
             # AsyncClient context manager와 post 메서드 설정
             mock_client = AsyncMock()
@@ -61,7 +63,7 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {"success": True, "output": "OK"}
+            mock_response.json = MagicMock(return_value={"success": True, "output": "OK"})
 
             mock_post = AsyncMock(return_value=mock_response)
             mock_client.return_value.__aenter__.return_value.post = mock_post
@@ -79,7 +81,7 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {"success": True, "output": "OK"}
+            mock_response.json = MagicMock(return_value={"success": True, "output": "OK"})
 
             mock_post = AsyncMock(return_value=mock_response)
             mock_client.return_value.__aenter__.return_value.post = mock_post
@@ -98,11 +100,13 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client_cls:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {
-                "success": False,
-                "output": "AssertionError: expected 3, got 4",
-                "exit_code": 1,
-            }
+            mock_response.json = MagicMock(
+                return_value={
+                    "success": False,
+                    "output": "AssertionError: expected 3, got 4",
+                    "exit_code": 1,
+                }
+            )
 
             mock_client = AsyncMock()
             mock_client.post.return_value = mock_response
@@ -216,7 +220,7 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {"success": True, "output": "Test passed"}
+            mock_response.json = MagicMock(return_value={"success": True, "output": "Test passed"})
 
             mock_post = AsyncMock(return_value=mock_response)
             mock_client.return_value.__aenter__.return_value.post = mock_post
@@ -233,7 +237,7 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {"success": True, "output": "PASS"}
+            mock_response.json = MagicMock(return_value={"success": True, "output": "PASS"})
 
             mock_post = AsyncMock(return_value=mock_response)
             mock_client.return_value.__aenter__.return_value.post = mock_post
@@ -251,7 +255,7 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {"success": True, "output": "OK"}
+            mock_response.json = MagicMock(return_value={"success": True, "output": "OK"})
 
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                 return_value=mock_response
@@ -270,7 +274,7 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {"success": True, "output": "OK"}
+            mock_response.json = MagicMock(return_value={"success": True, "output": "OK"})
 
             mock_post = AsyncMock(return_value=mock_response)
             mock_client.return_value.__aenter__.return_value.post = mock_post
@@ -294,7 +298,7 @@ class TestExecutionService:
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {"success": True, "output": "OK"}
+            mock_response.json = MagicMock(return_value={"success": True, "output": "OK"})
 
             mock_post = AsyncMock(return_value=mock_response)
             mock_client.return_value.__aenter__.return_value.post = mock_post
