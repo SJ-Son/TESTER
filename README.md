@@ -10,7 +10,6 @@ Google Gemini API를 활용한 테스트 코드 자동 생성 웹 서비스
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Test Coverage](https://img.shields.io/badge/coverage-70%25-brightgreen?style=flat-square)]()
 
 [Documentation](#-documentation) · [Quick Start](#-quick-start) · [Changelog](./CHANGELOG.md)
 
@@ -25,7 +24,6 @@ Google Gemini API를 활용한 테스트 코드 자동 생성 웹 서비스
 - 🔒 **Secure Architecture** - Supabase Auth + Fail-Closed 암호화 + Isolated Docker Execution
 - 💾 **Smart Caching** - Redis 캐싱으로 비용 절감 및 응답 속도 향상 (LRU 최적화)
 - 📊 **Enhanced Monitoring** - 상세 Health Check (latency, connection pool 정보)
-- 🧪 **High Test Coverage** - 70% 테스트 커버리지 (핵심 서비스 80%+)
 - 📱 **Responsive Design** - 모바일/데스크탑 최적화
 
 ## 🆕 What's New in v0.7.0
@@ -38,9 +36,6 @@ Google Gemini API를 활용한 테스트 코드 자동 생성 웹 서비스
 
 ### 코드 품질
 - ✅ Magic number/string 제거 (constants.py 중앙화)
-- ✅ 에러 메시지 한글화 95%
-- ✅ ExecutionService 100% 테스트 커버리지
-- ✅ 전체 테스트 커버리지 49% → 70%
 
 ### 성능 최적화
 - ✅ CacheService LRU 캐싱 적용
@@ -169,12 +164,6 @@ cd frontend
 npx playwright test
 ```
 
-**Current Coverage:** 70% (핵심 서비스 80%+)
-- ExecutionService: 100%
-- Auth: 93%
-- GenerationRepository: 93%  
-- GeminiService: 90%
-
 ## 📊 Monitoring
 
 ```bash
@@ -208,9 +197,7 @@ curl http://localhost:8000/health
 
 ### v0.7.0 (2026-02-09)
 - 🎯 안정성: Redis Singleton, 데이터 손실 방지, Graceful shutdown
-- 📈 커버리지: 49% → **70%** (+21%p)
 - 🚀 성능: LRU 캐싱, 인스턴스 재사용
-- 📝 품질: Magic number 제거, 에러 메시지 한글화 95%
 - 🩺 모니터링: Health check latency 및 connection pool 정보 추가
 
 ## 📄 License
@@ -218,9 +205,3 @@ curl http://localhost:8000/health
 MIT License
 
 ---
-
-<div align="center">
-
-**Built with ❤️ using Google Gemini API**
-
-</div>
