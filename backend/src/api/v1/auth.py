@@ -43,6 +43,7 @@ async def login(request: Request, provider: str = "google", next: str = "/"):
         base_url = base_url.replace("http://", "https://")
 
     callback_url = f"{base_url}/api/auth/callback"
+    logger.info(f"Initiating Login. Base URL: {base_url}, Generated Callback URL: {callback_url}")
 
     # Get OAuth URL
     res = supabase.auth.sign_in_with_oauth(
