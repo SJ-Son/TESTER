@@ -9,9 +9,10 @@ Hybrid 아키텍처의 핵심인 Worker VM 운영 및 관리 노트.
 - **위치**: `/home/sonseongjun/worker/` (여기서 Docker 실행)
 
 ## 보안 (Security)
-- `WORKER_AUTH_TOKEN`: 백엔드 <-> 워커 통신용 비밀키.
+- `WORKER_AUTH_TOKEN`: 백엔드 <-> 워커 통신용 비밀키. (필수)
 - `Authorization: Bearer` 헤더로 토큰 검증함.
 - `setup.sh`는 배포 직후 삭제해서 토큰 유출 방지.
+- **Fail Secure**: 토큰이 없으면 워커가 시작되지 않음. 개발 환경에서는 `DISABLE_WORKER_AUTH=true` 설정 필요.
 
 ## 주요 구현 사항
 
@@ -91,6 +92,10 @@ sudo docker images | grep tester-sandbox
 ### "Authentication failed"
 - **원인**: 토큰 불일치.
 - **해결**: `settings.py`의 `WORKER_AUTH_TOKEN`과 VM의 환경 변수가 같은지 확인.
+
+### "Worker failed to start (RuntimeError)"
+- **원인**: `WORKER_AUTH_TOKEN`이 설정되지 않았고, `DISABLE_WORKER_AUTH`도 `true`가 아님.
+- **해결**: `WORKER_AUTH_TOKEN`을 설정하거나, 개발 환경이라면 `DISABLE_WORKER_AUTH=true` 설정.
 
 ### "Image tester-sandbox not found"
 - **원인**: 샌드박스 이미지가 빌드되지 않음.

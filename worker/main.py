@@ -19,14 +19,25 @@ logger = logging.getLogger(__name__)
 
 # Environment Variables
 WORKER_AUTH_TOKEN = os.getenv("WORKER_AUTH_TOKEN")
+DISABLE_WORKER_AUTH = os.getenv("DISABLE_WORKER_AUTH", "false").lower() == "true"
 DOCKER_RUNTIME = os.getenv("DOCKER_RUNTIME", "runsc")  # Default to gVisor (runsc) for security
 DOCKER_IMAGE = "tester-sandbox"
 
 # Global Docker Client
 docker_client: Optional[DockerClient] = None
 
-if not WORKER_AUTH_TOKEN:
-    logger.warning("WORKER_AUTH_TOKEN is not set! Security execution is disabled.")
+if not WORKER_AUTH_TOKEN and not DISABLE_WORKER_AUTH:
+    logger.critical(
+        "WORKER_AUTH_TOKEN is not set and DISABLE_WORKER_AUTH is not true. "
+        "Worker cannot start securely."
+    )
+    # Raising an error at module level might not be the best practice for some runners
+    # but for this script it will prevent the app from starting properly or at least
+    # it fails loudly. For FastAPI/Uvicorn, we can raise a RuntimeError.
+    raise RuntimeError("WORKER_AUTH_TOKEN is required unless DISABLE_WORKER_AUTH=true")
+
+if DISABLE_WORKER_AUTH:
+    logger.warning("WARNING: Worker authentication is DISABLED. This is unsafe for production.")
 
 
 @asynccontextmanager
@@ -76,8 +87,8 @@ class ExecutionRequest(BaseModel):
 
 
 def verify_token(authorization: Optional[str] = Header(None)):
-    if not WORKER_AUTH_TOKEN:
-        return  # Skip if not configured (Dev mode)
+    if DISABLE_WORKER_AUTH:
+        return  # Skip if explicitly disabled (Dev mode)
 
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization Header")
