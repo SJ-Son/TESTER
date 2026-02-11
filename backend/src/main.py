@@ -3,6 +3,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 
+import google.generativeai as genai
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,12 +36,17 @@ async def lifespan(app: FastAPI):
     # === Startup ===
     logger.info("🚀 Starting TESTER API...")
 
-    logger.info("✅ gemini API configured.")
-
     # Validate Config
     if not settings.GEMINI_API_KEY:
         logger.critical("🔴 CRITICAL: GEMINI_API_KEY is missing!")
-        # Application will fail at GeminiService __init__ level
+        # Application will fail at GeminiService usage level
+    else:
+        # Global Gemini API Configuration
+        try:
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            logger.info("✅ gemini API configured.")
+        except Exception as e:
+            logger.critical(f"🔴 CRITICAL: Failed to configure Gemini API: {e}")
 
     # Supabase 연결 검증
     try:
