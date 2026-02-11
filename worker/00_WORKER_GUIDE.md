@@ -13,7 +13,7 @@ Hybrid 아키텍처의 핵심인 Worker VM 운영 및 관리 노트.
 - `Authorization: Bearer` 헤더로 토큰 검증함.
 - `setup.sh`는 배포 직후 삭제해서 토큰 유출 방지.
 
-## 주요 구현 사항 (v0.5.1 Refactor)
+## 주요 구현 사항
 
 ### 1. Docker Client Reuse
 - **구현**: FastAPI `lifespan`으로 클라이언트를 전역 관리하여 리소스 효율화.
@@ -37,6 +37,11 @@ Docker 컨테이너 실행 시 적용되는 보안 설정:
 - `mem_limit="256m"`: 메모리 제한.
 - `cpu_quota=50000`: CPU 사용률 제한 (50%).
 - `security_opt=["no-new-privileges"]`: 권한 상승 방지.
+- **gVisor (runsc)**: Default Runtime. 커널 레벨 격리로 탈옥 방지. (개발환경은 `runc` 사용 가능)
+
+### 5. Timing Attack Prevention
+- **구현**: `secrets.compare_digest()` 사용.
+- **효과**: 토큰 비교 시간을 일정하게 유지하여, 공격자가 응답 시간을 분석해 토큰을 추측하는 것을 방지.
 
 ---
 

@@ -24,6 +24,7 @@
   - 언어 선택 (Python, JavaScript, Java)
   - 모델 선택 (Gemini 1.5 Flash/Pro)
   - 로그인/로그아웃 버튼
+  - **Weekly Quota**: 주간 사용량 및 잔여 횟수 Progress Bar 표시 (로그인 시).
   - 히스토리 패널 토글
 - **반응형**: 데스크탑에서는 고정 사이드바, 모바일에서는 Drawer로 표시.
 

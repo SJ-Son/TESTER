@@ -78,15 +78,4 @@ jobs:
             --set-env-vars "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},ENV=staging,TESTER_INTERNAL_SECRET=${{ secrets.TESTER_INTERNAL_SECRET }},TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }},SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }},SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }},SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }},WORKER_URL=${{ secrets.WORKER_URL }},WORKER_AUTH_TOKEN=${{ secrets.WORKER_AUTH_TOKEN }},DATA_ENCRYPTION_KEY=${{ secrets.DATA_ENCRYPTION_KEY }},REDIS_URL=${{ secrets.REDIS_URL }}" \
             --port 8080
 
-      - name: Prepare Firebase Public Directory
-        run: |
-          mkdir -p frontend/dist
-          sed -i 's/tester-prod/tester-staging/g' firebase.json
 
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.GCP_CREDENTIALS }}
-          projectId: ${{ env.PROJECT_ID }}
-          channelId: live

@@ -11,6 +11,7 @@
 
 ### GeminiService
 - Google Gemini API 호출 담당.
+- **초기화 최적화**: `genai.configure()`는 `main.py` lifespan에서 한 번만 실행됨. (요청마다 설정 X)
 - `@retry` 붙여놔서 실패하면 몇 번 더 시도함.
 - `CacheService` 써서 똑같은 요청은 AI 안 부르고 캐시된 거 리턴 (돈 아낌).
 - **스트리밍**: `generate_content_stream()`으로 Chunk 단위로 받아서 SSE로 전달.
@@ -34,6 +35,7 @@
 - DB 클라이언트 관리 (Singleton).
 - **Service Role 사용**: `SUPABASE_SERVICE_ROLE_KEY`를 사용하여 RLS를 우회, 관리자 권한으로 데이터를 저장/관리함.
 - **직접 사용하지 않음**: `GenerationRepository` 같은 Repository Layer를 통해서만 접근.
+- `check_weekly_quota`: 지난 7일간의 생성 요청 수를 카운트하여 주간 한도(30회) 확인.
 - Lazy Loading 적용됨 (앱 시작 시점 Crash 방지).
 
 ---
