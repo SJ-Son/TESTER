@@ -25,7 +25,7 @@ def get_user_identifier(request: Request):
     return get_remote_address(request)
 
 
-limiter = Limiter(key_func=get_user_identifier)
+limiter = Limiter(key_func=get_user_identifier, storage_uri=settings.REDIS_URL)
 
 # Security - Internal API Key
 API_KEY_NAME = "X-TESTER-KEY"
@@ -33,7 +33,7 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
 async def verify_api_key(api_key: str = Depends(api_key_header)):
-    if not api_key or api_key != settings.TESTER_INTERNAL_SECRET:
+    if not api_key or api_key != settings.TESTER_INTERNAL_SECRET.get_secret_value():
         logger.warning(f"Unauthorized access attempt with key: {api_key}")
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid Internal API Key")
     return api_key

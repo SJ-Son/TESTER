@@ -1,21 +1,29 @@
 import os
 
-import pytest
-from fastapi.testclient import TestClient
-from src.auth import get_current_user, verify_turnstile
-from src.main import app
+# Set up test environment variables BEFORE imports to pass strict validation
+os.environ.setdefault("GEMINI_API_KEY", "AIzaSyDummyTestKey123456789012345678")
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+os.environ.setdefault("TURNSTILE_SECRET_KEY", "test_turnstile_key")
+os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
+os.environ.setdefault("SUPABASE_ANON_KEY", "test_supabase_key")
+os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "test_service_role_key")
+os.environ.setdefault("SUPABASE_JWT_SECRET", "test_jwt_secret_min_32_chars_len!")
+# Valid Fernet key generated with Fernet.generate_key()
+os.environ.setdefault("DATA_ENCRYPTION_KEY", "6J5FNvK8aF2hq0rP3xZ9yWcN7dB1mT4vL8jG2kH5sX0=")
+os.environ.setdefault("TESTER_INTERNAL_SECRET", "test_internal_secret")
+# Disable worker auth enforce for backend tests, although backend doesn't use it directly
+os.environ.setdefault("DISABLE_WORKER_AUTH", "true")
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from src.auth import get_current_user, verify_turnstile  # noqa: E402
+from src.main import app  # noqa: E402
 
 
 def pytest_configure(config):
-    """Set up test environment variables before imports."""
-    os.environ.setdefault("GEMINI_API_KEY", "AIzaSyDummyTestKey123456789012345678")
-    os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
-    os.environ.setdefault("TURNSTILE_SECRET_KEY", "test_turnstile_key")
-    os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
-    os.environ.setdefault("SUPABASE_KEY", "test_supabase_key")
-    os.environ.setdefault("SUPABASE_JWT_SECRET", "test_jwt_secret_min_32_chars_len!")
-    # Valid Fernet key generated with Fernet.generate_key()
-    os.environ.setdefault("DATA_ENCRYPTION_KEY", "6J5FNvK8aF2hq0rP3xZ9yWcN7dB1mT4vL8jG2kH5sX0=")
+    """Pytest configuration hook."""
+    # Env vars are already set above
+    pass
 
 
 @pytest.fixture(scope="session", autouse=True)

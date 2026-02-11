@@ -37,13 +37,13 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Starting TESTER API...")
 
     # Validate Config
-    if not settings.GEMINI_API_KEY:
+    if not settings.GEMINI_API_KEY.get_secret_value():
         logger.critical("🔴 CRITICAL: GEMINI_API_KEY is missing!")
         # Application will fail at GeminiService usage level
     else:
         # Global Gemini API Configuration
         try:
-            genai.configure(api_key=settings.GEMINI_API_KEY)
+            genai.configure(api_key=settings.GEMINI_API_KEY.get_secret_value())
             logger.info("✅ gemini API configured.")
         except Exception as e:
             logger.critical(f"🔴 CRITICAL: Failed to configure Gemini API: {e}")
@@ -129,6 +129,14 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler to catch unhandled errors."""
+
+    # Pass through HTTPExceptions
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+
     # Log the full error for internal debugging
     logger.error(f"Global Exception: {exc}", exc_info=True)
 
@@ -137,9 +145,25 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "message": "Internal Server Error",
-            "detail": "An internal server error occurred. Please contact support.",
+            "code": "INTERNAL_ERROR",
+            # No detail/stacktrace
         },
     )
+
+
+# Middleware: Content-Length Limiting (Prevent Slowloris / Large Payload)
+@app.middleware("http")
+async def limit_content_length(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length:
+        limit = 10 * 1024 * 1024  # 10 MB limit (adjust as needed)
+        if int(content_length) > limit:
+            return JSONResponse(
+                status_code=413,
+                content={"detail": "Request entity too large"},
+            )
+    response = await call_next(request)
+    return response
 
 
 # Prometheus Metrics
@@ -154,13 +178,15 @@ async def attach_user_to_state(request: Request, call_next):
         token = auth_header.split(" ")[1]
         try:
             # SECURITY FIX: Prevent usage of empty secret which allows token forgery
-            if not settings.SUPABASE_JWT_SECRET:
+            if not settings.SUPABASE_JWT_SECRET.get_secret_value():
                 logger.warning(
                     "SUPABASE_JWT_SECRET not set. Ignoring Authorization header to prevent security risk."
                 )
                 request.state.user = None
             else:
-                payload = jwt.decode(token, settings.SUPABASE_JWT_SECRET, algorithms=[ALGORITHM])
+                payload = jwt.decode(
+                    token, settings.SUPABASE_JWT_SECRET.get_secret_value(), algorithms=[ALGORITHM]
+                )
                 request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
         except Exception:
             request.state.user = None
@@ -281,7 +307,7 @@ async def health_check():
         health_status["services"]["supabase"] = {"status": "down", "error": str(e)[:100]}
 
     # === Gemini API Check ===
-    gemini_configured = bool(settings.GEMINI_API_KEY)
+    gemini_configured = bool(settings.GEMINI_API_KEY.get_secret_value())
     health_status["services"]["gemini"] = {
         "status": "configured" if gemini_configured else "not_configured",
         "model": settings.DEFAULT_GEMINI_MODEL,

@@ -30,7 +30,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
         )
 
     # Supabase URL이 설정되지 않은 경우
-    if not settings.SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
+    if not settings.SUPABASE_URL or not settings.SUPABASE_ANON_KEY.get_secret_value():
         logger.error("SUPABASE_URL or SUPABASE_ANON_KEY is not set!")
         raise HTTPException(status_code=500, detail=ErrorMessages.AUTH_SERVICE_UNAVAILABLE)
 
@@ -42,7 +42,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
                 f"{settings.SUPABASE_URL}/auth/v1/user",
                 headers={
                     "Authorization": f"Bearer {token}",
-                    "apikey": settings.SUPABASE_ANON_KEY,
+                    "apikey": settings.SUPABASE_ANON_KEY.get_secret_value(),
                 },
                 timeout=NetworkConstants.HTTP_TIMEOUT_SECONDS,
             )
@@ -68,7 +68,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
 
 async def verify_turnstile(token: str) -> bool:
     """Verify Cloudflare Turnstile token."""
-    if not settings.TURNSTILE_SECRET_KEY:
+    if not settings.TURNSTILE_SECRET_KEY.get_secret_value():
         # Secret key가 없으면 검증을 건너뜁니다 (개발 환경 대비)
         logger.warning("TURNSTILE_SECRET_KEY not set. Skipping verification.")
         return True
@@ -76,7 +76,7 @@ async def verify_turnstile(token: str) -> bool:
     async with httpx.AsyncClient() as client:
         response = await client.post(
             "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-            json={"secret": settings.TURNSTILE_SECRET_KEY, "response": token},
+            json={"secret": settings.TURNSTILE_SECRET_KEY.get_secret_value(), "response": token},
         )
         result = response.json()
 
