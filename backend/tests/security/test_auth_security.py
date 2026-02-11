@@ -17,7 +17,7 @@ def test_unauthorized_access(client):
     assert response.status_code == 401
 
 
-@patch("src.api.v1.generator.turnstile_dependency")
+@patch("src.api.v1.generator.validate_turnstile_token_dep")
 def test_turnstile_failure(mock_verify, client, mock_user_auth):
     """Turnstile 검증 실패 시 403 에러가 발생하는지 확인."""
     from src.exceptions import TurnstileError
@@ -66,8 +66,9 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
     app.dependency_overrides[get_test_generator_service] = lambda: mock_service
 
     found_429 = False
+    headers = {"Authorization": "Bearer dummy_token"}
     for _ in range(10):
-        res = client.post("/api/generate", json=payload)
+        res = client.post("/api/generate", json=payload, headers=headers)
         if res.status_code == 429:
             found_429 = True
             break

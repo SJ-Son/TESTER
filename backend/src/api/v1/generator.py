@@ -9,8 +9,9 @@ from src.api.v1.deps import (
     get_generation_repository,
     get_test_generator_service,
     limiter,
+    validate_turnstile_token_dep,
 )
-from src.auth import get_current_user, validate_turnstile_token
+from src.auth import get_current_user
 from src.exceptions import ValidationError
 from src.repositories.generation_repository import GenerationRepository
 from src.services.test_generator_service import TestGeneratorService
@@ -29,11 +30,6 @@ class GenerateRequest(BaseModel):
     is_regenerate: bool = False
 
 
-async def turnstile_dependency(data: GenerateRequest):
-    """Dependency to validate Turnstile token from request body."""
-    await validate_turnstile_token(data.turnstile_token)
-
-
 def format_sse_event(event_type: str, data: dict) -> str:
     """Format data as Server-Sent Event."""
     return f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
@@ -48,7 +44,7 @@ async def generate_test(
     current_user: AuthenticatedUser = Depends(get_current_user),
     service: TestGeneratorService = Depends(get_test_generator_service),
     repository: GenerationRepository = Depends(get_generation_repository),
-    _: None = Depends(turnstile_dependency),
+    _: None = Depends(validate_turnstile_token_dep),
 ):
     """Streams generated code using Server-Sent Events with structured error handling."""
 
