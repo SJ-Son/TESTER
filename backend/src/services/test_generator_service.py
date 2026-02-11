@@ -9,7 +9,7 @@ class TestGeneratorService:
     """
     테스트 코드 생성 비즈니스 로직을 담당하는 서비스
 
-    Responsibilities:
+    역할:
     1. 언어별 전략 선택 및 검증
     2. Prompt 컨텍스트 생성
     3. AI 서비스 호출 (GeminiService)

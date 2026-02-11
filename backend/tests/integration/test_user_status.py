@@ -19,10 +19,10 @@ def test_get_user_status_success(client, mock_user_auth):
         assert response.status_code == 200
         data = response.json()
 
-        assert data["email"] == "test@example.com"
-        assert data["weekly_usage"] == 5
-        assert data["weekly_limit"] == 30
-        assert data["remaining"] == 25
+        assert data["user"]["email"] == "test@example.com"
+        assert data["quota"]["used"] == 5
+        assert data["quota"]["limit"] == 30
+        assert data["quota"]["remaining"] == 25
 
 
 def test_get_user_status_unauthorized(client):

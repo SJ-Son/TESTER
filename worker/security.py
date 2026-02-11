@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class SecurityChecker(ast.NodeVisitor):
     """
-    AST-based static analysis to detect forbidden modules and patterns.
+    AST 기반 정적 분석을 통해 금지된 모듈 및 패턴 감지.
     """
 
     FORBIDDEN_MODULES = {
@@ -33,38 +33,38 @@ class SecurityChecker(ast.NodeVisitor):
     def visit_Import(self, node):
         for alias in node.names:
             if alias.name.split(".")[0] in self.FORBIDDEN_MODULES:
-                self.errors.append(f"Forbidden import: {alias.name}")
+                self.errors.append(f"금지된 모듈 임포트: {alias.name}")
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node):
         if node.module and node.module.split(".")[0] in self.FORBIDDEN_MODULES:
-            self.errors.append(f"Forbidden import from: {node.module}")
+            self.errors.append(f"금지된 모듈에서 임포트: {node.module}")
         self.generic_visit(node)
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Name):
             if node.func.id in self.FORBIDDEN_FUNCTIONS:
-                self.errors.append(f"Forbidden function call: {node.func.id}")
+                self.errors.append(f"금지된 함수 호출: {node.func.id}")
         self.generic_visit(node)
 
     def check_code(self, code: str):
         """
-        Parses and checks the code for security violations.
-        Raises SecurityViolation if potential threats are found.
+        코드를 파싱하고 보안 위반 사항을 검사합니다.
+        잠재적 위협이 발견되면 SecurityViolation을 발생시킵니다.
         """
         try:
             tree = ast.parse(code)
         except SyntaxError:
-            # Syntax errors are safe from a security perspective (code won't run),
-            # but we should let the runner handle reporting valid syntax errors.
+            # 문법 오류는 보안 관점에서는 안전함 (실행되지 않으므로).
+            # 실행기(Runner)가 유효한 문법 오류를 보고하도록 둡니다.
             return
 
         self.visit(tree)
 
         if self.errors:
             error_msg = "; ".join(self.errors)
-            logger.warning(f"Security check failed: {error_msg}")
-            raise SecurityViolation(f"Security violation detected: {error_msg}")
+            logger.warning(f"보안 검사 실패: {error_msg}")
+            raise SecurityViolation(f"보안 위반이 감지되었습니다: {error_msg}")
 
 
 class SecurityViolation(Exception):

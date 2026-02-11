@@ -20,11 +20,11 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 class GeminiService:
     """Gemini API를 통한 테스트 코드 생성 서비스.
 
-    Features:
+    기능:
         - 스트리밍 응답 지원
-        - 재시도 로직 (최대 3회)
-        - Redis 캐싱으로 중복 요청 최적화
-        - 재생성 시 temperature 조정
+        - 자동 재시도 (최대 3회)
+        - Redis 캐싱
+        - 재생성 시 창의성(temperature) 자동 조정
     """
 
     _DEFAULT_MODEL: Final[ModelName] = "gemini-2.0-flash-exp"
@@ -74,14 +74,17 @@ class GeminiService:
     ) -> AsyncGenerator[str, None]:
         """테스트 코드를 생성합니다.
 
+        캐시된 결과가 있으면 반환하고, 없으면 AI API를 호출하여 생성합니다.
+        스트리밍 방식을 지원합니다.
+
         Args:
             source_code: 테스트할 소스 코드.
             system_instruction: 언어별 시스템 프롬프트.
-            stream: 스트리밍 여부.
+            stream: 스트리밍 여부 (현재는 항상 True 가정).
             is_regenerate: 재생성 요청 여부 (True면 캐시 무시 및 창의성 증가).
 
         Yields:
-            생성된 테스트 코드 청크.
+            생성된 테스트 코드 청크 (문자열).
 
         Raises:
             AIServiceError: API 호출 실패 시.
@@ -98,14 +101,15 @@ class GeminiService:
             strategy=cache_strategy,
         )
 
-        # 캐시 확인 (재생성 요청이 아닐 때만)
+        # 1. 캐시 확인 (재생성 요청이 아닐 때만)
         if not is_regenerate:
             cached_result = self.cache.get(cache_metadata.key)
             if cached_result:
-                self.logger.info_ctx("Cache Hit", cache_key=cache_metadata.key[:16])
+                self.logger.info_ctx("캐시된 응답 반환", key=cache_metadata.key[:16])
                 yield cached_result
                 return
 
+        # 2. AI 모델 호출
         try:
             model = self._get_model(self.model_name, system_instruction)
 
@@ -116,6 +120,12 @@ class GeminiService:
                 else AIConstants.TEMPERATURE_STABLE
             )
             generation_config = genai.types.GenerationConfig(temperature=temperature)
+
+            self.logger.info_ctx(
+                "Gemini 생성 요청 시작",
+                model=self.model_name,
+                is_regenerate=is_regenerate,
+            )
 
             response = await model.generate_content_async(
                 source_code,
@@ -145,13 +155,13 @@ class GeminiService:
                     ttl=cache_metadata.ttl,
                 )
                 self.logger.info_ctx(
-                    "Cache Saved",
-                    cache_key=cache_metadata.key[:16],
+                    "생성 결과 캐싱 완료",
+                    key=cache_metadata.key[:16],
                     ttl=cache_metadata.ttl,
                 )
 
         except Exception as e:
-            self.logger.error_ctx("Gemini API Error", error=str(e))
+            self.logger.error_ctx("Gemini API 호출 실패", error=str(e))
             raise GenerationError(
                 "테스트 코드 생성 중 오류가 발생했습니다",
                 model=self.model_name,

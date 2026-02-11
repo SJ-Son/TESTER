@@ -70,38 +70,54 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
         raise HTTPException(status_code=401, detail=ErrorMessages.AUTH_FAILED) from e
 
 
-async def verify_turnstile(token: str) -> bool:
-    """Cloudflare Turnstile 토큰 검증"""
-    if not settings.TURNSTILE_SECRET_KEY.get_secret_value():
-        logger.warning("TURNSTILE_SECRET_KEY 미설정. 검증 건너뜀.")
-        return True
+async def validate_turnstile_token(token: str, ip: str | None = None) -> None:
+    """Cloudflare Turnstile 토큰을 검증합니다.
+
+    Args:
+        token: 클라이언트가 제출한 Turnstile 토큰.
+        ip: 클라이언트 IP 주소 (선택 사항).
+
+    Raises:
+        TurnstileError: 토큰 검증에 실패한 경우.
+    """
+    from src.exceptions import TurnstileError
+
+    if not settings.TURNSTILE_SECRET_KEY:
+        # 개발 환경 등에서 키가 설정되지 않은 경우 검증 패스 (로그 경고)
+        logger.warning("TURNSTILE_SECRET_KEY가 설정되지 않아 검증을 건너킵니다")
+        return
 
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-                json={
+                data={
                     "secret": settings.TURNSTILE_SECRET_KEY.get_secret_value(),
                     "response": token,
+                    "remoteip": ip,
                 },
-                timeout=NetworkConstants.HTTP_TIMEOUT_SECONDS,
+                timeout=5.0,
             )
             result = response.json()
 
             if not result.get("success"):
                 error_codes = result.get("error-codes", [])
-                logger.error(f"Turnstile 검증 실패: {error_codes}")
-                return False
+                logger.warning(
+                    "Turnstile 검증 실패",
+                    extra={"error_codes": error_codes, "ip": ip},
+                )
+                raise TurnstileError(
+                    message="Turnstile 검증에 실패했습니다",
+                    token_preview=token,
+                )
 
-            return True
     except httpx.RequestError as e:
-        logger.error(f"Turnstile 연결 실패: {e}. 요청 허용 (Fail-Open).")
-        return True
-
-
-async def validate_turnstile_token(token: str) -> None:
-    """FastAPI Dependency for Turnstile validation."""
-    from src.exceptions import TurnstileError
-
-    if not await verify_turnstile(token):
-        raise TurnstileError(token_preview=token)
+        logger.error(f"Turnstile 서버 연결 실패: {e}")
+        # Fail open: 외부 서비스 장애로 인한 차단 방지
+        return
+    except TurnstileError:
+        raise
+    except Exception as e:
+        logger.error(f"Turnstile 검증 중 예기치 않은 오류: {e}")
+        # 예기치 않은 오류 시 안전하게 통과 (Fail open)
+        return

@@ -6,7 +6,6 @@
 
 import hashlib
 import socket
-import threading
 from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import lru_cache
@@ -47,38 +46,38 @@ class CacheStrategy:
 
 
 class RedisConnectionManager:
-    """Singleton Redis 연결 관리자.
+    """Redis 연결을 관리하는 싱글톤 클래스.
 
-    스레드 세이프한 방식으로 Redis 클라이언트를 관리하며,
-    연결 풀 재사용을 통해 리소스를 효율적으로 사용합니다.
+    Redis 클라이언트 인스턴스를 하나만 생성하고 공유하여 리소스 효율성을 높입니다.
     """
 
     _instance: Optional["RedisConnectionManager"] = None
     _client: Optional[redis.Redis] = None
-    _lock = threading.Lock()
 
     @classmethod
     def get_instance(cls) -> "RedisConnectionManager":
-        """Singleton 인스턴스를 반환합니다."""
+        """RedisConnectionManager의 싱글톤 인스턴스를 반환합니다.
+
+        Returns:
+            RedisConnectionManager 인스턴스.
+        """
         if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = cls()
+            cls._instance = cls()
         return cls._instance
 
     def get_client(self, redis_url: str) -> redis.Redis:
-        """Redis 클라이언트를 반환합니다.
+        """Redis 클라이언트(Connection Pool)를 반환합니다.
 
         Args:
             redis_url: Redis 연결 URL.
 
         Returns:
-            redis.Redis: Redis 클라이언트 인스턴스.
+            Redis 클라이언트 객체.
         """
         if self._client is None:
-            # Build socket keepalive options based on available platform constants
+            # 플랫폼별 Keepalive 옵션 설정
             keepalive_options = {}
-            # Linux uses TCP_KEEPIDLE, macOS uses TCP_KEEPALIVE
+            # Linux: TCP_KEEPIDLE, macOS: TCP_KEEPALIVE
             if hasattr(socket, "TCP_KEEPIDLE"):
                 keepalive_options[socket.TCP_KEEPIDLE] = 60
             elif hasattr(socket, "TCP_KEEPALIVE"):
@@ -100,7 +99,7 @@ class RedisConnectionManager:
         return self._client
 
     def close(self) -> None:
-        """Redis 연결을 종료합니다."""
+        """Redis 연결을 종료하고 리소스를 해제합니다."""
         if self._client:
             self._client.close()
             self._client = None
