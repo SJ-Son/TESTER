@@ -10,7 +10,7 @@ from typing import Final, Optional
 import google.generativeai as genai
 from src.config.constants import AIConstants
 from src.config.settings import settings
-from src.exceptions import ConfigurationError, GenerationError
+from src.exceptions import GenerationError
 from src.services.cache_service import CacheService
 from src.types import CacheStrategyType, ModelName
 from src.utils.logger import get_logger
@@ -41,29 +41,7 @@ class GeminiService:
         """
         self.logger = get_logger(__name__)
         self.model_name: Final[str] = model_name or settings.DEFAULT_GEMINI_MODEL
-        self._configure_api()
         self.cache: Final[CacheService] = CacheService()
-
-    def _configure_api(self) -> None:
-        """Gemini API 키를 설정합니다.
-
-        Raises:
-            ConfigurationError: API 키가 없거나 잘못된 경우.
-        """
-        api_key = settings.GEMINI_API_KEY
-        if not api_key:
-            raise ConfigurationError(
-                "GEMINI_API_KEY 환경 변수가 설정되지 않았습니다",
-                missing_keys=["GEMINI_API_KEY"],
-            )
-
-        try:
-            genai.configure(api_key=api_key)
-        except Exception as e:
-            raise ConfigurationError(
-                "Gemini API 설정 실패",
-                missing_keys=["GEMINI_API_KEY"],
-            ) from e
 
     def _get_model(
         self, model_name: str, system_instruction: Optional[str] = None

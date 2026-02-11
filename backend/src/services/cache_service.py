@@ -148,29 +148,6 @@ class CacheService:
 
         manager = RedisConnectionManager.get_instance()
         self.redis_client: Final[redis.Redis] = manager.get_client(redis_url)
-        self._verify_connection(self.redis_client)
-
-    def _verify_connection(self, client: redis.Redis) -> None:
-        """Redis 연결 상태를 검증합니다.
-
-        Args:
-            client: 검증할 Redis 클라이언트.
-
-        Raises:
-            CacheError: 연결 실패 시.
-        """
-        try:
-            masked_host = client.connection_pool.connection_kwargs.get("host", "unknown")
-            port = client.connection_pool.connection_kwargs.get("port", "unknown")
-            self.logger.info(f"Redis 연결 시도: {masked_host}:{port}")
-
-            client.ping()
-            self.logger.info("Redis 연결 성공")
-        except redis.ConnectionError as e:
-            raise CacheError(
-                message=f"Redis 연결 실패: {masked_host}:{port}",
-                operation="connect",
-            ) from e
 
     def get(self, key: str) -> Optional[str]:
         """캐시에서 값을 조회합니다.
