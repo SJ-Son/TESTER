@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import RedirectResponse
 from src.config.settings import settings
 from supabase import Client, create_client
@@ -20,31 +20,29 @@ def get_supabase_client() -> Client:
 
 
 @router.get("/login")
-async def login(provider: str = "google", next: str = "/"):
+async def login(request: Request, provider: str = "google", next: str = "/"):
     """
     Initiate OAuth login from Backend.
-    Redirects to Supabase Auth URL with backend callback.
     """
     supabase = get_supabase_client()
 
-    # Construct the callback URL
-    # In Prod: https://my-app.com/api/auth/callback
-    # In Dev: http://localhost:8000/api/auth/callback
+    # Dynamic Callback URL Construction
+    # This ensures it works for Localhost, Staging, and Production automatically.
+    # We use the request's base URL which mirrors how the client accessed the API.
 
-    # We can detect host from request, or use configured settings.
-    # ideally settings.API_BASE_URL + "/api/auth/callback"
+    # request.url.scheme: http or https
+    # request.url.netloc: host:port
+    base_url = str(request.base_url).rstrip("/")
 
-    # For now, let's use a heuristic or env var
-    # If we are in dev (localhost), we assume localhost:8000
-    if settings.is_production:
-        # Need a way to know the production backend URL.
-        # Assuming it's the same domain as frontend for now?
-        # Or configured in SUPABASE_URL configuration on dashboard?
-        # Actually, Supabase needs the `redirectTo` to be whitelisted.
-        # Let's use the referer-based approach or hardcode for now if env not set.
-        callback_url = f"{settings.ALLOWED_ORIGINS.split(',')[0]}/api/auth/callback"
-    else:
-        callback_url = "http://localhost:8000/api/auth/callback"
+    # Force HTTPS in non-local environments if missing (Cloud Run usually handles this, but good to be safe)
+    if (
+        "localhost" not in base_url
+        and "127.0.0.1" not in base_url
+        and base_url.startswith("http://")
+    ):
+        base_url = base_url.replace("http://", "https://")
+
+    callback_url = f"{base_url}/api/auth/callback"
 
     # Get OAuth URL
     res = supabase.auth.sign_in_with_oauth(
