@@ -22,6 +22,7 @@ const router = createRouter({
             path: '/changelog',
             name: 'changelog',
             component: () => import('../views/ChangelogView.vue') // Lazy load
+        }
     ]
 })
 
