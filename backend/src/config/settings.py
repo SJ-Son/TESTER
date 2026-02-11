@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: SecretStr = Field(
         default="", description="Supabase Service Role Key (for Admin Access)"
     )
-    SUPABASE_ANON_KEY: str = Field(
+    SUPABASE_ANON_KEY: SecretStr = Field(
         default="", description="Supabase Anon Key (for User Verification)"
     )
 
