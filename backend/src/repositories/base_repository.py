@@ -24,7 +24,7 @@ class BaseRepository(Generic[ModelType]):
             table_name: Supabase 테이블 이름.
         """
         self.table_name = table_name
-        self.supabase = SupabaseService().client
+        self.client = SupabaseService().client
 
     def create(self, data: dict[str, Any]) -> dict[str, Any] | None:
         """데이터를 테이블에 생성(삽입)합니다.
@@ -39,7 +39,7 @@ class BaseRepository(Generic[ModelType]):
             APIError: Supabase API 오류 시.
         """
         try:
-            response = self.supabase.table(self.table_name).insert(data).execute()
+            response = self.client.table(self.table_name).insert(data).execute()
             if response.data:
                 return response.data[0]
             return None
@@ -52,7 +52,7 @@ class BaseRepository(Generic[ModelType]):
 
     def get_by_id(self, id: Any) -> Optional[ModelType]:
         """ID로 조회"""
-        response = self.supabase.table(self.table_name).select("*").eq("id", id).execute()
+        response = self.client.table(self.table_name).select("*").eq("id", id).execute()
         if response.data:
             return self.model_cls(**response.data[0])
         return None
