@@ -9,7 +9,7 @@ def test_unauthorized_access(client):
     """인증 정보 없이 요청 시 401 에러가 발생하는지 확인."""
     payload = {
         "input_code": "def foo(): pass",
-        "language": "Python",
+        "language": "python",
         "model": "gemini-3-flash-preview",
         "turnstile_token": "fake",
     }
@@ -17,14 +17,16 @@ def test_unauthorized_access(client):
     assert response.status_code == 401
 
 
-@patch("src.api.v1.generator.verify_turnstile")
+@patch("src.api.v1.generator.turnstile_dependency")
 def test_turnstile_failure(mock_verify, client, mock_user_auth):
     """Turnstile 검증 실패 시 403 에러가 발생하는지 확인."""
-    mock_verify.return_value = False
+    from src.exceptions import TurnstileError
+
+    mock_verify.side_effect = TurnstileError()
 
     payload = {
         "input_code": "def foo(): pass",
-        "language": "Python",
+        "language": "python",
         "model": "gemini-3-flash-preview",
         "turnstile_token": "bad_token",
     }
@@ -40,7 +42,7 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
     """짧은 시간 내 5회 초과 요청 시 429 에러가 발생하는지 확인."""
     payload = {
         "input_code": "def foo(): pass",
-        "language": "Python",
+        "language": "python",
         "model": "gemini-3-flash-preview",
         "turnstile_token": "fake",
     }
