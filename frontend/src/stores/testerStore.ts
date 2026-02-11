@@ -20,8 +20,8 @@ export const useTesterStore = defineStore('tester', () => {
     const error = ref<string | null>(null)
     /** Whether the streaming response has ended */
     const streamEnded = ref(false)
-    /** The user's authentication token */
-    const userToken = ref(localStorage.getItem('tester_token') || '')
+    /** The current user profile */
+    const user = ref<any>(null)
     /** User's weekly usage statistics */
     const usageStats = ref({ weekly_usage: 0, weekly_limit: 30, remaining: 30 })
 
@@ -46,81 +46,43 @@ export const useTesterStore = defineStore('tester', () => {
     }, { deep: true })
 
     // Computed
-    const isLoggedIn = computed(() => !!userToken.value)
+    const isLoggedIn = computed(() => !!user.value)
 
     // Actions
-    const setToken = (token: string) => {
-        userToken.value = token
-        localStorage.setItem('tester_token', token)
-    }
-
-    const clearToken = () => {
-        userToken.value = ''
-        localStorage.removeItem('tester_token')
-    }
-
-    // Initialize Auth Listener
-    // This should be called once, typically in App.vue or main.ts, but initializing store logic here works too.
-    // However, store setup function runs once.
-    import('../api/supabase').then(({ supabase }) => {
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (session?.access_token) {
-                setToken(session.access_token)
-                fetchUserStatus() // Fetch status on login
-                // Clean up URL hash if it contains auth tokens
-                if (window.location.hash && window.location.hash.includes('access_token')) {
-                    window.history.replaceState(null, '', window.location.pathname + window.location.search)
-                }
-            } else if (event === 'SIGNED_OUT') {
-                clearToken()
-            }
-        })
-    })
-
     const loginWithGoogle = async () => {
-        const { supabase } = await import('../api/supabase')
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin
-            }
-        })
-        if (error) {
-            console.error('Login failed:', error)
-            throw error
-        }
+        // Redirect to Backend Login Endpoint
+        window.location.href = '/api/auth/login?provider=google'
     }
 
     const logout = async () => {
-        const { supabase } = await import('../api/supabase')
-        await supabase.auth.signOut()
-        clearToken()
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' })
+            user.value = null
+            window.location.href = '/'
+        } catch (error) {
+            console.error('Logout failed', error)
+        }
     }
 
     const fetchUserStatus = async () => {
-        if (!isLoggedIn.value) return
-
         try {
-            const { supabase } = await import('../api/supabase')
-            // Using direct fetch wrapper for custom endpoint if available, but here we can just fetch
-            // Or ideally use the generatorApi or a new userApi. Let's stick to fetch for now as it's simple.
-            // Correct approach: Use the authenticated fetch
-            const res = await fetch('/api/user/status', {
-                headers: {
-                    'Authorization': `Bearer ${userToken.value}`
-                }
-            })
-
+            const res = await fetch('/api/user/status')
             if (res.ok) {
                 const data = await res.json()
+                // Update User State
+                user.value = { email: data.email }
+
                 usageStats.value = {
                     weekly_usage: data.weekly_usage,
                     weekly_limit: data.weekly_limit,
                     remaining: data.remaining
                 }
+            } else if (res.status === 401) {
+                user.value = null
             }
         } catch (e) {
             console.error('Failed to fetch user status', e)
+            user.value = null
         }
     }
 
@@ -128,24 +90,22 @@ export const useTesterStore = defineStore('tester', () => {
         if (!isLoggedIn.value) return
 
         try {
-            const historyData = await generatorApi.fetchHistory(userToken.value)
+            // No token needed, cookie is sent automatically
+            const historyData = await generatorApi.fetchHistory()
             if (Array.isArray(historyData)) {
-                // Ensure we merge or replace cautiously. Here we replace for simplicity as per requirement.
                 history.value = historyData.map((item: any) => ({
                     id: item.id,
                     input_code: item.input_code,
                     generated_code: item.generated_code,
                     language: item.language,
                     created_at: item.created_at,
-                    // View helpers
                     timestamp: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    inputCode: item.input_code, // Maintain compatibility with view
-                    result: item.generated_code // Maintain compatibility with view
+                    inputCode: item.input_code,
+                    result: item.generated_code
                 }))
             }
         } catch (e) {
             console.error('Failed to load history from server, keeping local cache:', e)
-            // Do not clear history.value
         }
     }
 
@@ -173,7 +133,7 @@ export const useTesterStore = defineStore('tester', () => {
         if (!generatedCode.value || !isLoggedIn.value) return null
 
         try {
-            return await generatorApi.executeTestCode(inputCode.value, generatedCode.value, selectedLanguage.value, userToken.value)
+            return await generatorApi.executeTestCode(inputCode.value, generatedCode.value, selectedLanguage.value)
         } catch (e: any) {
             return { success: false, error: e.message, output: '' }
         }
@@ -208,7 +168,6 @@ export const useTesterStore = defineStore('tester', () => {
                     model: selectedModel.value,
                     turnstile_token: turnstileToken
                 },
-                userToken.value,
                 (chunk: string) => {
                     generatedCode.value += chunk
                 },
@@ -237,7 +196,7 @@ export const useTesterStore = defineStore('tester', () => {
         isGenerating,
         error,
         streamEnded,
-        userToken,
+        user,
         history,
         isSidebarOpen,
         isMobile,

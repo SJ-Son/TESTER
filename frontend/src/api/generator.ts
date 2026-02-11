@@ -6,15 +6,13 @@ import type { GenerateRequest, SSEChunk } from './types'
 
 export async function generateTestCode(
     params: GenerateRequest,
-    token: string,
     onChunk: (chunk: string) => void,
     onError: (error: string) => void
 ): Promise<void> {
     const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(params)
     })
@@ -23,7 +21,6 @@ export async function generateTestCode(
         let errorMessage = `에러 발생 (Status ${response.status})`
         try {
             const errorData = await response.json()
-            // Simplified error extraction
             errorMessage = errorData.detail?.message || errorData.detail || errorData.message || response.statusText || errorMessage
         } catch (e) {
             // keep default
@@ -55,11 +52,6 @@ export async function generateTestCode(
         buffer = lines.pop() || ''
 
         for (const line of lines) {
-            if (line.startsWith('event:')) {
-                // Event type line (currently not used, but available for future)
-                continue
-            }
-
             if (line.startsWith('data:')) {
                 const dataStr = line.substring(5).trim()
                 try {
@@ -74,7 +66,6 @@ export async function generateTestCode(
                         break
                     }
                 } catch (e) {
-                    // Fallback to plain text if not JSON
                     onChunk(dataStr)
                 }
             }
@@ -82,12 +73,11 @@ export async function generateTestCode(
     }
 }
 
-export async function executeTestCode(inputCode: string, testCode: string, language: string, token: string): Promise<any> {
+export async function executeTestCode(inputCode: string, testCode: string, language: string): Promise<any> {
     const response = await fetch('/api/execution/execute', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({ input_code: inputCode, test_code: testCode, language })
     })
@@ -99,12 +89,8 @@ export async function executeTestCode(inputCode: string, testCode: string, langu
     return await response.json()
 }
 
-export async function fetchHistory(token: string): Promise<any[]> {
-    const response = await fetch('/api/history/', {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    })
+export async function fetchHistory(): Promise<any[]> {
+    const response = await fetch('/api/history/')
 
     if (!response.ok) {
         return []
