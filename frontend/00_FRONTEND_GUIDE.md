@@ -60,6 +60,24 @@ Vue 3, TypeScript, Pinia 기반 프론트엔드 구조 정리.
 ```bash
 npm install
 cp .env.example .env.local
+```
+
+### 3. Setup Environment Variables
+Create `.env` file in `frontend` directory:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_TURNSTILE_SITE_KEY=your_turnstile_site_key
+```
+
+### 4. Supabase Auth Configuration (PKCE)
+We use **PKCE Flow** for better security and cleaner URLs.
+1.  Go to Supabase Dashboard > Authentication > URL Configuration.
+2.  Add `http://localhost:5173/auth/callback` to **Redirect URLs**.
+3.  Ensure your production callback URL is also added (e.g., `https://your-domain.com/auth/callback`).
+
+```bash
 # .env.local에 Supabase 설정 입력
 npm run dev
 ```

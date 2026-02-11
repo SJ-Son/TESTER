@@ -30,7 +30,7 @@ class EncryptionService:
         """
         self.logger = get_logger(__name__)
 
-        encryption_key = settings.DATA_ENCRYPTION_KEY
+        encryption_key = settings.DATA_ENCRYPTION_KEY.get_secret_value()
         if not encryption_key:
             self.logger.critical("DATA_ENCRYPTION_KEY 미설정으로 보안 시작 불가")
             raise ValueError("DATA_ENCRYPTION_KEY must be set in environment variables.")

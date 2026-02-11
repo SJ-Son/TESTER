@@ -22,6 +22,11 @@ const router = createRouter({
             path: '/changelog',
             name: 'changelog',
             component: () => import('../views/ChangelogView.vue') // Lazy load
+        },
+        {
+            path: '/auth/callback',
+            name: 'auth-callback',
+            component: () => import('../views/AuthCallback.vue')
         }
     ]
 })

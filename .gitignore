@@ -26,6 +26,7 @@ coverage.xml
 # --- 환경 변수 & 비밀 정보 ---
 .env
 *.json
+!firebase.json
 !package.json
 !tsconfig.json
 !tsconfig.node.json
@@ -57,3 +58,17 @@ frontend/playwright-report/
 
 .gemini/
 gha-creds-*.json
+
+# --- Security & Deployment Secrets ---
+worker/setup.sh
+worker/setup.example.sh
+worker/00_WORKER_GUIDE.md
+backend/.env*
+!backend/.env.example
+*.pem
+backend/logs/
+backend/celerybeat-schedule
+
+# --- Temporary Artifacts ---
+*.tar
+*.gz

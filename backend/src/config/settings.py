@@ -1,4 +1,4 @@
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -6,15 +6,15 @@ class Settings(BaseSettings):
     """환경 변수 설정 및 검증"""
 
     # API Keys
-    GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
-    TURNSTILE_SECRET_KEY: str = Field(default="", description="Cloudflare Turnstile Secret")
+    GEMINI_API_KEY: SecretStr = Field(default="", description="Google Gemini API Key")
+    TURNSTILE_SECRET_KEY: SecretStr = Field(default="", description="Cloudflare Turnstile Secret")
 
     # Security
-    SUPABASE_JWT_SECRET: str = Field(
+    SUPABASE_JWT_SECRET: SecretStr = Field(
         default="",
         description="Supabase JWT Secret for token verification (Available in Supabase Dashboard > API)",
     )
-    TESTER_INTERNAL_SECRET: str = Field(
+    TESTER_INTERNAL_SECRET: SecretStr = Field(
         default="default-secret-change-me", description="Internal API Secret"
     )
 
@@ -50,15 +50,15 @@ class Settings(BaseSettings):
 
     # Supabase
     SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
-    SUPABASE_SERVICE_ROLE_KEY: str = Field(
+    SUPABASE_SERVICE_ROLE_KEY: SecretStr = Field(
         default="", description="Supabase Service Role Key (for Admin Access)"
     )
-    SUPABASE_ANON_KEY: str = Field(
+    SUPABASE_ANON_KEY: SecretStr = Field(
         default="", description="Supabase Anon Key (for User Verification)"
     )
 
     # Security (Encryption)
-    DATA_ENCRYPTION_KEY: str = Field(default="", description="AES Key for column encryption")
+    DATA_ENCRYPTION_KEY: SecretStr = Field(default="", description="AES Key for column encryption")
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"), env_file_encoding="utf-8", extra="ignore"
@@ -68,21 +68,35 @@ class Settings(BaseSettings):
     def validate_production_security(self):
         """Production Security Validation"""
         if self.ENV.lower() != "development":
-            if self.TESTER_INTERNAL_SECRET == "default-secret-change-me":
+            if self.TESTER_INTERNAL_SECRET.get_secret_value() == "default-secret-change-me":
                 raise RuntimeError(
                     "❌ SECURITY ERROR: TESTER_INTERNAL_SECRET is set to default value in non-development environment!"
                 )
         return self
 
+    @model_validator(mode="after")
+    def validate_critical_keys(self):
+        """Startup Validation for Critical Keys"""
+        if not self.GEMINI_API_KEY.get_secret_value():
+            raise RuntimeError("❌ CRITICAL: GEMINI_API_KEY is missing!")
+        if not self.SUPABASE_SERVICE_ROLE_KEY.get_secret_value():
+            raise RuntimeError("❌ CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing!")
+        return self
+
     @field_validator("GEMINI_API_KEY")
     @classmethod
-    def validate_gemini_key(cls, v: str) -> str:
+    def validate_gemini_key(cls, v: SecretStr) -> SecretStr:
         """Gemini API 키 형식 검증"""
-        # 필수 값 체크 (빈 문자열 허용 안 함)
-        if not v:
-            raise ValueError("GEMINI_API_KEY is required.")
+        # 필수 값 체크 (빈 문자열 허용 안 함) already handled by validate_critical_keys but good for specific field
+        # Note: field_validator for SecretStr receives SecretStr (or whatever input is before parsing if mode='before')
+        # By default mode='after', so v is SecretStr.
 
-        if v != "your_gemini_api_key_here" and not v.startswith("AI"):
+        value = v.get_secret_value() if v else ""
+        if not value:
+            # We defer empty check to model_validator or let it pass here if default is allowed temporarily
+            return v
+
+        if value != "your_gemini_api_key_here" and not value.startswith("AI"):
             raise ValueError("Invalid Gemini API key format (must start with 'AI')")
         return v
 

@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic import SecretStr
 from src.services.supabase_service import SupabaseService
 
 
@@ -16,7 +17,7 @@ def mock_supabase_client():
 def supabase_service(mock_supabase_client):
     with (
         patch("src.config.settings.settings.SUPABASE_URL", "http://test.com"),
-        patch("src.config.settings.settings.SUPABASE_SERVICE_ROLE_KEY", "test_key"),
+        patch("src.config.settings.settings.SUPABASE_SERVICE_ROLE_KEY", SecretStr("test_key")),
     ):
         service = SupabaseService()
         yield service

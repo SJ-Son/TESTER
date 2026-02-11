@@ -25,14 +25,16 @@ class SupabaseService:
                 missing_keys=["SUPABASE_URL"],
             )
 
-        if not settings.SUPABASE_SERVICE_ROLE_KEY:
+        if not settings.SUPABASE_SERVICE_ROLE_KEY.get_secret_value():
             raise ConfigurationError(
                 "Supabase Service Role Key가 설정되지 않았습니다. 환경 변수 SUPABASE_SERVICE_ROLE_KEY를 확인해주세요.",
                 missing_keys=["SUPABASE_SERVICE_ROLE_KEY"],
             )
 
         try:
-            self._client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
+            self._client = create_client(
+                settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY.get_secret_value()
+            )
             logger.info("✅ Supabase 클라이언트 초기화 성공")
         except Exception as e:
             raise ConfigurationError(
@@ -48,7 +50,7 @@ class SupabaseService:
 
     def get_connection_status(self) -> dict:
         """상세 연결 상태 반환"""
-        if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
+        if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY.get_secret_value():
             return {"connected": False, "reason": "Environment variables missing"}
 
         if not self._client:

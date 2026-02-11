@@ -4,29 +4,20 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 from src.api.v1.deps import (
     get_generation_repository,
     get_test_generator_service,
     limiter,
 )
-from src.auth import get_current_user, verify_turnstile
-from src.exceptions import TurnstileError, ValidationError
+from src.auth import get_current_user, validate_turnstile_token
+from src.exceptions import ValidationError
 from src.repositories.generation_repository import GenerationRepository
 from src.services.test_generator_service import TestGeneratorService
-from src.types import AuthenticatedUser
+from src.types import AuthenticatedUser, GenerateRequest
 from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-
-class GenerateRequest(BaseModel):
-    input_code: str
-    language: str
-    model: str = "gemini-3-flash-preview"
-    turnstile_token: str = Field(..., description="Cloudflare Turnstile token")
-    is_regenerate: bool = False
 
 
 def format_sse_event(event_type: str, data: dict) -> str:
@@ -47,8 +38,7 @@ async def generate_test(
     """Streams generated code using Server-Sent Events with structured error handling."""
 
     # 1. Turnstile Verify
-    if not await verify_turnstile(data.turnstile_token):
-        raise TurnstileError()
+    await validate_turnstile_token(data.turnstile_token)
 
     # 2. Weekly Quota Check (30/week)
     try:

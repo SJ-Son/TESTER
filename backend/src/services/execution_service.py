@@ -25,6 +25,8 @@ class ExecutionService:
             logger.warning(
                 "WORKER_AUTH_TOKEN not set in main backend. Requests to worker may fail if auth is enabled."
             )
+        else:
+            logger.info(f"Worker Auth Token loaded successfully: {bool(self.worker_token)}")
 
     async def execute_code(self, input_code: str, test_code: str, language: str):
         """Executes the provided code and test code on the worker VM.

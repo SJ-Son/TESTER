@@ -22,7 +22,7 @@ def test_global_exception_handler_does_not_leak_details(mock_user_auth, mock_tur
 
     payload = {
         "input_code": "def foo(): pass",
-        "language": "Python",
+        "language": "python",
         "model": "gemini-3-flash-preview",
         "turnstile_token": "fake_token",
     }
@@ -68,7 +68,7 @@ def test_streaming_error_does_not_leak_details(mock_user_auth, mock_turnstile_su
 
     payload = {
         "input_code": "def foo(): pass",
-        "language": "Python",
+        "language": "python",
         "model": "gemini-3-flash-preview",
         "turnstile_token": "fake_token",
     }

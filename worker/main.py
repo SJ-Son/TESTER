@@ -12,6 +12,7 @@ from docker.client import DockerClient
 from docker.errors import ImageNotFound
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
+from security import SecurityChecker, SecurityViolation
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +36,9 @@ if not WORKER_AUTH_TOKEN and not DISABLE_WORKER_AUTH:
     # but for this script it will prevent the app from starting properly or at least
     # it fails loudly. For FastAPI/Uvicorn, we can raise a RuntimeError.
     raise RuntimeError("WORKER_AUTH_TOKEN is required unless DISABLE_WORKER_AUTH=true")
+else:
+    # Safe logging
+    logger.info(f"Worker Config - Token Loaded: {bool(WORKER_AUTH_TOKEN)}")
 
 if DISABLE_WORKER_AUTH:
     logger.warning("WARNING: Worker authentication is DISABLED. This is unsafe for production.")
@@ -147,6 +151,18 @@ async def execute_code(request: ExecutionRequest):
                 "output": "",
             }
 
+        # 0. Static Security Check
+        try:
+            checker = SecurityChecker()
+            checker.check_code(request.input_code)
+            checker.check_code(request.test_code)
+        except SecurityViolation as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "output": "",
+            }
+
         container = None
         try:
             # 1. Check Image (Fast check since we checked at startup, but good for safety)
@@ -168,10 +184,15 @@ async def execute_code(request: ExecutionRequest):
                 mem_limit="128m",
                 nano_cpus=500000000,  # 0.5 CPU
                 network_disabled=True,
+                network_mode="none",  # Explicitly disable networking
                 pids_limit=50,
                 security_opt=["no-new-privileges"],
                 cap_drop=["ALL"],
-                read_only=False,  # We need write access to /app
+                read_only=True,  # Root FS is read-only
+                # We need a writable tmp for pytest to write cache or temp files if needed,
+                # but let's try strict read-only first. If pytest fails, we might need tmpfs.
+                # Adding tmpfs for /tmp and /app just in case (pytest writes .pytest_cache)
+                tmpfs={"/tmp": "", "/app": ""},
                 remove=True,  # Auto-remove on stop is handled, but we explicitly kill/remove in finally
                 runtime=DOCKER_RUNTIME,  # Configurable runtime (default: runsc)
             )
