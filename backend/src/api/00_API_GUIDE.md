@@ -8,7 +8,7 @@ RESTful API 엔드포인트 정의 계층. FastAPI 라우터 패턴 사용.
 - `v1/generator.py`: 핵심 기능. 테스트 코드 생성 (SSE 스트리밍).
 - `v1/execution.py`: 코드 실행 요청 (Worker로 프록시).
 - `v1/history.py`: 이력 조회/저장 관련 엔드포인트.
-- `v1/health.py`: 헬스체크. Load Balancer가 씀.
+- `v1/health.py`: 상세 헬스체크. Redis/Supabase 연결 상태 및 Latency 반환.
 - `v1/deps.py`: 의존성 주입(DI) 모음.
 
 ## 주요 엔드포인트
@@ -37,10 +37,18 @@ RESTful API 엔드포인트 정의 계층. FastAPI 라우터 패턴 사용.
 
 ## 구현 디테일
 
-### Rate Limiting
-- `slowapi` 사용.
-- IP 혹은 User ID 기반으로 5 request/minute 제한.
-- 로그인 사용자는 User ID로, 비로그인은 IP로 제한.
+### 5. 사용자 상태 (`/user/status`)
+- `GET /api/v1/user/status`: 사용자의 주간 사용량 및 남은 횟수 조회.
+- **Quota**: 주간 30회 제한 확인 용도.
+
+## 구현 디테일
+
+### Rate Limiting & User Quota
+- `slowapi` 사용 (Redis Backend).
+- **Rate Limit**: 5 requests/minute (분당 5회).
+- **Weekly Quota**: 30 requests/week (주간 30회).
+- 로그인 사용자는 User ID, 비로그인은 IP 기준.
+
 
 ### 의존성 주입 (DI)
 - `deps.py` 함수들(`get_test_generator_service`, `get_generation_repository` 등)을 `Depends()`로 주입받음.

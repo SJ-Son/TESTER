@@ -101,7 +101,7 @@ TESTER/
 ├── backend/                # FastAPI Backend Service
 │   ├── src/                # Application Source Code
 │   ├── tests/              # Backend Unit Tests
-│   └── requirements.txt    # Python Dependencies
+│   └── pyproject.toml      # Poetry Dependencies
 ├── frontend/               # Vue 3 Frontend Application
 │   ├── src/                # Frontend Source Code
 │   ├── public/             # Static Assets
@@ -156,9 +156,9 @@ TESTER/
    source .venv/bin/activate
    ```
 
-3. **의존성 패키지 설치**
+3. **의존성 패키지 설치 (Poetry)**
    ```bash
-   pip install -r requirements.txt
+   poetry install
    ```
 
 4. **환경 변수 설정**
@@ -169,7 +169,7 @@ TESTER/
 
 5. **서버 실행**
    ```bash
-   uvicorn src.main:app --reload
+   poetry run uvicorn src.main:app --reload
    ```
 
 ### Frontend 설정

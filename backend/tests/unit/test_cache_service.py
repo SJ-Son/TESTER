@@ -29,7 +29,7 @@ def mock_redis():
 def test_cache_service_init(mock_redis):
     CacheService(redis_url="redis://test:6379")
     # CacheService no longer has ttl attribute (uses strategy-based TTL)
-    mock_redis.ping.assert_called_once()
+    mock_redis.ping.assert_not_called()  # Removed ping on init for performance
 
 
 def test_get_success(mock_redis):

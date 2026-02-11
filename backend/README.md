@@ -155,30 +155,30 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # 패키지 설치
-pip install -r requirements.txt
+poetry install
 
 # 환경 변수 설정
 cp .env.example .env
 # .env 파일 편집
 
 # 실행 (Reload 모드)
-uvicorn src.main:app --reload
+poetry run uvicorn src.main:app --reload
 ```
 
 ## 테스트
 
 ```bash
 # 전체 테스트 실행
-pytest tests/ -v
+poetry run pytest tests/ -v
 
 # 커버리지 포함
-pytest tests/ --cov=src --cov-report=term-missing
+poetry run pytest tests/ --cov=src --cov-report=term-missing
 
 # 특정 모듈만
-pytest tests/unit/test_execution_service.py -v
+poetry run pytest tests/unit/test_execution_service.py -v
 
 # 커버리지 리포트 생성
-pytest --cov=src --cov-report=html
+poetry run pytest --cov=src --cov-report=html
 # htmlcov/index.html 에서 확인
 ```
 

@@ -30,8 +30,8 @@ Vue 3, TypeScript, Pinia 기반 프론트엔드 구조 정리.
 - **Auth Integration**: `supabase.auth`를 사용하여 로그인/로그아웃 및 세션 상태 동기화.
   - `signInWithOAuth`로 Google 로그인.
   - 세션 토큰을 자동으로 API 요청 헤더에 포함.
-- **State**: 입력 코드, 생성된 테스트 코드, 옵션, User Session 등.
-- **Actions**: API 호출 후 State 업데이트하는 비즈니스 로직 포함.
+- **State**: 입력 코드, 생성된 테스트 코드, 옵션, User Session, **Weekly Usage Stats** (사용량/한도/잔여) 등.
+- **Actions**: API 호출 후 State 업데이트하는 비즈니스 로직 포함 (`fetchUserStatus` 등).
 
 ### 2. SSE 스트리밍 처리
 - `api/generator.ts` 참고.

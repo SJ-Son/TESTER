@@ -4,7 +4,6 @@ dist/
 dist-ssr/
 *.local
 .vscode/*
-!.vscode/settings.json
 
 # --- Backend (Python) ---
 __pycache__/
@@ -30,9 +29,7 @@ coverage.xml
 !package.json
 !tsconfig.json
 !tsconfig.node.json
-!devcontainer.json
-!firebase.json
-!.firebaserc
+!tsconfig.node.json
 gcp-key.json
 
 # --- OS & IDE ---
