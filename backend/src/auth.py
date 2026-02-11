@@ -57,6 +57,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
 
     except httpx.RequestError as e:
         logger.error(f"Auth Service Internal Error: {e}")
+        # In staging/production, completely blocking auth due to network blip is bad,
+        # but failing open for AUTH is dangerous.
+        # We must return 503 or 401.
+        # But if it crashes with 500, user sees "Internal Server Error".
+        # We want to catch this and return 503 "Service Unavailable" cleanly.
         raise HTTPException(status_code=503, detail=ErrorMessages.AUTH_SERVICE_UNAVAILABLE) from e
     except HTTPException:
         raise
