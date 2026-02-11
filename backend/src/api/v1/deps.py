@@ -6,6 +6,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from src.config.settings import settings
 from src.repositories.generation_repository import GenerationRepository
+from src.services.execution_service import ExecutionService
 from src.services.gemini_service import GeminiService
 from src.services.supabase_service import SupabaseService
 from src.services.test_generator_service import TestGeneratorService
@@ -13,11 +14,11 @@ from src.services.test_generator_service import TestGeneratorService
 logger = logging.getLogger(__name__)
 
 
-# Rate Limiting Setup
+# Rate Limiting 설정
 def get_user_identifier(request: Request):
     """
-    Identify user for rate limiting.
-    Uses user ID if authenticated, otherwise request IP.
+    Rate Limiting을 위한 사용자 식별.
+    인증된 사용자는 ID, 비로그인 사용자는 IP 사용.
     """
     user = getattr(request.state, "user", None)
     if user:
@@ -27,7 +28,7 @@ def get_user_identifier(request: Request):
 
 limiter = Limiter(key_func=get_user_identifier, storage_uri=settings.REDIS_URL)
 
-# Security - Internal API Key
+# 보안 - 내부 API 키
 API_KEY_NAME = "X-TESTER-KEY"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
@@ -44,6 +45,10 @@ async def verify_api_key(api_key: str = Depends(api_key_header)):
 
 def get_gemini_service() -> GeminiService:
     return GeminiService()
+
+
+def get_execution_service() -> ExecutionService:
+    return ExecutionService()
 
 
 def get_supabase_service() -> SupabaseService:

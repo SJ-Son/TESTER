@@ -114,9 +114,9 @@ export const useTesterStore = defineStore('tester', () => {
             if (res.ok) {
                 const data = await res.json()
                 usageStats.value = {
-                    weekly_usage: data.weekly_usage,
-                    weekly_limit: data.weekly_limit,
-                    remaining: data.remaining
+                    weekly_usage: data.quota.used,
+                    weekly_limit: data.quota.limit,
+                    remaining: data.quota.remaining
                 }
             }
         } catch (e) {

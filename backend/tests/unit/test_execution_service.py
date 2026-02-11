@@ -133,7 +133,10 @@ class TestExecutionService:
             result = await service.execute_code("code", "test", "python")
 
             assert result["success"] is False
-            assert "authentication failed" in result["error"].lower()
+            assert (
+                "인증에 실패했습니다" in result["error"]
+                or "authentication failed" in result["error"].lower()
+            )
 
     @pytest.mark.asyncio
     async def test_execute_code_auth_failure_403(self, service):
@@ -150,7 +153,10 @@ class TestExecutionService:
             result = await service.execute_code("code", "test", "python")
 
             assert result["success"] is False
-            assert "authentication failed" in result["error"].lower()
+            assert (
+                "인증에 실패했습니다" in result["error"]
+                or "authentication failed" in result["error"].lower()
+            )
 
     @pytest.mark.asyncio
     async def test_execute_code_worker_error_500(self, service):
@@ -167,7 +173,11 @@ class TestExecutionService:
             result = await service.execute_code("code", "test", "python")
 
             assert result["success"] is False
-            assert "worker returned error" in result["error"].lower()
+            assert (
+                "worker returned error" in result["error"].lower()
+                or "워커 서버 오류" in result["error"]
+                or "실행 서버가 오류를 반환했습니다" in result["error"]
+            )
             assert "500" in result["output"]
 
     @pytest.mark.asyncio
@@ -184,6 +194,7 @@ class TestExecutionService:
             assert (
                 "unavailable" in result["error"].lower()
                 or "connection failed" in result["error"].lower()
+                or "실행 서비스에 연결할 수 없습니다" in result["error"]
             )
 
     @pytest.mark.asyncio
@@ -197,7 +208,11 @@ class TestExecutionService:
             result = await service.execute_code("code", "test", "python")
 
             assert result["success"] is False
-            assert "unavailable" in result["error"].lower() or "failed" in result["error"].lower()
+            assert (
+                "unavailable" in result["error"].lower()
+                or "failed" in result["error"].lower()
+                or "실행 서비스에 연결할 수 없습니다" in result["error"]
+            )
 
     @pytest.mark.asyncio
     async def test_execute_code_unexpected_exception(self, service):
@@ -210,7 +225,10 @@ class TestExecutionService:
             result = await service.execute_code("code", "test", "python")
 
             assert result["success"] is False
-            assert "internal server error" in result["error"].lower()
+            assert (
+                "internal server error" in result["error"].lower()
+                or "내부 서버 오류" in result["error"]
+            )
 
     # === 다양한 언어 테스트 ===
 

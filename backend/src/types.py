@@ -7,7 +7,8 @@
 from dataclasses import dataclass
 from typing import Literal, NewType, TypedDict
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from src.config.settings import settings
 
 # === 도메인 타입 정의 ===
 
@@ -51,13 +52,40 @@ CacheStrategyType = Literal["gemini", "history", "validation"]
 
 
 class GenerateRequest(BaseModel):
-    """코드 생성 요청 모델."""
+    """테스트 코드 생성 요청 모델.
+
+    Attributes:
+        input_code: 테스트를 생성할 원본 소스 코드.
+        language: 프로그래밍 언어 (python, java, javascript 등).
+        model: 사용할 AI 모델 (기본값 설정됨).
+        turnstile_token: Cloudflare Turnstile 검증 토큰.
+        is_regenerate: 재생성 요청 여부 (기본값: False).
+    """
 
     input_code: str
     language: str
-    model: str = "gemini-3-flash-preview"
-    turnstile_token: str = Field(..., description="Cloudflare Turnstile token")
+    model: str = settings.DEFAULT_GEMINI_MODEL
+    turnstile_token: str = Field(..., description="Cloudflare Turnstile 검증 토큰")
     is_regenerate: bool = False
+
+    @field_validator("input_code")
+    @classmethod
+    def validate_code_length(cls, v: str) -> str:
+        """코드 길이 검증 (10자 이상, 10,000자 이하)."""
+        if len(v) > 10000:
+            raise ValueError("코드가 너무 깁니다 (최대 10,000자)")
+        if len(v.strip()) < 10:
+            raise ValueError("코드가 너무 짧습니다 (최소 10자)")
+        return v
+
+    @field_validator("language")
+    @classmethod
+    def validate_language(cls, v: str) -> str:
+        """지원 가능한 언어인지 검증."""
+        supported = ["python", "java", "typescript", "javascript"]
+        if v.lower() not in supported:
+            raise ValueError(f"지원하지 않는 언어입니다: {v}")
+        return v.lower()
 
 
 # === 불변 데이터 구조 ===

@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta, timezone
+
+from postgrest.exceptions import APIError
 from src.config.settings import settings
 from src.exceptions import ConfigurationError
 from src.utils.logger import get_logger
@@ -124,32 +127,38 @@ class SupabaseService:
             return []
 
     def check_weekly_quota(self, user_id: str) -> int:
-        """최근 7일간의 생성 횟수를 확인합니다.
+        """사용자의 이번 주 생성 횟수를 확인합니다.
+
+        이번 주 월요일부터 현재까지의 'generation_history' 테이블 레코드 수를 카운트합니다.
 
         Args:
             user_id: 사용자 ID.
 
         Returns:
-            int: 최근 7일간 생성 횟수.
+            이번 주 생성 횟수.
+
+        Raises:
+            Exception: 데이터베이스 쿼리 실패 시.
         """
-        if not self._client:
-            return 0
-
         try:
-            from datetime import datetime, timedelta
-
-            seven_days_ago = datetime.utcnow() - timedelta(days=7)
+            now = datetime.now(timezone.utc)
+            # 이번 주 월요일 계산 (월요일=0, 일요일=6)
+            start_of_week = now - timedelta(days=now.weekday())
+            start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
 
             # count='exact', head=True로 실제 데이터는 가져오지 않고 개수만 확인
             response = (
-                self._client.table("generation_history")
+                self.client.table("generation_history")
                 .select("id", count="exact", head=True)
                 .eq("user_id", user_id)
-                .gte("created_at", seven_days_ago.isoformat())
+                .gte("created_at", start_of_week.isoformat())
                 .execute()
             )
             return response.count if response.count is not None else 0
+
+        except APIError as e:
+            logger.error(f"주간 쿼터 확인 중 API 오류: {e.message}")
+            raise
         except Exception as e:
-            logger.error(f"Failed to check weekly quota: {e}")
-            # 에러 발생 시 사용자 경험을 위해 0 반환 (Open Fail)
-            return 0
+            logger.error(f"주간 쿼터 확인 실패: {e}")
+            raise

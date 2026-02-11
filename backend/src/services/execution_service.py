@@ -1,50 +1,58 @@
-import logging
 import os
+from typing import Any
 
 import httpx
+from src.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ExecutionService:
-    """Service for handling code execution via an isolated worker.
+    """격리된 워커 환경에서 코드를 실행하는 서비스.
 
-    This service proxies requests to a dedicated worker VM that runs code
-    in a secure, sandboxed Docker environment.
+    안전한 샌드박스 Docker 환경을 갖춘 워커 VM으로 실행 요청을 프록시합니다.
     """
 
-    def __init__(self):
-        """Initializes the ExecutionService with worker URL and auth token.
+    def __init__(self) -> None:
+        """ExecutionService 인스턴스를 초기화합니다.
 
-        Logs a warning if WORKER_AUTH_TOKEN is missing.
+        워커 URL 및 인증 토큰을 환경 변수에서 로드합니다.
+        WORKER_AUTH_TOKEN 미설정 시 경고 로그를 출력합니다.
         """
         self.worker_url = os.getenv("WORKER_URL", "http://localhost:5000")
         self.worker_token = os.getenv("WORKER_AUTH_TOKEN")
 
         if not self.worker_token:
             logger.warning(
-                "WORKER_AUTH_TOKEN not set in main backend. Requests to worker may fail if auth is enabled."
+                "WORKER_AUTH_TOKEN이 설정되지 않았습니다. 인증이 필요한 경우 워커 요청이 실패할 수 있습니다"
             )
         else:
-            logger.info(f"Worker Auth Token loaded successfully: {bool(self.worker_token)}")
+            logger.info("Worker 인증 토큰이 성공적으로 로드되었습니다")
 
-    async def execute_code(self, input_code: str, test_code: str, language: str):
-        """Executes the provided code and test code on the worker VM.
+    async def execute_code(self, input_code: str, test_code: str, language: str) -> dict[str, Any]:
+        """Worker VM에 코드와 테스트 실행을 요청합니다.
 
         Args:
-            input_code: The source code to be tested.
-            test_code: The test code to run against the source code.
-            language: The programming language of the code (e.g., 'python').
+            input_code: 테스트 대상 소스 코드.
+            test_code: 검증용 테스트 코드.
+            language: 프로그래밍 언어 (예: 'python').
 
         Returns:
-            dict: The result of the execution, including success status, output, and potential errors.
-                  Structure: {"success": bool, "output": str, "error": str}
+            실행 결과 딕셔너리 (success, output, error 등).
+
+        Raises:
+            InfrastructureError: Worker 연결 실패 또는 실행 오류 시.
         """
-        """
-        Forwards execution request to the isolated Worker VM.
-        Timeout is set to 60 seconds to allow for test execution.
-        """
+        # 실행 타임아웃 60초 설정
         try:
+            is_token_loaded = bool(self.worker_token)
+            logger.info_ctx(
+                "Worker 실행 요청",
+                language=language,
+                worker_url=self.worker_url,
+                auth_loaded=is_token_loaded,
+            )
+
             async with httpx.AsyncClient(timeout=60.0) as client:
                 headers = {}
                 if self.worker_token:
@@ -59,32 +67,32 @@ class ExecutionService:
                 if response.status_code == 200:
                     return response.json()
                 elif response.status_code == 401 or response.status_code == 403:
-                    logger.error(f"Worker authentication failed: {response.text}")
+                    logger.error(f"Worker 인증 실패: {response.text}")
                     return {
                         "success": False,
-                        "error": "Execution worker authentication failed",
+                        "error": "실행 서버 인증에 실패했습니다",
                         "output": "",
                     }
                 else:
-                    error_msg = f"Worker API error: {response.status_code} - {response.text}"
+                    error_msg = f"Worker API 오류: {response.status_code} - {response.text}"
                     logger.error(error_msg)
                     return {
                         "success": False,
-                        "error": "Execution worker returned error",
+                        "error": "실행 서버가 오류를 반환했습니다",
                         "output": error_msg,
                     }
 
         except httpx.RequestError as e:
-            logger.error(f"Failed to connect to execution worker: {e}")
+            logger.error(f"Worker 연결 실패: {e}")
             return {
                 "success": False,
-                "error": "Execution service unavailable (Worker connection failed)",
+                "error": "실행 서비스에 연결할 수 없습니다",
                 "output": "",
             }
         except Exception as e:
-            logger.error(f"Unexpected error in execution service: {e}")
+            logger.error(f"실행 서비스 예기치 않은 오류: {e}")
             return {
                 "success": False,
-                "error": f"Internal server error: {str(e)}",
+                "error": f"내부 서버 오류: {str(e)}",
                 "output": "",
             }

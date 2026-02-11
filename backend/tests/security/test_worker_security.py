@@ -22,23 +22,24 @@ print(add(1, 2))
 
 def test_security_check_header_forbidden_import():
     checker = SecurityChecker()
-    code = "import os"
-    with pytest.raises(SecurityViolation, match="Forbidden import: os"):
-        checker.check_code(code)
+    with pytest.raises(
+        SecurityViolation, match="보안 위반이 감지되었습니다: 금지된 모듈 임포트: os"
+    ):
+        checker.check_code("import os")
 
 
 def test_security_check_forbidden_import_from():
     checker = SecurityChecker()
-    code = "from subprocess import check_output"
-    with pytest.raises(SecurityViolation, match="Forbidden import from: subprocess"):
-        checker.check_code(code)
+    # Unused variable removed
+    with pytest.raises(SecurityViolation, match="금지된 모듈에서 임포트: subprocess"):
+        checker.check_code("from subprocess import call")
 
 
 def test_security_check_forbidden_function_call():
     checker = SecurityChecker()
-    code = "eval('1 + 1')"
-    with pytest.raises(SecurityViolation, match="Forbidden function call: eval"):
-        checker.check_code(code)
+    # Unused variable removed
+    with pytest.raises(SecurityViolation, match="금지된 함수 호출: eval"):
+        checker.check_code("eval('print(1)')")
 
 
 def test_security_check_complex_malicious_code():
@@ -53,5 +54,6 @@ def reverse_shell():
 """
     with pytest.raises(SecurityViolation) as excinfo:
         checker.check_code(code)
-    assert "Forbidden import: sys" in str(excinfo.value)
-    assert "Forbidden import: socket" in str(excinfo.value)
+
+    assert "금지된 모듈 임포트: sys" in str(excinfo.value)
+    assert "금지된 모듈 임포트: socket" in str(excinfo.value)

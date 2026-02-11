@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import uuid
 from contextlib import asynccontextmanager
 
 import google.generativeai as genai
@@ -20,88 +21,88 @@ from src.auth import ALGORITHM
 from src.config.constants import NetworkConstants
 from src.config.settings import settings
 from src.exceptions import TurnstileError, ValidationError
+from src.utils.logger import get_logger, setup_logging, trace_id_ctx
 
-# Setup Logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# 로깅 설정 초기화
+setup_logging(log_level=logging.INFO)
+logger = get_logger(__name__)
 
 load_dotenv()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Startup and Shutdown events.
-    """
-    # === Startup ===
-    logger.info("🚀 Starting TESTER API...")
+    """애플리케이션 생명주기를 관리합니다 (시작/종료).
 
-    # Validate Config
+    Yields:
+        None
+    """
+    # === 시작 (Startup) ===
+    logger.info("TESTER API 서버를 시작합니다")
+
+    # 설정 검증
     if not settings.GEMINI_API_KEY.get_secret_value():
-        logger.critical("🔴 CRITICAL: GEMINI_API_KEY is missing!")
-        # Application will fail at GeminiService usage level
+        logger.critical("GEMINI_API_KEY가 설정되지 않았습니다")
     else:
-        # Global Gemini API Configuration
+        # Gemini API 설정
         try:
             genai.configure(api_key=settings.GEMINI_API_KEY.get_secret_value())
-            logger.info("✅ gemini API configured.")
+            logger.info("Gemini API 설정이 완료되었습니다")
         except Exception as e:
-            logger.critical(f"🔴 CRITICAL: Failed to configure Gemini API: {e}")
+            logger.critical(f"Gemini API 설정에 실패했습니다: {e}")
 
     # Supabase 연결 검증
     try:
         from src.services.supabase_service import SupabaseService
 
-        SupabaseService()  # Singleton 초기화
-        logger.info("✅ Supabase 연결 검증 완료")
+        SupabaseService()  # 싱글톤 초기화
+        logger.info("Supabase 연결이 확인되었습니다")
     except Exception as e:
-        logger.error(f"❌ Supabase 연결 실패: {e}")
-        logger.warning("⚠️ 일부 기능이 제한될 수 있습니다")
+        logger.error(f"Supabase 연결에 실패했습니다: {e}")
+        logger.warning("일부 기능이 정상적으로 작동하지 않을 수 있습니다")
 
-    # Redis Check
+    # Redis 연결 확인
     try:
         from src.services.cache_service import CacheService
 
         cache_service = CacheService()
         cache_service.redis_client.ping()
-        logger.info("✅ Redis connected.")
+        logger.info("Redis 연결에 성공했습니다")
     except Exception as e:
-        logger.error(f"❌ Redis connection failed: {e}")
-        logger.warning(
-            "⚠️  Caching will be unavailable. Application may run with degraded performance."
-        )
+        logger.error(f"Redis 연결에 실패했습니다: {e}")
+        logger.warning("캐싱 기능을 사용할 수 없으며 성능 저하가 발생할 수 있습니다")
 
-    # Encryption Check
+    # 암호화 키 확인
     try:
         from src.utils.security import EncryptionService
 
         EncryptionService()
-        logger.info("✅ Encryption service ready.")
+        logger.info("암호화 서비스가 준비되었습니다")
     except Exception as e:
-        logger.critical(f"🔴 CRITICAL: Encryption setup failed: {e}")
+        logger.critical(f"암호화 설정에 실패했습니다: {e}")
 
-    logger.info("🎉 TESTER API is ready!")
+    logger.info("TESTER API 서버가 요청을 처리할 준비가 되었습니다")
 
     yield
 
-    # === Shutdown ===
-    logger.info("🛑 Shutting down TESTER API...")
+    # === 종료 (Shutdown) ===
+    logger.info("TESTER API 서버를 종료합니다")
 
-    # Redis cleanup
+    # Redis 연결 정리
     try:
         from src.services.cache_service import RedisConnectionManager
 
         RedisConnectionManager.get_instance().close()
-        logger.info("✅ Redis connections closed")
+        logger.info("Redis 연결이 종료되었습니다")
     except Exception as e:
-        logger.warning(f"⚠️  Redis cleanup warning: {e}")
+        logger.warning(f"Redis 정리 중 오류가 발생했습니다: {e}")
 
-    logger.info("👋 Goodbye!")
+    logger.info("서버가 안전하게 종료되었습니다")
 
 
 app = FastAPI(title="QA Test Code Generator API", lifespan=lifespan)
 
-# CORS Setup
+# CORS 설정
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
@@ -110,12 +111,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# GZip Compression
+# GZip 압축 설정
 app.add_middleware(GZipMiddleware, minimum_size=NetworkConstants.GZIP_MIN_SIZE_BYTES)
 
-# Rate Limiting Setup
+# Rate Limiting 설정
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+# 미들웨어: Trace ID 생성 및 주입
+@app.middleware("http")
+async def trace_id_middleware(request: Request, call_next):
+    """요청마다 고유한 Trace ID를 생성하고 컨텍스트에 설정합니다."""
+    trace_id = str(uuid.uuid4())
+    trace_id_ctx.set(trace_id)
+    response = await call_next(request)
+    response.headers["X-Trace-ID"] = trace_id
+    return response
 
 
 @app.exception_handler(TurnstileError)
@@ -128,35 +140,39 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler to catch unhandled errors."""
+    """전역 예외 처리기 (처리되지 않은 오류 포착).
 
-    # Pass through HTTPExceptions
+    Args:
+        request: HTTP 요청 객체.
+        exc: 발생한 예외 객체.
+    """
+
+    # HTTP 예외는 그대로 통과
     if isinstance(exc, HTTPException):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
 
-    # Log the full error for internal debugging
-    logger.error(f"Global Exception: {exc}", exc_info=True)
+    # 디버깅을 위해 전체 에러 로깅
+    logger.error(f"처리되지 않은 예외 발생: {exc}", exc_info=True)
 
-    # Return a generic error message to the client to prevent information leakage
+    # 클라이언트에게는 정보 유출 방지를 위해 일반적인 에러 메시지 반환
     return JSONResponse(
         status_code=500,
         content={
             "message": "Internal Server Error",
             "code": "INTERNAL_ERROR",
-            # No detail/stacktrace
         },
     )
 
 
-# Middleware: Content-Length Limiting (Prevent Slowloris / Large Payload)
+# 미들웨어: Content-Length 제한 (Slowloris / 대용량 페이로드 방지)
 @app.middleware("http")
 async def limit_content_length(request: Request, call_next):
     content_length = request.headers.get("content-length")
     if content_length:
-        limit = 10 * 1024 * 1024  # 10 MB limit (adjust as needed)
+        limit = 10 * 1024 * 1024  # 10 MB 제한
         if int(content_length) > limit:
             return JSONResponse(
                 status_code=413,
@@ -166,21 +182,21 @@ async def limit_content_length(request: Request, call_next):
     return response
 
 
-# Prometheus Metrics
+# Prometheus 메트릭
 Instrumentator().instrument(app).expose(app)
 
 
-# Middleware: Attach User to State (for Rate Limiting)
+# 미들웨어: 사용자 상태 주입 (Rate Limiting용)
 @app.middleware("http")
 async def attach_user_to_state(request: Request, call_next):
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
-            # SECURITY FIX: Prevent usage of empty secret which allows token forgery
+            # 보안 수정: 빈 시크릿 사용 방지
             if not settings.SUPABASE_JWT_SECRET.get_secret_value():
                 logger.warning(
-                    "SUPABASE_JWT_SECRET not set. Ignoring Authorization header to prevent security risk."
+                    "SUPABASE_JWT_SECRET이 설정되지 않았습니다. 보안을 위해 인증 헤더를 무시합니다"
                 )
                 request.state.user = None
             else:
@@ -196,14 +212,14 @@ async def attach_user_to_state(request: Request, call_next):
     return response
 
 
-# Middleware: Security Headers & Logging
+# 미들웨어: 보안 헤더 및 로깅
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
     start_time = time.time()
     try:
         response = await call_next(request)
 
-        # Security Headers
+        # 보안 헤더 설정
         response.headers[
             "Strict-Transport-Security"
         ] = "max-age=31536000; includeSubDomains; preload"
@@ -213,7 +229,7 @@ async def security_middleware(request: Request, call_next):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
-        # Content-Security-Policy (Flattened to avoid parsing warnings)
+        # Content-Security-Policy (구문 분석 경고 방지를 위해 단일 문자열로 병합)
         csp_policy = (
             "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
             "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com https://www.googletagmanager.com; "
@@ -226,15 +242,19 @@ async def security_middleware(request: Request, call_next):
         )
         response.headers["Content-Security-Policy"] = csp_policy
 
-        # Logging
+        # 로깅
         process_time = time.time() - start_time
-        logger.info(
-            f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s"
+        logger.info_ctx(
+            "HTTP 요청 처리 완료",
+            method=request.method,
+            path=request.url.path,
+            status=response.status_code,
+            duration=f"{process_time:.4f}s",
         )
         return response
     except ValidationError as e:
-        logger.warning(f"Validation failed: {e.message}")
-        # Return 200 OK with error payload to keep the browser console clean (no red lines for expected validation)
+        logger.warning(f"유효성 검사 실패: {e.message}")
+        # 브라우저 콘솔 오류 방지를 위해 200 OK와 에러 페이로드 반환
         return {
             "type": "error",
             "status": "validation_error",
@@ -245,11 +265,13 @@ async def security_middleware(request: Request, call_next):
 # Health Check Endpoint (for monitoring and load balancers)
 @app.get("/health")
 async def health_check():
-    """
-    상세 인프라 헬스 체크 엔드포인트.
+    """상세 인프라 상태를 확인하는 엔드포인트.
 
     Redis, Supabase, Gemini API 설정 상태를 확인하고
     각 서비스별 지연시간을 측정하여 반환합니다.
+
+    Returns:
+        서비스별 상태 정보가 담긴 JSON 객체.
     """
     from datetime import datetime
 
@@ -326,13 +348,14 @@ async def health_check():
 # API Routes
 app.include_router(api_router, prefix="/api")
 
+
 # --- Static File Serving (Production) ---
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIST = "/app/frontend/dist"
 
 if os.path.exists(FRONTEND_DIST):
-    logger.info(f"✅ Found frontend at {FRONTEND_DIST}")
+    logger.info(f"프론트엔드 빌드 파일을 발견했습니다: {FRONTEND_DIST}")
     # Mount assets
     assets_dir = os.path.join(FRONTEND_DIST, "assets")
     if os.path.exists(assets_dir):
@@ -365,16 +388,8 @@ if os.path.exists(FRONTEND_DIST):
             return FileResponse(index_file)
         return {"error": "index.html not found in dist"}
 else:
-    logger.warning(f"❌ Frontend dist not found at {FRONTEND_DIST}. Serving API only.")
+    logger.warning(f"프론트엔드 배포 경로를 찾을 수 없습니다: {FRONTEND_DIST}. API만 서빙합니다")
 
     @app.get("/")
     async def root():
-        return {"message": "Gemini API Server is running. Frontend dist not found."}
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.environ.get("PORT", 8080))
-    logger.info(f"🚀 Starting server on port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+        return {"message": "Gemini API 서버가 동작 중입니다. 프론트엔드는 제공되지 않습니다."}

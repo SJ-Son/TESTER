@@ -43,7 +43,6 @@ def test_check_weekly_quota_error(supabase_service, mock_supabase_client):
     # Mock exception
     mock_supabase_client.table.side_effect = Exception("DB Error")
 
-    count = supabase_service.check_weekly_quota("user_123")
-
-    # Should fail open (return 0) on error
-    assert count == 0
+    # Should raise Exception on error
+    with pytest.raises(Exception, match="DB Error"):
+        supabase_service.check_weekly_quota("user_123")
