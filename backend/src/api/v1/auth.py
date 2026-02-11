@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import RedirectResponse
 from src.config.settings import settings
-from src.utils.security import generate_pkce_pair
+from src.utils.security import generate_pkce_pair, get_pkce_challenge
 from supabase import Client, create_client
 
 router = APIRouter()
@@ -48,6 +48,7 @@ async def login(request: Request, provider: str = "google", next: str = "/"):
 
     # Generate PKCE verifier and challenge
     verifier, challenge = generate_pkce_pair()
+    logger.info(f"Generated PKCE Challenge: {challenge}")
 
     # Get OAuth URL with PKCE
     res = supabase.auth.sign_in_with_oauth(
@@ -95,6 +96,10 @@ async def auth_callback(
 
         # Retrieve PKCE verifier from cookie
         code_verifier = request.cookies.get("code_verifier")
+
+        if code_verifier:
+            challenge = get_pkce_challenge(code_verifier)
+            logger.info(f"Retrieved Code Verifier from Cookie. Calculated Challenge: {challenge}")
 
         # Exchange code for session (with PKCE verifier if available)
         exchange_params = {"auth_code": code}
