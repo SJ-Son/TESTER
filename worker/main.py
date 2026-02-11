@@ -2,6 +2,7 @@ import asyncio
 import io
 import logging
 import os
+import sys
 import tarfile
 import time
 from contextlib import asynccontextmanager
@@ -19,14 +20,25 @@ logger = logging.getLogger(__name__)
 
 # Environment Variables
 WORKER_AUTH_TOKEN = os.getenv("WORKER_AUTH_TOKEN")
+DISABLE_WORKER_AUTH = os.getenv("DISABLE_WORKER_AUTH", "false").lower() == "true"
+
+if DISABLE_WORKER_AUTH:
+    logger.warning(
+        "⚠️ 워커 인증이 비활성화되었습니다 (DISABLE_WORKER_AUTH=true). 보안상 안전하지 않습니다."
+    )
+
+if not WORKER_AUTH_TOKEN and not DISABLE_WORKER_AUTH:
+    logger.critical(
+        "❌ WORKER_AUTH_TOKEN이 설정되지 않았습니다! 설정하거나 DISABLE_WORKER_AUTH=true를 사용하세요."
+    )
+    sys.exit(1)
+
+
 DOCKER_RUNTIME = os.getenv("DOCKER_RUNTIME", "runsc")  # Default to gVisor (runsc) for security
 DOCKER_IMAGE = "tester-sandbox"
 
 # Global Docker Client
 docker_client: Optional[DockerClient] = None
-
-if not WORKER_AUTH_TOKEN:
-    logger.warning("WORKER_AUTH_TOKEN is not set! Security execution is disabled.")
 
 
 @asynccontextmanager
@@ -76,8 +88,14 @@ class ExecutionRequest(BaseModel):
 
 
 def verify_token(authorization: Optional[str] = Header(None)):
+    if DISABLE_WORKER_AUTH:
+        return  # 인증 비활성화 시 건너뜀
+
     if not WORKER_AUTH_TOKEN:
-        return  # Skip if not configured (Dev mode)
+        # 시작 시 확인하므로 도달할 수 없어야 하지만, 심층 방어를 위해 유지
+        raise HTTPException(
+            status_code=500, detail="Worker configuration error: Auth token missing"
+        )
 
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization Header")
