@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import RedirectResponse
 from src.config.settings import settings
+from src.utils.security import generate_pkce_pair
 from supabase import Client, create_client
 
 router = APIRouter()
@@ -45,26 +46,43 @@ async def login(request: Request, provider: str = "google", next: str = "/"):
     callback_url = f"{base_url}/api/auth/callback"
     logger.info(f"Initiating Login. Base URL: {base_url}, Generated Callback URL: {callback_url}")
 
-    # Get OAuth URL
+    # Generate PKCE verifier and challenge
+    verifier, challenge = generate_pkce_pair()
+
+    # Get OAuth URL with PKCE
     res = supabase.auth.sign_in_with_oauth(
         {
             "provider": provider,
             "options": {
                 "redirect_to": callback_url,
-                # "scopes": "..." # if needed
+                "code_challenge": challenge,
+                "code_challenge_method": "s256",
             },
         }
     )
 
     if res.url:
-        return RedirectResponse(url=res.url)
+        response = RedirectResponse(url=res.url)
+        # Store verifier in HttpOnly cookie (short-lived, e.g., 5 mins)
+        response.set_cookie(
+            key="code_verifier",
+            value=verifier,
+            httponly=True,
+            secure=settings.is_production,
+            samesite="lax",
+            max_age=300,  # 5 minutes
+        )
+        return response
 
     raise HTTPException(status_code=500, detail="Failed to generate auth URL")
 
 
 @router.get("/callback")
 async def auth_callback(
-    code: str, response: Response, next_url: Optional[str] = Query(default="/", alias="next")
+    request: Request,
+    code: str,
+    response: Response,
+    next_url: Optional[str] = Query(default="/", alias="next"),
 ):
     """
     Exchange auth code for session and set HttpOnly cookies.
@@ -75,8 +93,17 @@ async def auth_callback(
     try:
         supabase = get_supabase_client()
 
-        # Exchange code for session
-        res = supabase.auth.exchange_code_for_session({"auth_code": code})
+        # Retrieve PKCE verifier from cookie
+        code_verifier = request.cookies.get("code_verifier")
+
+        # Exchange code for session (with PKCE verifier if available)
+        exchange_params = {"auth_code": code}
+        if code_verifier:
+            exchange_params["code_verifier"] = code_verifier
+
+        logger.info(f"Exchanging code for session. Verifier present: {bool(code_verifier)}")
+
+        res = supabase.auth.exchange_code_for_session(exchange_params)
 
         session = res.session
         if not session:
@@ -104,6 +131,9 @@ async def auth_callback(
                 max_age=60 * 60 * 24 * 30,  # 30 days usually
             )
 
+        # Cleanup verifier cookie
+        response.delete_cookie("code_verifier")
+
         # Redirect to Frontend
         # In Docker/Prod, we might need a specific URL.
         # But since valid redirection, a relative path usually works if on same domain.
@@ -125,6 +155,9 @@ async def auth_callback(
 
     except Exception as e:
         logger.error(f"Auth Callback Error: {e}")
+        # If detail contains PKCE error, log clearly
+        if "code verifier" in str(e).lower():
+            logger.error("Possible PKCE mismatch or missing cookie.")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

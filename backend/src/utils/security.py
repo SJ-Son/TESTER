@@ -84,3 +84,24 @@ class EncryptionService:
         except Exception as e:
             self.logger.error(f"복호화 실패: {e}")
             raise DecryptionError("데이터 복호화 실패 (데이터 손상 또는 키 불일치)") from e
+
+
+def generate_pkce_pair() -> tuple[str, str]:
+    """
+    Generate a PKCE code verifier and code challenge.
+    Returns:
+        (verifier, challenge)
+    """
+    import base64
+    import hashlib
+    import os
+
+    # 1. Generate random verifier (32 bytes -> base64url)
+    verifier = base64.urlsafe_b64encode(os.urandom(32)).decode("utf-8").rstrip("=")
+
+    # 2. Create challenge (SHA256 -> base64url)
+    m = hashlib.sha256()
+    m.update(verifier.encode("utf-8"))
+    challenge = base64.urlsafe_b64encode(m.digest()).decode("utf-8").rstrip("=")
+
+    return verifier, challenge
