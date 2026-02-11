@@ -86,3 +86,11 @@ async def verify_turnstile(token: str) -> bool:
             return False
 
         return True
+
+
+async def validate_turnstile_token(token: str) -> None:
+    """FastAPI Dependency for Turnstile validation."""
+    from src.exceptions import TurnstileError
+
+    if not await verify_turnstile(token):
+        raise TurnstileError(token_preview=token)

@@ -2,7 +2,7 @@ import os
 
 # Set up test environment variables BEFORE imports to pass strict validation
 os.environ.setdefault("GEMINI_API_KEY", "AIzaSyDummyTestKey123456789012345678")
-os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+os.environ.setdefault("REDIS_URL", "memory://")
 os.environ.setdefault("TURNSTILE_SECRET_KEY", "test_turnstile_key")
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test_supabase_key")
@@ -16,7 +16,7 @@ os.environ.setdefault("DISABLE_WORKER_AUTH", "true")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-from src.auth import get_current_user, verify_turnstile  # noqa: E402
+from src.auth import get_current_user, validate_turnstile_token  # noqa: E402
 from src.main import app  # noqa: E402
 
 
@@ -69,10 +69,10 @@ def mock_user_auth():
 @pytest.fixture
 def mock_turnstile_success():
     """Override Turnstile verification for testing."""
-    app.dependency_overrides[verify_turnstile] = lambda: True
+    app.dependency_overrides[validate_turnstile_token] = lambda token: None
     yield
-    if verify_turnstile in app.dependency_overrides:
-        del app.dependency_overrides[verify_turnstile]
+    if validate_turnstile_token in app.dependency_overrides:
+        del app.dependency_overrides[validate_turnstile_token]
 
 
 @pytest.fixture(autouse=True)

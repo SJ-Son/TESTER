@@ -18,7 +18,7 @@ def test_content_length_limit():
     # but the middleware reads the header.
 
     headers = {"Content-Length": str(15 * 1024 * 1024)}  # 15MB
-    response = client.post("/api/v1/generate", headers=headers, json={})
+    response = client.post("/api/generate", headers=headers, json={})
 
     # Expect 413 Payload Too Large
     assert response.status_code == 413
@@ -29,7 +29,7 @@ def test_content_length_within_limit():
     headers = {"Content-Length": str(1024)}  # 1KB
     # This will fail with 404 or something else because we aren't sending valid auth/data
     # but it shouldn't be 413.
-    response = client.post("/api/v1/generate", headers=headers, json={})
+    response = client.post("/api/generate", headers=headers, json={})
     assert response.status_code != 413
 
 

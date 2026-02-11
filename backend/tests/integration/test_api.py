@@ -27,7 +27,7 @@ def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
 
     payload = {
         "input_code": "class Test {}",
-        "language": "Java",
+        "language": "java",
         "model": "gemini-3-flash-preview",
         "turnstile_token": "fake_token",
     }
@@ -63,7 +63,7 @@ def test_validation_error(client, mock_user_auth, mock_turnstile_success):
 
     payload = {
         "input_code": "Just some random text",
-        "language": "Python",
+        "language": "python",
         "model": "gemini-3-flash-preview",
         "turnstile_token": "fake_token",
     }
