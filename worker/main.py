@@ -14,17 +14,17 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from security import SecurityChecker, SecurityViolation
 
-# Configure logging
+# 기본 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Environment Variables
+# 환경 변수 설정
 WORKER_AUTH_TOKEN = os.getenv("WORKER_AUTH_TOKEN")
 DISABLE_WORKER_AUTH = os.getenv("DISABLE_WORKER_AUTH", "false").lower() == "true"
-DOCKER_RUNTIME = os.getenv("DOCKER_RUNTIME", "runsc")  # Default to gVisor (runsc) for security
+DOCKER_RUNTIME = os.getenv("DOCKER_RUNTIME", "runsc")  # 보안을 위해 gVisor(runsc) 기본 사용
 DOCKER_IMAGE = "tester-sandbox"
 
-# Global Docker Client
+# Docker 클라이언트 전역 변수
 docker_client: Optional[DockerClient] = None
 
 if not WORKER_AUTH_TOKEN and not DISABLE_WORKER_AUTH:
@@ -32,12 +32,10 @@ if not WORKER_AUTH_TOKEN and not DISABLE_WORKER_AUTH:
         "WORKER_AUTH_TOKEN is not set and DISABLE_WORKER_AUTH is not true. "
         "Worker cannot start securely."
     )
-    # Raising an error at module level might not be the best practice for some runners
-    # but for this script it will prevent the app from starting properly or at least
-    # it fails loudly. For FastAPI/Uvicorn, we can raise a RuntimeError.
+    # 안전한 시작을 위해 토큰 필수 검증
     raise RuntimeError("WORKER_AUTH_TOKEN is required unless DISABLE_WORKER_AUTH=true")
 else:
-    # Safe logging
+    # 토큰 로드 확인 로그 (값 노출 X)
     logger.info(f"Worker Config - Token Loaded: {bool(WORKER_AUTH_TOKEN)}")
 
 if DISABLE_WORKER_AUTH:
@@ -47,15 +45,15 @@ if DISABLE_WORKER_AUTH:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Manage Docker client lifecycle.
-    Initializes the client on startup and closes it on shutdown.
+    Docker 클라이언트 수명 주기 관리.
+    시작 시 초기화, 종료 시 리소스 정리.
     """
     global docker_client
     try:
         docker_client = docker.from_env()
         logger.info("Docker client initialized successfully.")
 
-        # Pre-check image availability
+        # 이미지 존재 여부 사전 확인
         try:
             docker_client.images.get(DOCKER_IMAGE)
             logger.info(f"Docker image '{DOCKER_IMAGE}' found.")
@@ -134,15 +132,15 @@ def health_check():
 @app.post("/execute", dependencies=[Depends(verify_token)])
 async def execute_code(request: ExecutionRequest):
     """
-    Executes code inside a secure Docker container.
-    Internal execution logic runs in a separate thread to prevent blocking main loop.
+    격리된 Docker 컨테이너에서 코드를 실행합니다.
+    메인 루프 차단을 방지하기 위해 별도 스레드에서 실행됩니다.
     """
     if not docker_client:
         raise HTTPException(status_code=503, detail="Docker service unavailable on worker")
 
     loop = asyncio.get_running_loop()
 
-    # Define the blocking execution logic as a synchronous function
+    # 블로킹 실행 로직 (동기 함수)
     def _run_sync():
         if request.language.lower() != "python":
             return {
@@ -151,7 +149,7 @@ async def execute_code(request: ExecutionRequest):
                 "output": "",
             }
 
-        # 0. Static Security Check
+        # 0. 정적 보안 검사
         try:
             checker = SecurityChecker()
             checker.check_code(request.input_code)
@@ -165,7 +163,7 @@ async def execute_code(request: ExecutionRequest):
 
         container = None
         try:
-            # 1. Check Image (Fast check since we checked at startup, but good for safety)
+            # 1. 이미지 확인 (빠른 체크)
             try:
                 docker_client.images.get(DOCKER_IMAGE)
             except ImageNotFound:
@@ -174,7 +172,7 @@ async def execute_code(request: ExecutionRequest):
                     detail=f"Docker image '{DOCKER_IMAGE}' not found. Please build it.",
                 ) from None
 
-            # 2. Start Container
+            # 2. 컨테이너 시작
             combined_code = f"{request.input_code}\n\n# --- Test Code ---\n\n{request.test_code}"
 
             container = docker_client.containers.run(
@@ -184,25 +182,23 @@ async def execute_code(request: ExecutionRequest):
                 mem_limit="128m",
                 nano_cpus=500000000,  # 0.5 CPU
                 network_disabled=True,
-                network_mode="none",  # Explicitly disable networking
+                network_mode="none",  # 네트워크 완전 차단
                 pids_limit=50,
                 security_opt=["no-new-privileges"],
                 cap_drop=["ALL"],
-                read_only=True,  # Root FS is read-only
-                # We need a writable tmp for pytest to write cache or temp files if needed,
-                # but let's try strict read-only first. If pytest fails, we might need tmpfs.
-                # Adding tmpfs for /tmp and /app just in case (pytest writes .pytest_cache)
+                read_only=True,  # 루트 파일시스템 읽기 전용
+                # pytest 캐시 등을 위해 tmp는 쓰기 가능해야 함
                 tmpfs={"/tmp": "", "/app": ""},
-                remove=True,  # Auto-remove on stop is handled, but we explicitly kill/remove in finally
-                runtime=DOCKER_RUNTIME,  # Configurable runtime (default: runsc)
+                remove=True,
+                runtime=DOCKER_RUNTIME,
             )
 
-            # 3. Inject Code using Tar Archive (Safe Method)
+            # 3. 코드 주입 (tar 방식)
             tar_data = create_tar_archive("test_run.py", combined_code)
             container.put_archive("/app", tar_data)
 
-            # 4. Execute Test
-            # /app is WORKDIR defined in Dockerfile
+            # 4. 테스트 실행
+            # /app은 Dockerfile에 정의된 WORKDIR
             run_cmd = ["timeout", "10s", "pytest", "test_run.py"]
             exec_result = container.exec_run(run_cmd, workdir="/app")
 
@@ -222,13 +218,13 @@ async def execute_code(request: ExecutionRequest):
             return {"success": False, "error": str(e), "output": ""}
 
         finally:
-            # 5. Cleanup
+            # 5. 리소스 정리
             if container:
                 try:
                     container.kill()
                 except Exception as e:
-                    # Ignore 404/409 errors if container is already gone
+                    # 이미 삭제된 경우 무시
                     logger.warning(f"Container cleanup warning: {e}")
 
-    # Offload blocking Docker calls to thread pool
+    # 스레드 풀에서 실행 (Non-blocking)
     return await loop.run_in_executor(None, _run_sync)

@@ -5,60 +5,60 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """환경 변수 설정 및 검증"""
 
-    # API Keys
+    # API 키 설정
     GEMINI_API_KEY: SecretStr = Field(default="", description="Google Gemini API Key")
     TURNSTILE_SECRET_KEY: SecretStr = Field(default="", description="Cloudflare Turnstile Secret")
 
-    # Security
+    # 보안 설정
     SUPABASE_JWT_SECRET: SecretStr = Field(
         default="",
-        description="Supabase JWT Secret for token verification (Available in Supabase Dashboard > API)",
+        description="Supabase JWT 검증용 시크릿 (Supabase Dashboard > API)",
     )
     TESTER_INTERNAL_SECRET: SecretStr = Field(
-        default="default-secret-change-me", description="Internal API Secret"
+        default="default-secret-change-me", description="내부 API 통신용 시크릿"
     )
 
-    # CORS Settings
+    # CORS 설정
     ALLOWED_ORIGINS: str = Field(
         default="http://localhost:5173,http://localhost:8080",
-        description="CORS Allowed Origins (comma-separated)",
+        description="허용할 CORS 오리진 (쉼표로 구분)",
     )
 
-    # AI Configuration
+    # AI 모델 설정
     DEFAULT_GEMINI_MODEL: str = Field(
-        default="gemini-3-flash-preview", description="Default Gemini model for test generation"
+        default="gemini-3-flash-preview", description="기본 Gemini 모델"
     )
 
-    # Application (Cloud Run은 ENV 환경 변수 사용)
+    # 앱 환경 설정 (Cloud Run: ENV 변수 사용)
     ENV: str = Field(
         default="development", description="Environment: development/production/staging"
     )
 
-    # Infrastructure
-    REDIS_HOST: str = Field(default="localhost", description="Redis Host")
-    REDIS_PORT: int = Field(default=6379, description="Redis Port")
-    REDIS_URL: str = Field(default="", description="Redis Connection URL")
+    # 인프라 설정 (Redis)
+    REDIS_HOST: str = Field(default="localhost", description="Redis 호스트")
+    REDIS_PORT: int = Field(default=6379, description="Redis 포트")
+    REDIS_URL: str = Field(default="", description="Redis 연결 URL")
 
     @model_validator(mode="after")
     def assemble_redis_url(self):
-        """Build REDIS_URL if not explicitly set"""
+        """REDIS_URL이 없으면 호스트/포트로 조합"""
         if not self.REDIS_URL:
             host = self.REDIS_HOST
             port = self.REDIS_PORT
             self.REDIS_URL = f"redis://{host}:{port}"
         return self
 
-    # Supabase
-    SUPABASE_URL: str = Field(default="", description="Supabase Project URL")
+    # Supabase 설정
+    SUPABASE_URL: str = Field(default="", description="Supabase 프로젝트 URL")
     SUPABASE_SERVICE_ROLE_KEY: SecretStr = Field(
-        default="", description="Supabase Service Role Key (for Admin Access)"
+        default="", description="Supabase Service Role Key (관리자용)"
     )
     SUPABASE_ANON_KEY: SecretStr = Field(
-        default="", description="Supabase Anon Key (for User Verification)"
+        default="", description="Supabase Anon Key (사용자 검증용)"
     )
 
-    # Security (Encryption)
-    DATA_ENCRYPTION_KEY: SecretStr = Field(default="", description="AES Key for column encryption")
+    # 데이터 암호화 키
+    DATA_ENCRYPTION_KEY: SecretStr = Field(default="", description="DB 컬럼 암호화용 AES 키")
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"), env_file_encoding="utf-8", extra="ignore"

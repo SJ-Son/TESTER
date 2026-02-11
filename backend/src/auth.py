@@ -29,14 +29,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Supabase URL이 설정되지 않은 경우
+    # Supabase URL/Key 미설정 시 500 에러
     if not settings.SUPABASE_URL or not settings.SUPABASE_ANON_KEY.get_secret_value():
         logger.error("SUPABASE_URL or SUPABASE_ANON_KEY is not set!")
         raise HTTPException(status_code=500, detail=ErrorMessages.AUTH_SERVICE_UNAVAILABLE)
 
     try:
-        # Remote Verification: Supabase Auth Server에 직접 토큰 유효성 확인
-        # (알고리즘이 HS256이든 ES256이든 상관없이 확실하게 검증됨)
+        # Supabase Auth 서버에 직접 토큰 검증 요청
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{settings.SUPABASE_URL}/auth/v1/user",
@@ -53,7 +52,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
 
             try:
                 user_data = response.json()
-                # user_data 구조: {"id": "...", "email": "...", ...}
                 return {"id": user_data["id"], "email": user_data.get("email")}
             except (ValueError, KeyError) as e:
                 logger.error(f"Invalid auth response: {e}, body: {response.text[:100]}")
@@ -63,25 +61,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
 
     except httpx.RequestError as e:
         logger.error(f"Auth Service Internal Error: {e}")
-        # In staging/production, completely blocking auth due to network blip is bad,
-        # but failing open for AUTH is dangerous.
-        # We must return 503 or 401.
-        # But if it crashes with 500, user sees "Internal Server Error".
-        # We want to catch this and return 503 "Service Unavailable" cleanly.
+        # 인증 서버 연결 실패 시 보안을 위해 503(Service Unavailable) 반환
         raise HTTPException(status_code=503, detail=ErrorMessages.AUTH_SERVICE_UNAVAILABLE) from e
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected Auth Error: {e}")
-        # 401을 반환해야 프론트엔드가 로그아웃 처리 등을 할 수 있음
         raise HTTPException(status_code=401, detail=ErrorMessages.AUTH_FAILED) from e
 
 
 async def verify_turnstile(token: str) -> bool:
-    """Verify Cloudflare Turnstile token."""
+    """Cloudflare Turnstile 토큰 검증"""
     if not settings.TURNSTILE_SECRET_KEY.get_secret_value():
-        # Secret key가 없으면 검증을 건너뜁니다 (개발 환경 대비)
-        logger.warning("TURNSTILE_SECRET_KEY not set. Skipping verification.")
+        logger.warning("TURNSTILE_SECRET_KEY 미설정. 검증 건너뜀.")
         return True
 
     try:
@@ -98,12 +90,12 @@ async def verify_turnstile(token: str) -> bool:
 
             if not result.get("success"):
                 error_codes = result.get("error-codes", [])
-                logger.error(f"Turnstile verification failed: {error_codes}")
+                logger.error(f"Turnstile 검증 실패: {error_codes}")
                 return False
 
             return True
     except httpx.RequestError as e:
-        logger.error(f"Turnstile connection failed: {e}. allowing request (fail-open).")
+        logger.error(f"Turnstile 연결 실패: {e}. 요청 허용 (Fail-Open).")
         return True
 
 

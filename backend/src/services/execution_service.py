@@ -7,16 +7,15 @@ logger = logging.getLogger(__name__)
 
 
 class ExecutionService:
-    """Service for handling code execution via an isolated worker.
+    """격리된 워커 환경에서 코드를 실행하는 서비스.
 
-    This service proxies requests to a dedicated worker VM that runs code
-    in a secure, sandboxed Docker environment.
+    안전한 샌드박스 Docker 환경을 갖춘 워커 VM으로 실행 요청을 프록시합니다.
     """
 
     def __init__(self):
-        """Initializes the ExecutionService with worker URL and auth token.
+        """워커 URL 및 인증 토큰 초기화.
 
-        Logs a warning if WORKER_AUTH_TOKEN is missing.
+        WORKER_AUTH_TOKEN 미설정 시 경고 로그를 출력합니다.
         """
         self.worker_url = os.getenv("WORKER_URL", "http://localhost:5000")
         self.worker_token = os.getenv("WORKER_AUTH_TOKEN")
@@ -29,21 +28,17 @@ class ExecutionService:
             logger.info(f"Worker Auth Token loaded successfully: {bool(self.worker_token)}")
 
     async def execute_code(self, input_code: str, test_code: str, language: str):
-        """Executes the provided code and test code on the worker VM.
+        """워커 VM에 코드와 테스트 실행을 요청합니다.
 
         Args:
-            input_code: The source code to be tested.
-            test_code: The test code to run against the source code.
-            language: The programming language of the code (e.g., 'python').
+            input_code: 테스트 대상 소스 코드
+            test_code: 검증용 테스트 코드
+            language: 프로그래밍 언어 (예: 'python')
 
         Returns:
-            dict: The result of the execution, including success status, output, and potential errors.
-                  Structure: {"success": bool, "output": str, "error": str}
+            dict: 실행 결과 {"success": bool, "output": str, "error": str}
         """
-        """
-        Forwards execution request to the isolated Worker VM.
-        Timeout is set to 60 seconds to allow for test execution.
-        """
+        # 실행 타임아웃 60초 설정
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 headers = {}
