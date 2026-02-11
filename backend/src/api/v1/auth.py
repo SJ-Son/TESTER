@@ -66,7 +66,7 @@ async def login(request: Request, provider: str = "google", next: str = "/"):
         response = RedirectResponse(url=res.url)
         # Store verifier in HttpOnly cookie (short-lived, e.g., 5 mins)
         response.set_cookie(
-            key="code_verifier",
+            key="sb_pkce_verifier",
             value=verifier,
             httponly=True,
             secure=settings.is_production,
@@ -96,7 +96,7 @@ async def auth_callback(
         supabase = get_supabase_client()
 
         # Retrieve PKCE verifier from cookie
-        code_verifier = request.cookies.get("code_verifier")
+        code_verifier = request.cookies.get("sb_pkce_verifier")
 
         if code_verifier:
             challenge = get_pkce_challenge(code_verifier)
@@ -143,8 +143,10 @@ async def auth_callback(
                 max_age=60 * 60 * 24 * 30,  # 30 days usually
             )
 
-        # Cleanup verifier cookie
-        response.delete_cookie("code_verifier")
+        # Cleanup verifier cookie (Must match set_cookie options to standard delete)
+        # Note: delete_cookie doesn't always accept all params in all frameworks,
+        # but path is crucial.
+        response.delete_cookie("sb_pkce_verifier", path="/")
 
         # Redirect to Frontend
         # In Docker/Prod, we might need a specific URL.
