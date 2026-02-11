@@ -16,7 +16,6 @@ os.environ.setdefault("DISABLE_WORKER_AUTH", "true")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-from src.api.v1.deps import validate_turnstile_token_dep  # noqa: E402
 from src.auth import get_current_user  # noqa: E402
 from src.main import app  # noqa: E402
 
@@ -70,10 +69,12 @@ def mock_user_auth():
 @pytest.fixture
 def mock_turnstile_success():
     """Override Turnstile verification for testing."""
-    app.dependency_overrides[validate_turnstile_token_dep] = lambda request_data: None
-    yield
-    if validate_turnstile_token_dep in app.dependency_overrides:
-        del app.dependency_overrides[validate_turnstile_token_dep]
+    from unittest.mock import patch
+
+    # Mock the direct function call in generator.py
+    with patch("src.api.v1.generator.validate_turnstile_token") as mock:
+        mock.return_value = None
+        yield mock
 
 
 @pytest.fixture(autouse=True)

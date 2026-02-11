@@ -1,4 +1,7 @@
+from unittest.mock import AsyncMock, patch
+
 from src.config.settings import settings
+from src.exceptions import TurnstileError
 
 VALID_KEY = settings.TESTER_INTERNAL_SECRET
 
@@ -16,30 +19,19 @@ def test_unauthorized_access(client):
 
 
 def test_turnstile_failure(client, mock_user_auth):
-    """Turnstile 검증 실패 시 403 에러가 발생하는지 확인."""
-    from src.api.v1.deps import validate_turnstile_token_dep
-    from src.exceptions import TurnstileError
-    from src.main import app
+    """Turnstile 검증 실패 시 400 에러가 발생하는지 확인."""
+    # Patch the direct function call to raise TurnstileError
+    with patch("src.api.v1.generator.validate_turnstile_token", side_effect=TurnstileError()):
+        payload = {
+            "input_code": "def foo(): pass",
+            "language": "python",
+            "model": "gemini-3-flash-preview",
+            "turnstile_token": "bad_token",
+        }
+        response = client.post("/api/generate", json=payload)
 
-    # Override dependency to raise TurnstileError
-    async def mock_validation_error(request_data):
-        raise TurnstileError()
-
-    app.dependency_overrides[validate_turnstile_token_dep] = mock_validation_error
-
-    payload = {
-        "input_code": "def foo(): pass",
-        "language": "python",
-        "model": "gemini-3-flash-preview",
-        "turnstile_token": "bad_token",
-    }
-    response = client.post("/api/generate", json=payload)
-
-    # Clean up override
-    del app.dependency_overrides[validate_turnstile_token_dep]
-
-    # 400 Bad Request is returned by exception handler
-    assert response.status_code == 400
+        # 400 Bad Request is returned by exception handler
+        assert response.status_code == 400
 
 
 def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
@@ -50,8 +42,6 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
         "model": "gemini-3-flash-preview",
         "turnstile_token": "fake",
     }
-
-    from unittest.mock import AsyncMock
 
     from src.api.v1.deps import limiter
 

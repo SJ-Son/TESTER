@@ -8,9 +8,8 @@ from src.api.v1.deps import (
     get_generation_repository,
     get_test_generator_service,
     limiter,
-    validate_turnstile_token_dep,
 )
-from src.auth import get_current_user
+from src.auth import get_current_user, validate_turnstile_token
 from src.exceptions import ValidationError
 from src.repositories.generation_repository import GenerationRepository
 from src.services.test_generator_service import TestGeneratorService
@@ -35,12 +34,11 @@ async def generate_test(
     current_user: AuthenticatedUser = Depends(get_current_user),
     service: TestGeneratorService = Depends(get_test_generator_service),
     repository: GenerationRepository = Depends(get_generation_repository),
-    _: None = Depends(validate_turnstile_token_dep),
 ):
     """Streams generated code using Server-Sent Events with structured error handling."""
 
-    # 1. Turnstile Verify - Handled by dependency
-    # validate_turnstile_token(data.turnstile_token) is called by Depends
+    # 1. Turnstile Verify
+    await validate_turnstile_token(data.turnstile_token)
 
     # 2. Weekly Quota Check (30/week)
     try:
