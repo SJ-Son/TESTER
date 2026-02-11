@@ -36,6 +36,9 @@ if not WORKER_AUTH_TOKEN and not DISABLE_WORKER_AUTH:
     # but for this script it will prevent the app from starting properly or at least
     # it fails loudly. For FastAPI/Uvicorn, we can raise a RuntimeError.
     raise RuntimeError("WORKER_AUTH_TOKEN is required unless DISABLE_WORKER_AUTH=true")
+else:
+    # Safe logging
+    logger.info(f"Worker Config - Token Loaded: {bool(WORKER_AUTH_TOKEN)}")
 
 if DISABLE_WORKER_AUTH:
     logger.warning("WARNING: Worker authentication is DISABLED. This is unsafe for production.")

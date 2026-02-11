@@ -51,9 +51,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
                 logger.warning(f"Supabase Token Verification Failed: {response.text}")
                 raise HTTPException(status_code=401, detail=ErrorMessages.AUTH_INVALID_CREDENTIALS)
 
-            user_data = response.json()
-            # user_data 구조: {"id": "...", "email": "...", ...}
-            return {"id": user_data["id"], "email": user_data.get("email")}
+            try:
+                user_data = response.json()
+                # user_data 구조: {"id": "...", "email": "...", ...}
+                return {"id": user_data["id"], "email": user_data.get("email")}
+            except (ValueError, KeyError) as e:
+                logger.error(f"Invalid auth response: {e}, body: {response.text[:100]}")
+                raise HTTPException(
+                    status_code=401, detail=ErrorMessages.AUTH_INVALID_CREDENTIALS
+                ) from e
 
     except httpx.RequestError as e:
         logger.error(f"Auth Service Internal Error: {e}")
