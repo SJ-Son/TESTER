@@ -110,9 +110,10 @@ async def auth_callback(
         # For local dev `localhost:5173` vs `localhost:8000`, we need absolute URL.
 
         # Heuristic: First origin
-        if settings.is_production:
+        # Heuristic: First origin
+        if settings.ENV.lower() in ["production", "staging"]:
             # Use request 'Referer' or configured Frontend URL?
-            # For now, let's assume relative redirect "/" if served from same origin (which is the case in Prod)
+            # For now, let's assume relative redirect "/" if served from same origin (which is the case in Prod/Staging)
             target_url = next_url
         else:
             # Dev environment: Redirect to Vite port
