@@ -71,6 +71,7 @@ async def login(request: Request, provider: str = "google", next: str = "/"):
             httponly=True,
             secure=settings.is_production,
             samesite="lax",
+            path="/",  # Ensure cookie is available to all paths
             max_age=300,  # 5 minutes
         )
         return response
@@ -99,7 +100,13 @@ async def auth_callback(
 
         if code_verifier:
             challenge = get_pkce_challenge(code_verifier)
-            logger.info(f"Retrieved Code Verifier from Cookie. Calculated Challenge: {challenge}")
+            # Log masked verifier and calculated challenge for debugging
+            masked_verifier = (
+                code_verifier[:4] + "..." + code_verifier[-4:] if len(code_verifier) > 8 else "***"
+            )
+            logger.info(
+                f"Retrieved Code Verifier: {masked_verifier}. Calculated Challenge: {challenge}"
+            )
 
         # Exchange code for session (with PKCE verifier if available)
         exchange_params = {"auth_code": code}
