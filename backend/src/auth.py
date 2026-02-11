@@ -73,18 +73,26 @@ async def verify_turnstile(token: str) -> bool:
         logger.warning("TURNSTILE_SECRET_KEY not set. Skipping verification.")
         return True
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-            json={"secret": settings.TURNSTILE_SECRET_KEY.get_secret_value(), "response": token},
-        )
-        result = response.json()
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                json={
+                    "secret": settings.TURNSTILE_SECRET_KEY.get_secret_value(),
+                    "response": token,
+                },
+                timeout=NetworkConstants.HTTP_TIMEOUT_SECONDS,
+            )
+            result = response.json()
 
-        if not result.get("success"):
-            error_codes = result.get("error-codes", [])
-            logger.error(f"Turnstile verification failed: {error_codes}")
-            return False
+            if not result.get("success"):
+                error_codes = result.get("error-codes", [])
+                logger.error(f"Turnstile verification failed: {error_codes}")
+                return False
 
+            return True
+    except httpx.RequestError as e:
+        logger.error(f"Turnstile connection failed: {e}. allowing request (fail-open).")
         return True
 
 
