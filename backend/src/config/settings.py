@@ -98,8 +98,8 @@ class Settings(BaseSettings):
 
     @property
     def is_production(self) -> bool:
-        """프로덕션 환경 여부"""
-        return self.ENV.lower() == "production"
+        """프로덕션/스테이징 환경 여부 (보안 설정 적용)"""
+        return self.ENV.lower() in ["production", "staging"]
 
     # Legacy validate() method removed in favor of Pydantic validation
 
