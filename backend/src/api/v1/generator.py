@@ -4,7 +4,6 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 from src.api.v1.deps import (
     get_generation_repository,
     get_test_generator_service,
@@ -15,19 +14,11 @@ from src.auth import get_current_user
 from src.exceptions import ValidationError
 from src.repositories.generation_repository import GenerationRepository
 from src.services.test_generator_service import TestGeneratorService
-from src.types import AuthenticatedUser
+from src.types import AuthenticatedUser, GenerateRequest
 from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-
-class GenerateRequest(BaseModel):
-    input_code: str
-    language: str
-    model: str = "gemini-3-flash-preview"
-    turnstile_token: str = Field(..., description="Cloudflare Turnstile token")
-    is_regenerate: bool = False
 
 
 def format_sse_event(event_type: str, data: dict) -> str:

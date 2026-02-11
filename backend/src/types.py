@@ -7,6 +7,8 @@
 from dataclasses import dataclass
 from typing import Literal, NewType, TypedDict
 
+from pydantic import BaseModel, Field
+
 # === 도메인 타입 정의 ===
 
 
@@ -46,6 +48,16 @@ ModelName = Literal[
 
 CacheStrategyType = Literal["gemini", "history", "validation"]
 """캐시 전략 타입."""
+
+
+class GenerateRequest(BaseModel):
+    """코드 생성 요청 모델."""
+
+    input_code: str
+    language: str
+    model: str = "gemini-3-flash-preview"
+    turnstile_token: str = Field(..., description="Cloudflare Turnstile token")
+    is_regenerate: bool = False
 
 
 # === 불변 데이터 구조 ===

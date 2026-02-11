@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from src.config.settings import settings
 
 VALID_KEY = settings.TESTER_INTERNAL_SECRET
@@ -17,12 +15,17 @@ def test_unauthorized_access(client):
     assert response.status_code == 401
 
 
-@patch("src.api.v1.generator.validate_turnstile_token_dep")
-def test_turnstile_failure(mock_verify, client, mock_user_auth):
+def test_turnstile_failure(client, mock_user_auth):
     """Turnstile 검증 실패 시 403 에러가 발생하는지 확인."""
+    from src.api.v1.deps import validate_turnstile_token_dep
     from src.exceptions import TurnstileError
+    from src.main import app
 
-    mock_verify.side_effect = TurnstileError()
+    # Override dependency to raise TurnstileError
+    async def mock_validation_error(request_data):
+        raise TurnstileError()
+
+    app.dependency_overrides[validate_turnstile_token_dep] = mock_validation_error
 
     payload = {
         "input_code": "def foo(): pass",
@@ -31,11 +34,12 @@ def test_turnstile_failure(mock_verify, client, mock_user_auth):
         "turnstile_token": "bad_token",
     }
     response = client.post("/api/generate", json=payload)
-    # If TurnstileError is uncaught/handled, check its status code.
-    # Usually pydantic validation might pass but verify fails.
-    response = client.post("/api/generate", json=payload)
-    assert response.status_code in [400, 403]
-    # assert "reCAPTCHA" in response.text # Message might have changed
+
+    # Clean up override
+    del app.dependency_overrides[validate_turnstile_token_dep]
+
+    # 400 Bad Request is returned by exception handler
+    assert response.status_code == 400
 
 
 def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):

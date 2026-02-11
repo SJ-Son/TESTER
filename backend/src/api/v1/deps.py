@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
@@ -10,6 +9,7 @@ from src.repositories.generation_repository import GenerationRepository
 from src.services.gemini_service import GeminiService
 from src.services.supabase_service import SupabaseService
 from src.services.test_generator_service import TestGeneratorService
+from src.types import GenerateRequest
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ def get_generation_repository(
     return GenerationRepository(supabase_service=supabase_service)
 
 
-async def validate_turnstile_token_dep(request_data: Any):
+async def validate_turnstile_token_dep(request_data: GenerateRequest):
     """FastAPI Dependency for Turnstile validation from request body."""
     from src.auth import validate_turnstile_token
 
