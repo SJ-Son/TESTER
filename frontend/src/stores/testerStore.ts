@@ -104,15 +104,8 @@ export const useTesterStore = defineStore('tester', () => {
             const { supabase } = await import('../api/supabase')
             // Using direct fetch wrapper for custom endpoint if available, but here we can just fetch
             // Or ideally use the generatorApi or a new userApi. Let's stick to fetch for now as it's simple.
-            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user/status`, {
-                // Wait, the backend is not a supabase function, it's our FastAPI backend.
-                // We need to use the same base URL logic as generatorApi.
-                // Let's assume relative path /api/user/status connects to our FastAPI backend proxy or direct.
-                // Since we are in the same domain (or proxy), let's use /api/user/status
-            })
-
             // Correct approach: Use the authenticated fetch
-            const res = await fetch('/api/user/status', {
+            const res = await fetch('/api/v1/user/status', {
                 headers: {
                     'Authorization': `Bearer ${userToken.value}`
                 }
