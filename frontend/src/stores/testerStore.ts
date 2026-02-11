@@ -105,7 +105,7 @@ export const useTesterStore = defineStore('tester', () => {
             // Using direct fetch wrapper for custom endpoint if available, but here we can just fetch
             // Or ideally use the generatorApi or a new userApi. Let's stick to fetch for now as it's simple.
             // Correct approach: Use the authenticated fetch
-            const res = await fetch('/api/v1/user/status', {
+            const res = await fetch('/api/user/status', {
                 headers: {
                     'Authorization': `Bearer ${userToken.value}`
                 }
