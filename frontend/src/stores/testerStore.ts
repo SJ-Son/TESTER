@@ -188,6 +188,9 @@ export const useTesterStore = defineStore('tester', () => {
         }
     }
 
+    // Initialize: Check if user is logged in via cookie
+    fetchUserStatus()
+
     return {
         inputCode,
         generatedCode,

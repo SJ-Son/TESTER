@@ -17,22 +17,30 @@ test.describe('Code Generation Flow', () => {
     });
 
     test('should Generate code when logged in (Mocked)', async ({ page }) => {
-        // Mock Login by setting localStorage
-        await page.addInitScript(() => {
-            localStorage.setItem('tester_token', 'mock_token');
-            localStorage.setItem('tester_user', JSON.stringify({ name: 'Test User', email: 'test@example.com' }));
+        // Mock /api/user/status to simulate logged-in user
+        await page.route('/api/user/status', async route => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    email: 'test@example.com',
+                    weekly_usage: 0,
+                    weekly_limit: 30,
+                    remaining: 30
+                })
+            });
         });
 
         // Mock Turnstile properly (before page load to ensure window.turnstile exists)
         await page.addInitScript(() => {
-             // @ts-ignore
-             window.turnstile = {
+            // @ts-ignore
+            window.turnstile = {
                 render: (el: any, options: any) => {
                     options.callback('mock_turnstile_token');
                     return 'widget_id';
                 },
-                remove: () => {},
-                reset: () => {}
+                remove: () => { },
+                reset: () => { }
             };
         });
 
