@@ -71,6 +71,7 @@ graph TB
         G[Gemini API]
         S[(Supabase)]
         R[(Redis)]
+        T[Turnstile]
     end
     
     subgraph "GCE - Worker VM"
@@ -80,9 +81,12 @@ graph TB
     
     U -->|HTTPS| FE
     FE <--> |REST| BE
+    FE <--> |Auth| S
+    FE --> |Challenge| T
     BE -->|Generate| G
     BE <-->|Cache| R
     BE <-->|Auth/DB| S
+    BE -->|Verify| T
     BE -->|Execute| W
     W -->|Run| D
     
@@ -90,6 +94,7 @@ graph TB
     style BE fill:#009688,stroke:#333,color:#fff
     style G fill:#4285f4,stroke:#333,color:#fff
     style W fill:#326ce5,stroke:#333,color:#fff
+    style T fill:#f48120,stroke:#333,color:#fff
 ```
 
 ---
