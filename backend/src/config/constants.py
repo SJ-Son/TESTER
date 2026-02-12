@@ -161,9 +161,9 @@ class ErrorMessages:
     ENCRYPTION_FAILED: Final[str] = "데이터 암호화에 실패했습니다"
     DECRYPTION_FAILED: Final[str] = "데이터 복호화에 실패했습니다"
     SAVE_FAILED: Final[str] = "데이터 저장에 실패했습니다"
-    HISTORY_SAVE_WARNING: Final[
-        str
-    ] = "코드 저장에 실패했습니다. 생성된 코드를 복사하여 별도로 저장해주세요."
+    HISTORY_SAVE_WARNING: Final[str] = (
+        "코드 저장에 실패했습니다. 생성된 코드를 복사하여 별도로 저장해주세요."
+    )
 
     # === Turnstile 관련 ===
     TURNSTILE_VERIFICATION_FAILED: Final[str] = "보안 검증에 실패했습니다"
