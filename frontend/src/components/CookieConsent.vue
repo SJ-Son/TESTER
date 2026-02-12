@@ -1,9 +1,13 @@
 <script setup lang="ts">
+/**
+ * 쿠키 동의 배너 컴포넌트.
+ * 사용자의 동의 여부를 로컬 스토리지에 저장하고 gtag 동의 상태를 업데이트합니다.
+ */
 import { ref, onMounted } from 'vue'
 
 const isVisible = ref(false)
 
-// Declare gtag in the window object to avoid TS errors
+// 전역 window 객체에 gtag 선언 (TS 에러 방지)
 declare global {
   interface Window {
     gtag: (...args: any[]) => void
@@ -14,18 +18,22 @@ onMounted(() => {
   const storedConsent = localStorage.getItem('cookie_consent')
 
   if (!storedConsent) {
-    // No consent choice made yet, show banner
-    // Delay slightly for better UX (don't pop up instantly on load)
+    // 동의 내역이 없으면 배너 표시
+    // UX를 위해 약간의 지연 후 표시
     setTimeout(() => {
       isVisible.value = true
     }, 1000)
   } else if (storedConsent === 'granted') {
-    // User previously granted consent, update gtag
+    // 이전에 동의한 경우 gtag 업데이트
     updateConsent('granted')
   }
-  // If denied, we do nothing as the default is already 'denied'
+  // 거부한 경우 기본값이 'denied'이므로 아무 작업도 하지 않음
 })
 
+/**
+ * Google Tag Manager(gtag) 동의 상태를 업데이트합니다.
+ * @param status 'granted' | 'denied'
+ */
 const updateConsent = (status: 'granted' | 'denied') => {
   if (window.gtag) {
     window.gtag('consent', 'update', {
@@ -37,12 +45,14 @@ const updateConsent = (status: 'granted' | 'denied') => {
   }
 }
 
+/** 쿠키 사용 동의 처리 */
 const acceptCookies = () => {
   localStorage.setItem('cookie_consent', 'granted')
   updateConsent('granted')
   isVisible.value = false
 }
 
+/** 쿠키 사용 거부 처리 (필수 항목만) */
 const rejectCookies = () => {
   localStorage.setItem('cookie_consent', 'denied')
   updateConsent('denied')

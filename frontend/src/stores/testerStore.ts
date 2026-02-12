@@ -6,26 +6,26 @@ import type { SupportedLanguage, GeminiModel } from '../types'
 
 export const useTesterStore = defineStore('tester', () => {
     // State
-    /** The source code input by the user */
+    /** 사용자가 입력한 소스 코드 */
     const inputCode = ref('')
-    /** The generated test code from the API */
+    /** API로부터 생성된 테스트 코드 */
     const generatedCode = ref('')
-    /** The programming language selected */
+    /** 선택된 프로그래밍 언어 */
     const selectedLanguage = ref<SupportedLanguage>('python')
-    /** The selected Gemini model */
+    /** 선택된 Gemini 모델 */
     const selectedModel = ref<GeminiModel>('gemini-3-flash-preview')
-    /** Whether code generation is in progress */
+    /** 코드 생성 진행 중 여부 */
     const isGenerating = ref(false)
-    /** Error message if any operation fails */
+    /** 작업 실패 시 에러 메시지 */
     const error = ref<string | null>(null)
-    /** Whether the streaming response has ended */
+    /** 스트리밍 응답 종료 여부 */
     const streamEnded = ref(false)
-    /** The user's authentication token */
+    /** 사용자의 인증 토큰 */
     const userToken = ref(localStorage.getItem('tester_token') || '')
-    /** User's weekly usage statistics */
+    /** 사용자의 주간 사용량 통계 */
     const usageStats = ref({ weekly_usage: 0, weekly_limit: 30, remaining: 30 })
 
-    // Initialize history from local storage safely
+    // 로컬 스토리지에서 히스토리 초기화 (안전하게 파싱)
     let initialHistory: any[] = []
     try {
         const stored = localStorage.getItem('tester_history')
@@ -33,14 +33,14 @@ export const useTesterStore = defineStore('tester', () => {
             initialHistory = JSON.parse(stored)
         }
     } catch (e) {
-        console.error('Failed to parse history from local storage', e)
+        console.error('로컬 스토리지에서 히스토리 파싱 실패', e)
     }
     const history = ref<any[]>(initialHistory)
 
     const isSidebarOpen = ref(false)
     const isMobile = ref(window.innerWidth < MOBILE_BREAKPOINT)
 
-    // Watchers for Offline-First Storage
+    // 오프라인 우선(Offline-First) 스토리지를 위한 Watcher
     watch(history, (newHistory) => {
         localStorage.setItem('tester_history', JSON.stringify(newHistory))
     }, { deep: true })
@@ -59,15 +59,14 @@ export const useTesterStore = defineStore('tester', () => {
         localStorage.removeItem('tester_token')
     }
 
-    // Initialize Auth Listener
-    // This should be called once, typically in App.vue or main.ts, but initializing store logic here works too.
-    // However, store setup function runs once.
+    // 인증 리스너 초기화
+    // 일반적으로 App.vue나 main.ts에서 호출되어야 하지만, 스토어 로직을 여기에 두는 것도 동작함.
     import('../api/supabase').then(({ supabase }) => {
         supabase.auth.onAuthStateChange((event, session) => {
             if (session?.access_token) {
                 setToken(session.access_token)
-                fetchUserStatus() // Fetch status on login
-                // Clean up URL hash if it contains auth tokens
+                fetchUserStatus() // 로그인 시 상태 조회
+                // URL 해시에 인증 토큰이 포함된 경우 정리
                 if (window.location.hash && window.location.hash.includes('access_token')) {
                     window.history.replaceState(null, '', window.location.pathname + window.location.search)
                 }
@@ -83,12 +82,12 @@ export const useTesterStore = defineStore('tester', () => {
             provider: 'google',
             options: {
                 redirectTo: `${window.location.origin}/auth/callback`,
-                // @ts-ignore: flowType is valid in runtime but types might be outdated
+                // @ts-ignore: flowType은 런타임에 유효하지만 타입 정의가 구버전일 수 있음
                 flowType: 'pkce'
             }
         })
         if (error) {
-            console.error('Login failed:', error)
+            console.error('로그인 실패:', error)
             throw error
         }
     }
@@ -103,8 +102,7 @@ export const useTesterStore = defineStore('tester', () => {
         if (!isLoggedIn.value) return
 
         try {
-
-            // Correct approach: Use the authenticated fetch
+            // 인증된 fetch 사용
             const res = await fetch('/api/user/status', {
                 headers: {
                     'Authorization': `Bearer ${userToken.value}`
@@ -120,7 +118,7 @@ export const useTesterStore = defineStore('tester', () => {
                 }
             }
         } catch (e) {
-            console.error('Failed to fetch user status', e)
+            console.error('사용자 상태 조회 실패', e)
         }
     }
 
@@ -130,27 +128,27 @@ export const useTesterStore = defineStore('tester', () => {
         try {
             const historyData = await generatorApi.fetchHistory(userToken.value)
             if (Array.isArray(historyData)) {
-                // Ensure we merge or replace cautiously. Here we replace for simplicity as per requirement.
+                // 병합 대신 단순 교체 (요구사항 단순화)
                 history.value = historyData.map((item: any) => ({
                     id: item.id,
                     input_code: item.input_code,
                     generated_code: item.generated_code,
                     language: item.language,
                     created_at: item.created_at,
-                    // View helpers
+                    // 뷰 헬퍼 속성
                     timestamp: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    inputCode: item.input_code, // Maintain compatibility with view
-                    result: item.generated_code // Maintain compatibility with view
+                    inputCode: item.input_code, // 뷰 호환성 유지
+                    result: item.generated_code // 뷰 호환성 유지
                 }))
             }
         } catch (e) {
-            console.error('Failed to load history from server, keeping local cache:', e)
-            // Do not clear history.value
+            console.error('서버에서 히스토리 로드 실패, 로컬 캐시 유지:', e)
+            // history.value를 초기화하지 않음 (오프라인 데이터 보존)
         }
     }
 
     const addToHistory = (input: string, result: string, language: SupportedLanguage) => {
-        // Matches backend schema
+        // 백엔드 스키마와 일치
         const now = new Date().toISOString()
         const newItem = {
             id: 'temp-' + Date.now(),
@@ -158,7 +156,7 @@ export const useTesterStore = defineStore('tester', () => {
             generated_code: result,
             language: language,
             created_at: now,
-            // View helpers
+            // 뷰 헬퍼 속성
             timestamp: new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             inputCode: input,
             result: result
@@ -187,10 +185,10 @@ export const useTesterStore = defineStore('tester', () => {
     }
 
     /**
-     * Generates test code using the Gemini API.
-     * Handles streaming responses and updates the state in real-time.
+     * Gemini API를 사용하여 테스트 코드를 생성합니다.
+     * 스트리밍 응답을 처리하고 상태를 실시간으로 업데이트합니다.
      *
-     * @param turnstileToken - The Cloudflare Turnstile token for verification.
+     * @param turnstileToken - 검증을 위한 Cloudflare Turnstile 토큰.
      */
     const generateTestCode = async (turnstileToken: string) => {
         if (!inputCode.value.trim() || !isLoggedIn.value) return
@@ -224,7 +222,7 @@ export const useTesterStore = defineStore('tester', () => {
 
             if (generatedCode.value && !error.value) {
                 addToHistory(inputCode.value, generatedCode.value, selectedLanguage.value)
-                fetchUserStatus() // Update quota after generation
+                fetchUserStatus() // 생성 후 쿼터 업데이트
             }
         }
     }

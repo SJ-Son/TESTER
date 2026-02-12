@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * OAuth 인증 콜백 페이지.
+ * Supabase 인증 후 세션을 확인하고 홈으로 리디렉션합니다.
+ */
 import { onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '../api/supabase'
@@ -9,13 +13,13 @@ const route = useRoute()
 const store = useTesterStore()
 
 onMounted(async () => {
-  // Check for errors in the URL (e.g., ?error=access_denied&error_description=...)
+  // URL에서 에러 확인 (예: ?error=access_denied&error_description=...)
   const errorDescription = route.query.error_description as string
   const error = route.query.error as string
 
   if (error || errorDescription) {
-    console.error('Auth Callback Error:', error, errorDescription)
-    store.error = errorDescription || error || 'Authentication failed'
+    console.error('인증 콜백 에러:', error, errorDescription)
+    store.error = errorDescription || error || '인증에 실패했습니다'
     router.replace('/')
     return
   }
@@ -23,24 +27,23 @@ onMounted(async () => {
   const { data } = await supabase.auth.getSession()
   
   if (data.session) {
-    // Session is valid, replace with home immediately
+    // 세션이 유효하면 즉시 홈으로 이동
     router.replace('/')
   } else {
-    // If no session yet, wait for the auth state change event which might be processing the code
+    // 세션이 아직 없으면 인증 상태 변경 이벤트를 대기 (코드가 처리 중일 수 있음)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         router.replace('/')
       }
-      // If we get an error event or signed out, we might want to go home too, 
-      // maybe with an error query param if needed, but for now just redirect.
+      // 에러 이벤트나 로그아웃 발생 시 홈으로 리디렉션
       if (event === 'SIGNED_OUT') {
-         // If exchange failed, we might end up here. 
-         // Let's redirect to home to try again or show logged out state.
+         // 교환 실패 시 여기로 올 수 있음.
+         // 다시 시도하거나 로그아웃 상태를 보여주기 위해 홈으로 이동.
          router.replace('/')
       }
     })
 
-    // Safety timeout: in case nothing happens (e.g. invalid code), don't get stuck forever.
+    // 안전장치: 아무 일도 일어나지 않을 경우(유효하지 않은 코드 등)를 대비한 타임아웃
     setTimeout(() => {
         router.replace('/')
     }, 5000)

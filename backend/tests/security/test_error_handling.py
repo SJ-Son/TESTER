@@ -7,8 +7,8 @@ from src.main import app
 
 def test_global_exception_handler_does_not_leak_details(mock_user_auth, mock_turnstile_success):
     """
-    Ensure that the global exception handler returns a generic 500 error
-    and does NOT expose the internal exception message (e.g. sensitive info).
+    전역 예외 처리기가 일반적인 500 에러를 반환하고,
+    내부 예외 메시지(예: 민감한 정보)를 노출하지 않는지 확인합니다.
     """
     # Use a custom client with raise_server_exceptions=False to test exception handlers
     client = TestClient(app, raise_server_exceptions=False)
@@ -49,7 +49,7 @@ def test_global_exception_handler_does_not_leak_details(mock_user_auth, mock_tur
 
 def test_streaming_error_does_not_leak_details(mock_user_auth, mock_turnstile_success):
     """
-    Ensure that an exception occurring DURING the stream does not leak sensitive info.
+    스트리밍 중에 예외가 발생해도 민감한 정보가 노출되지 않는지 확인합니다.
     """
     # Use a custom client
     client = TestClient(app, raise_server_exceptions=False)

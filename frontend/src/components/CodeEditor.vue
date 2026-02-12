@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * 소스 코드 입력 에디터 컴포넌트.
+ * 사용자가 테스트 대상 코드를 입력하고 언어를 선택할 수 있습니다.
+ */
 import { useTesterStore } from '../stores/testerStore'
 import { Languages, Send, RefreshCcw, ShieldCheck } from 'lucide-vue-next'
 import type { SupportedLanguage } from '../types'
@@ -7,12 +11,17 @@ const store = useTesterStore()
 
 const emit = defineEmits(['generate'])
 
+/** 지원되는 프로그래밍 언어 목록 */
 const supportedLanguages: { id: SupportedLanguage, label: string, name: string }[] = [
   { id: 'python', label: 'PY', name: 'Python' },
   { id: 'javascript', label: 'JS', name: 'JavaScript' },
   { id: 'java', label: 'JAVA', name: 'Java' }
 ]
 
+/**
+ * 코드 생성 요청을 처리합니다.
+ * 부모 컴포넌트에 'generate' 이벤트를 방출합니다.
+ */
 const handleGenerate = () => {
   emit('generate')
 }

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * 변경 로그(Changelog) 표시 페이지.
+ * Markdown 파일을 렌더링하여 보여줍니다.
+ */
 import { ref, onMounted, computed } from 'vue'
 import { marked } from 'marked'
 // @ts-ignore

@@ -1,9 +1,17 @@
 <script setup lang="ts">
+/**
+ * 최근 생성 이력을 표시하는 패널 컴포넌트.
+ * 이력 항목 클릭 시 해당 상태를 복원합니다.
+ */
 import { useTesterStore } from '../stores/testerStore'
 import { History, Clock, Code2, ChevronRight } from 'lucide-vue-next'
 
 const store = useTesterStore()
 
+/**
+ * 선택된 이력 항목으로 편집기 상태를 복원합니다.
+ * @param item 복원할 이력 항목 객체.
+ */
 const handleRestore = (item: any) => {
   store.restoreHistory(item)
 }

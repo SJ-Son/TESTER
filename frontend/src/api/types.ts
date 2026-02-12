@@ -1,10 +1,10 @@
 /**
- * Type definitions for API requests and responses
+ * API 요청 및 응답에 대한 타입 정의
  */
 
 /**
- * @deprecated Import from @/types instead
- * This file is kept for backward compatibility
+ * @deprecated @/types에서 가져오십시오.
+ * 이 파일은 하위 호환성을 위해 유지됩니다.
  */
 export * from '../types/api.types'
 
