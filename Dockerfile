@@ -4,6 +4,7 @@ FROM node:20-slim AS build-stage
 WORKDIR /app/frontend
 
 # 의존성 파일만 먼저 복사 (레이어 캐싱)
+# 의존성 파일만 먼저 복사 (레이어 캐싱)
 COPY frontend/package*.json ./
 
 # 의존성 설치 (빌드에 devDependencies 필요)
@@ -11,9 +12,12 @@ RUN npm ci
 
 # 소스 코드 복사
 COPY frontend/ .
-COPY CHANGELOG.md ../
-COPY TERMS_OF_SERVICE.md ../
-COPY PRIVACY_POLICY.md ../
+COPY CHANGELOG.md /app/
+COPY TERMS_OF_SERVICE.md /app/
+COPY PRIVACY_POLICY.md /app/
+
+# List files to verify copy
+RUN ls -la /app/
 
 # 빌드 인자
 ARG VITE_TESTER_INTERNAL_SECRET
