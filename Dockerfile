@@ -12,6 +12,8 @@ RUN npm ci
 # 소스 코드 복사
 COPY frontend/ .
 COPY CHANGELOG.md ../
+COPY TERMS_OF_SERVICE.md ../
+COPY PRIVACY_POLICY.md ../
 
 # 빌드 인자
 ARG VITE_TESTER_INTERNAL_SECRET
