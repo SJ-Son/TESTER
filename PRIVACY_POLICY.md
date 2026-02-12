@@ -84,7 +84,7 @@
     <h2 class="text-lg font-semibold text-white mb-3">7. 개인정보 보호책임자</h2>
     <p class="mb-2">서비스는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 불만 처리 및 피해 구제를 위하여 아래와 같이 책임자를 지정하고 있습니다.</p>
     <ul class="list-none pl-0 space-y-1 bg-gray-800 p-4 rounded-lg">
-      <li><strong>책임자/담당자</strong>: Son Seongjun (SJ)</li>
+      <li><strong>책임자/담당자</strong>: Son Sungjun (SJ)</li>
       <li><strong>연락처</strong>: <a href="mailto:sjson666@gmail.com" class="text-blue-400 hover:underline">sjson666@gmail.com</a></li>
     </ul>
   </section>
