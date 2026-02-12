@@ -89,7 +89,7 @@ export async function executeTestCode(inputCode: string, testCode: string, langu
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ input_code: inputCode, test_code: testCode, language })
+        body: JSON.stringify({ code: inputCode, test_code: testCode, language })
     })
 
     if (!response.ok) {

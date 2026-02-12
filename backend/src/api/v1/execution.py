@@ -57,7 +57,7 @@ async def execute_code(
         )
 
         result = await service.execute_code(
-            code=payload.code,
+            input_code=payload.code,
             test_code=payload.test_code,
             language=payload.language,
         )
