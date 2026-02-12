@@ -4,15 +4,8 @@ import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, ChevronRight, X } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import type { SupportedLanguage, GeminiModel } from '../types'
-// @ts-ignore
-import changelogRaw from '../../../CHANGELOG.md?raw'
 
 const store = useTesterStore()
-
-const currentVersion = computed(() => {
-  const match = changelogRaw.match(/## \[(\d+\.\d+\.\d+)\]/)
-  return match ? `v${match[1]}` : 'v0.3.0'
-})
 
 const languages: { id: SupportedLanguage, name: string, icon: string }[] = [
   { id: 'python', name: 'Python', icon: 'py' },
@@ -164,9 +157,11 @@ const logout = async () => {
         <router-link to="/terms" class="hover:text-blue-400 transition-colors">이용약관</router-link>
         <span>|</span>
         <router-link to="/privacy" class="hover:text-blue-400 transition-colors">개인정보처리방침</router-link>
+        <span>|</span>
+        <a href="mailto:sjson666@gmail.com" class="hover:text-blue-400 transition-colors">문의</a>
       </div>
       <div class="text-[9px] text-gray-400 text-center font-mono">
-        <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">{{ currentVersion }}</router-link> &copy; TESTER
+        <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">출시노트</router-link> &copy; TESTER
       </div>
     </div>
   </aside>
