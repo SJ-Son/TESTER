@@ -11,7 +11,12 @@ RUN npm ci
 
 # 소스 코드 복사
 COPY frontend/ .
-COPY CHANGELOG.md ../
+COPY CHANGELOG.md /app/
+COPY TERMS_OF_SERVICE.md /app/
+COPY PRIVACY_POLICY.md /app/
+
+# List files to verify copy
+RUN ls -la /app/
 
 # 빌드 인자
 ARG VITE_TESTER_INTERNAL_SECRET
