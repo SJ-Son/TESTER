@@ -44,9 +44,13 @@ if DISABLE_WORKER_AUTH:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Docker 클라이언트 수명 주기 관리.
-    시작 시 초기화, 종료 시 리소스 정리.
+    """애플리케이션 수명 주기를 관리합니다.
+
+    Docker 클라이언트를 초기화하고 종료 시 리소스를 정리합니다.
+    시작 시 Docker 이미지가 존재하는지 확인합니다.
+
+    Args:
+        app: FastAPI 애플리케이션 인스턴스.
     """
     global docker_client
     try:
@@ -83,14 +87,32 @@ app = FastAPI(lifespan=lifespan)
 
 
 class ExecutionRequest(BaseModel):
+    """코드 실행 요청 모델.
+
+    Attributes:
+        input_code: 사용자가 입력한 소스 코드.
+        test_code: 검증을 위한 테스트 코드.
+        language: 프로그래밍 언어 (python 등).
+    """
+
     input_code: str
     test_code: str
     language: str
 
 
 def verify_token(authorization: Optional[str] = Header(None)):
+    """Worker 인증 토큰을 검증합니다.
+
+    보안을 위해 상수 시간 비교(constant-time comparison)를 사용합니다.
+
+    Args:
+        authorization: Authorization 헤더 값 (Bearer Token).
+
+    Raises:
+        HTTPException: 인증 헤더가 없거나 형식이 잘못되었거나 토큰이 유효하지 않은 경우 (401/403).
+    """
     if DISABLE_WORKER_AUTH:
-        return  # Skip if explicitly disabled (Dev mode)
+        return  # 개발 모드 등에서 명시적으로 비활성화된 경우 건너뜀
 
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization Header")
@@ -99,7 +121,7 @@ def verify_token(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid Authorization Header Format")
 
     token = authorization.split(" ")[1]
-    # Use constant-time comparison to prevent timing attacks
+    # 타이밍 공격 방지를 위한 상수 시간 비교 사용
     import secrets
 
     if not secrets.compare_digest(token, WORKER_AUTH_TOKEN):
@@ -107,9 +129,16 @@ def verify_token(authorization: Optional[str] = Header(None)):
 
 
 def create_tar_archive(file_name: str, content: str) -> bytes:
-    """
-    Create a tar archive containing a single file with the given content.
-    Returns bytes ready for put_archive.
+    """단일 파일을 포함하는 tar 아카이브를 생성합니다.
+
+    Docker 컨테이너에 파일을 주입하기 위해 사용됩니다.
+
+    Args:
+        file_name: 아카이브 내 파일 이름.
+        content: 파일 내용 (문자열).
+
+    Returns:
+        put_archive에 사용할 수 있는 bytes 형태의 tar 데이터.
     """
     file_data = content.encode("utf-8")
     tar_stream = io.BytesIO()
@@ -125,15 +154,26 @@ def create_tar_archive(file_name: str, content: str) -> bytes:
 
 @app.get("/health")
 def health_check():
+    """Worker 상태 및 Docker 클라이언트 상태를 확인합니다."""
     status = "active" if docker_client else "degraded (docker error)"
     return {"status": "ok", "worker": status}
 
 
 @app.post("/execute", dependencies=[Depends(verify_token)])
 async def execute_code(request: ExecutionRequest):
-    """
-    격리된 Docker 컨테이너에서 코드를 실행합니다.
+    """격리된 Docker 컨테이너에서 코드를 실행합니다.
+
+    보안 검사 후 Docker Sandbox에서 코드를 실행하고 결과를 반환합니다.
     메인 루프 차단을 방지하기 위해 별도 스레드에서 실행됩니다.
+
+    Args:
+        request: 실행할 코드 및 설정 정보.
+
+    Returns:
+        실행 결과 객체 (성공 여부, 표준 출력, 에러 메시지).
+
+    Raises:
+        HTTPException: 지원하지 않는 언어이거나 Docker 서비스 사용 불가 시.
     """
     if not docker_client:
         raise HTTPException(status_code=503, detail="Docker service unavailable on worker")

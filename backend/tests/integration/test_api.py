@@ -1,12 +1,12 @@
 def test_health_check(client):
-    """Verify the API health check."""
+    """API 헬스 체크 기능을 검증합니다."""
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
 
 
 def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
-    """Verify the streaming API works and returns raw text."""
+    """스트리밍 API가 정상 작동하며 원시 텍스트(Raw Text)를 반환하는지 검증합니다."""
     from unittest.mock import MagicMock
 
     mock_service = MagicMock()
@@ -41,7 +41,7 @@ def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
 
 
 def test_validation_error(client, mock_user_auth, mock_turnstile_success):
-    """Verify invalid code returns a raw error message."""
+    """유효하지 않은 코드가 입력되었을 때 에러 메시지를 반환하는지 검증합니다."""
     from unittest.mock import MagicMock
 
     from src.exceptions import ValidationError

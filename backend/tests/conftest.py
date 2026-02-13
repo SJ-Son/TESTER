@@ -21,14 +21,14 @@ from src.main import app  # noqa: E402
 
 
 def pytest_configure(config):
-    """Pytest configuration hook."""
+    """Pytest 설정 훅."""
     # Env vars are already set above
     pass
 
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_redis_globally():
-    """Mock Redis globally for all tests to prevent connection errors in CI."""
+    """CI 환경에서 연결 오류를 방지하기 위해 Redis를 전역적으로 모의(Mock)합니다."""
     from unittest.mock import Mock, patch
 
     with patch("redis.from_url") as mock_from_url:
@@ -42,13 +42,13 @@ def mock_redis_globally():
 
 @pytest.fixture
 def client():
-    """FastAPI TestClient fixture."""
+    """FastAPI TestClient 픽스처."""
     return TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def setup_overrides():
-    """Clear dependency overrides before each test."""
+    """각 테스트 전에 의존성 오버라이드를 초기화합니다."""
     app.dependency_overrides = {}
     yield
     app.dependency_overrides = {}
@@ -56,7 +56,7 @@ def setup_overrides():
 
 @pytest.fixture
 def mock_user_auth():
-    """Override user authentication for testing."""
+    """테스트를 위해 사용자 인증을 오버라이드합니다."""
     app.dependency_overrides[get_current_user] = lambda: {
         "id": "test_user",
         "email": "test@example.com",
@@ -68,7 +68,7 @@ def mock_user_auth():
 
 @pytest.fixture
 def mock_turnstile_success():
-    """Override Turnstile verification for testing."""
+    """테스트를 위해 Turnstile 검증을 오버라이드합니다."""
     from unittest.mock import patch
 
     # Mock the direct function call in generator.py
@@ -79,7 +79,7 @@ def mock_turnstile_success():
 
 @pytest.fixture(autouse=True)
 def disable_rate_limit():
-    """Disable rate limiting for tests."""
+    """테스트를 위해 속도 제한(Rate Limiting)을 비활성화합니다."""
     from src.api.v1.deps import limiter
 
     limiter.enabled = False

@@ -3,8 +3,7 @@ from unittest.mock import MagicMock, patch
 
 def test_get_user_status_success(client, mock_user_auth):
     """
-    Test verifying the /api/user/status endpoint returns 200 OK
-    and the correct JSON structure for an authenticated user.
+    /api/user/status 엔드포인트가 200 OK와 인증된 사용자의 올바른 JSON 구조를 반환하는지 테스트합니다.
     """
     # Mock validation dependencies if any
 
@@ -27,7 +26,7 @@ def test_get_user_status_success(client, mock_user_auth):
 
 def test_get_user_status_unauthorized(client):
     """
-    Test verifying /api/user/status returns 401 when not authenticated.
+    인증되지 않은 경우 /api/user/status가 401을 반환하는지 테스트합니다.
     """
     # No mock_user_auth fixture used here
     response = client.get("/api/user/status")

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * 메인 홈 화면 컴포넌트.
+ * 코드 에디터, 결과 패널, 사이드바를 레이아웃하고 반응형 상태를 관리합니다.
+ */
 import { useTesterStore } from '../stores/testerStore'
 import { ref, onMounted } from 'vue'
 import { RefreshCcw } from 'lucide-vue-next'
@@ -12,7 +16,7 @@ const store = useTesterStore()
 const turnstileToken = ref<string | null>(null)
 let turnstileWidgetId: string | null = null
 
-// Responsive State
+// 반응형 상태
 const viewMode = ref<'edit' | 'result'>('edit')
 
 const updateIsMobile = () => {
@@ -25,15 +29,19 @@ onMounted(() => {
   updateIsMobile()
 })
 
+/**
+ * 테스트 코드 생성을 요청합니다.
+ * Turnstile 검증을 수행하고 API를 호출합니다.
+ */
 const handleGenerate = async () => {
   try {
     const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
     if (!siteKey) throw new Error('Turnstile Site Key가 설정되지 않았습니다')
     
-    // Lazy load Turnstile on first use
+    // Turnstile 최초 사용 시 지연 로드
     await loadTurnstile()
     
-    // Create invisible Turnstile challenge
+    // 보이지 않는 Turnstile 챌린지 생성
     const token = await new Promise<string>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('Turnstile 시간 초과')), TURNSTILE_TIMEOUT_MS)
       
@@ -42,7 +50,7 @@ const handleGenerate = async () => {
         return
       }
       
-      // Create a temporary container element
+      // 임시 컨테이너 요소 생성
       const container = document.createElement('div')
       container.style.position = 'fixed'
       container.style.top = '-9999px'
@@ -70,7 +78,7 @@ const handleGenerate = async () => {
     })
 
     await store.generateTestCode(token)
-    // Switch to result view on mobile after starting generation
+    // 모바일에서는 생성 시작 후 결과 뷰로 전환
     if (store.isMobile) {
       viewMode.value = 'result'
     }

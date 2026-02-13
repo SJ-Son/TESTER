@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * 메인 제어 패널 컴포넌트 (사이드바).
+ * 인증, 모델 선택, 히스토리 관리 및 사용량 통계를 표시합니다.
+ */
 import { computed } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, ChevronRight, X } from 'lucide-vue-next'
@@ -7,16 +11,22 @@ import type { SupportedLanguage, GeminiModel } from '../types'
 
 const store = useTesterStore()
 
+/** 지원되는 언어 목록 (아이콘 포함) */
 const languages: { id: SupportedLanguage, name: string, icon: string }[] = [
   { id: 'python', name: 'Python', icon: 'py' },
   { id: 'javascript', name: 'JavaScript', icon: 'js' },
   { id: 'java', name: 'Java', icon: 'java' }
 ]
 
+/** 사용 가능한 Gemini 모델 목록 */
 const models: { id: GeminiModel, name: string }[] = [
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast)' }
 ]
 
+/**
+ * Google 로그인을 처리합니다.
+ * 실패 시 스토어에 에러 메시지를 설정합니다.
+ */
 const handleLogin = async () => {
   try {
     await store.loginWithGoogle()
@@ -25,6 +35,7 @@ const handleLogin = async () => {
   }
 }
 
+/** 사용자 로그아웃을 처리합니다. */
 const logout = async () => {
   await store.logout()
 }

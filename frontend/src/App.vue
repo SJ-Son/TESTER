@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * 최상위 루트 컴포넌트.
+ * 전역 레이아웃, 모달 처리, 쿠키 동의 배너를 관리합니다.
+ */
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import HomeView from './views/HomeView.vue'
 import CookieConsent from './components/CookieConsent.vue'
@@ -6,8 +10,12 @@ import CookieConsent from './components/CookieConsent.vue'
 const route = useRoute()
 const router = useRouter()
 
+/**
+ * 모달 배경 클릭 시 홈으로 이동하여 모달을 닫습니다.
+ * @param e 마우스 이벤트
+ */
 const closeModal = (e: MouseEvent) => {
-  // Only close if clicking the backdrop itself (not the modal content)
+  // 배경(backdrop)을 클릭한 경우에만 닫기 (내부 컨텐츠 클릭 제외)
   if (e.target === e.currentTarget) {
     router.push('/')
   }

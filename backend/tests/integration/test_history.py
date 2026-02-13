@@ -5,8 +5,8 @@ from uuid import uuid4
 
 def test_get_history_integration_success(client, mock_user_auth):
     """
-    Verify /api/history endpoint works correctly with mocked SupabaseService.
-    This ensures BaseRepository uses self.client correctly.
+    /api/history 엔드포인트가 모의(Mock) SupabaseService와 함께 정상 작동하는지 검증합니다.
+    BaseRepository가 self.client를 올바르게 사용하는지 확인합니다.
     """
     # Mock SupabaseService where it is USED in BaseRepository
     with patch("src.repositories.base_repository.SupabaseService") as MockSupabaseService:

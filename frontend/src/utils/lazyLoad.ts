@@ -1,4 +1,4 @@
-// Type declarations for third-party global objects
+// 서드파티 전역 객체에 대한 타입 선언
 declare global {
     interface Window {
         turnstile?: {
@@ -9,12 +9,17 @@ declare global {
     }
 }
 
-// Google Sign-In logic removed (Replaced by Supabase Auth)
+// Google 로그인 로직 제거됨 (Supabase Auth로 대체)
 
-// Lazy load Cloudflare Turnstile
+// Cloudflare Turnstile 지연 로드
 let turnstileLoaded = false
 let turnstilePromise: Promise<void> | null = null
 
+/**
+ * Cloudflare Turnstile 스크립트를 동적으로 로드합니다.
+ *
+ * @returns 로드 완료시 해결되는 Promise.
+ */
 export function loadTurnstile(): Promise<void> {
     if (typeof window.turnstile !== 'undefined') {
         turnstileLoaded = true
@@ -34,7 +39,7 @@ export function loadTurnstile(): Promise<void> {
             turnstileLoaded = true
             resolve()
         }
-        script.onerror = () => reject(new Error('Failed to load Turnstile'))
+        script.onerror = () => reject(new Error('Turnstile 로드 실패'))
         document.head.appendChild(script)
     })
 

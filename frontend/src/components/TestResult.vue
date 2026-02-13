@@ -1,14 +1,22 @@
 <script setup lang="ts">
+/**
+ * 테스트 코드 생성 결과 표시 및 실행 컴포넌트.
+ * 코드 하이라이팅, 복사, 실행 기능을 제공합니다.
+ */
 import { ref, watch, onMounted } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Code, CheckCircle2, AlertCircle, Copy, Check } from 'lucide-vue-next'
-// import hljs from 'highlight.js' // Lazy loaded instead
+// import hljs from 'highlight.js' // 지연 로드됨
 import debounce from 'lodash/debounce'
 
 const store = useTesterStore()
 const isCopied = ref(false)
 const codeBlock = ref<HTMLElement | null>(null)
 
+/**
+ * 생성된 코드에 구문 강조(Syntax Highlight)를 적용합니다.
+ * 성능을 위해 디바운스 처리되며, 언어 모듈을 동적으로 로드합니다.
+ */
 const highlightCode = debounce(async () => {
   if (codeBlock.value && store.selectedLanguage) {
     const hljs = (await import('highlight.js/lib/core')).default
@@ -35,10 +43,12 @@ const highlightCode = debounce(async () => {
   }
 }, 150)
 
+// 코드가 변경되면 하이라이팅 재적용
 watch(() => store.generatedCode, () => {
   highlightCode()
 })
 
+/** 생성된 코드를 클립보드에 복사합니다. */
 const copyToClipboard = async () => {
   if (!store.generatedCode) return
   try {
@@ -50,6 +60,7 @@ const copyToClipboard = async () => {
   }
 }
 
+// 컴포넌트 마운트 시 하이라이팅 적용
 onMounted(async () => {
   if (codeBlock.value && store.generatedCode && store.selectedLanguage) {
     const hljs = (await import('highlight.js/lib/core')).default
@@ -80,6 +91,10 @@ const isExecuting = ref(false)
 const executionResult = ref<{success: boolean, output: string, error: string} | null>(null)
 const showOutput = ref(false)
 
+/**
+ * 생성된 테스트 코드를 실행(Worker에 요청)합니다.
+ * 실행 중 상태를 관리하고 결과를 표시합니다.
+ */
 const runTest = async () => {
     if (!store.generatedCode) return
     isExecuting.value = true

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * 이용약관 표시 페이지.
+ */
 import { computed } from 'vue'
 import { marked } from 'marked'
 // @ts-ignore

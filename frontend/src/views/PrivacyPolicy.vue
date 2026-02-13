@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * 개인정보처리방침 표시 페이지.
+ */
 import { computed } from 'vue'
 import { marked } from 'marked'
 // @ts-ignore
