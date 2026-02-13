@@ -73,6 +73,7 @@ async def test_clear_success(mock_redis):
     mock_redis.keys.assert_awaited_with("pattern*")
     mock_redis.delete.assert_awaited_with("key1", "key2")
 
+
 @pytest.mark.asyncio
 async def test_ping_success(mock_redis):
     service = CacheService()
@@ -82,6 +83,7 @@ async def test_ping_success(mock_redis):
 
     assert result is True
     mock_redis.ping.assert_awaited_once()
+
 
 def test_generate_key(mock_redis):
     service = CacheService()
