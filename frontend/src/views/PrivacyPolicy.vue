@@ -5,7 +5,7 @@
 import { computed } from 'vue'
 import { marked } from 'marked'
 // @ts-ignore
-import privacyRaw from '../../../PRIVACY_POLICY.md?raw'
+import privacyRaw from '../../../docs/privacy_policy.md?raw'
 
 const renderedContent = computed(() => {
   return marked(privacyRaw)

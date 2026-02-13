@@ -5,7 +5,7 @@
 import { computed } from 'vue'
 import { marked } from 'marked'
 // @ts-ignore
-import termsRaw from '../../../TERMS_OF_SERVICE.md?raw'
+import termsRaw from '../../../docs/terms_of_service.md?raw'
 
 const renderedContent = computed(() => {
   return marked(termsRaw)

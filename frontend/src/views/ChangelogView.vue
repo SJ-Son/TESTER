@@ -6,7 +6,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { marked } from 'marked'
 // @ts-ignore
-import changelogRaw from '../../../CHANGELOG.md?raw'
+import changelogRaw from '../../../docs/changelog.md?raw'
 
 const renderedMarkdown = computed(() => {
   return marked(changelogRaw)
