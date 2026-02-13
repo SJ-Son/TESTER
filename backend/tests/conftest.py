@@ -37,9 +37,10 @@ def mock_redis_globally():
     from unittest.mock import AsyncMock, Mock, patch
 
     # Patch redis.asyncio.from_url (crucial for CacheService which uses memory://)
-    with patch("redis.asyncio.from_url") as mock_async_from_url, \
-         patch("redis.from_url") as mock_sync_from_url:
-
+    with (
+        patch("redis.asyncio.from_url") as mock_async_from_url,
+        patch("redis.from_url") as mock_sync_from_url,
+    ):
         # Async Mock (for CacheService)
         mock_async_client = AsyncMock()
         mock_async_client.ping.return_value = True
