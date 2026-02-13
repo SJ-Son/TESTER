@@ -103,7 +103,7 @@ class GeminiService:
 
         # 1. 캐시 확인 (재생성 요청이 아닐 때만)
         if not is_regenerate:
-            cached_result = self.cache.get(cache_metadata.key)
+            cached_result = await self.cache.get(cache_metadata.key)
             if cached_result:
                 self.logger.info_ctx("캐시된 응답 반환", key=cache_metadata.key[:16])
                 yield cached_result
@@ -149,7 +149,7 @@ class GeminiService:
 
             # 캐시 저장
             if full_response_text:
-                self.cache.set(
+                await self.cache.set(
                     cache_metadata.key,
                     full_response_text,
                     ttl=cache_metadata.ttl,

@@ -2,6 +2,7 @@ import os
 
 # Set up test environment variables BEFORE imports to pass strict validation
 os.environ.setdefault("GEMINI_API_KEY", "AIzaSyDummyTestKey123456789012345678")
+# Use memory:// so slowapi/limiter uses MemoryStorage and doesn't connect to Redis
 os.environ.setdefault("REDIS_URL", "memory://")
 os.environ.setdefault("TURNSTILE_SECRET_KEY", "test_turnstile_key")
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
@@ -28,16 +29,38 @@ def pytest_configure(config):
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_redis_globally():
-    """CI 환경에서 연결 오류를 방지하기 위해 Redis를 전역적으로 모의(Mock)합니다."""
-    from unittest.mock import Mock, patch
+    """CI 환경에서 연결 오류를 방지하기 위해 Redis를 전역적으로 모의(Mock)합니다.
 
-    with patch("redis.from_url") as mock_from_url:
-        mock_client = Mock()
-        mock_client.ping.return_value = True
-        mock_client.get.return_value = None
-        mock_client.setex.return_value = True
-        mock_from_url.return_value = mock_client
-        yield mock_client
+    redis.asyncio.from_url을 패치하고 AsyncMock을 반환하며,
+    redis.from_url (동기)도 패치하여 Mock을 반환합니다.
+    """
+    from unittest.mock import AsyncMock, Mock, patch
+
+    # Patch redis.asyncio.from_url (crucial for CacheService which uses memory://)
+    with patch("redis.asyncio.from_url") as mock_async_from_url, \
+         patch("redis.from_url") as mock_sync_from_url:
+
+        # Async Mock (for CacheService)
+        mock_async_client = AsyncMock()
+        mock_async_client.ping.return_value = True
+        mock_async_client.get.return_value = None
+        mock_async_client.setex.return_value = True
+        mock_async_client.set.return_value = True
+        mock_async_client.keys.return_value = []
+        mock_async_client.delete.return_value = True
+        mock_async_client.close.return_value = None
+        mock_async_from_url.return_value = mock_async_client
+
+        # Sync Mock (for potential sync usage, though limiter should use MemoryStorage)
+        mock_sync_client = Mock()
+        mock_sync_client.ping.return_value = True
+        mock_sync_client.get.return_value = None
+        mock_sync_client.setex.return_value = True
+        mock_sync_client.incr.return_value = 1
+        mock_sync_client.evalsha.return_value = 1
+        mock_sync_from_url.return_value = mock_sync_client
+
+        yield mock_async_client
 
 
 @pytest.fixture

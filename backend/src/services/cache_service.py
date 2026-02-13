@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Final, Optional
 
-import redis
+import redis.asyncio as redis
 from src.config.constants import CacheConstants
 from src.config.settings import settings
 from src.exceptions import CacheError
@@ -98,10 +98,10 @@ class RedisConnectionManager:
             )
         return self._client
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Redis 연결을 종료하고 리소스를 해제합니다."""
         if self._client:
-            self._client.close()
+            await self._client.close()
             self._client = None
 
 
@@ -148,7 +148,7 @@ class CacheService:
         manager = RedisConnectionManager.get_instance()
         self.redis_client: Final[redis.Redis] = manager.get_client(redis_url)
 
-    def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> Optional[str]:
         """캐시에서 값을 조회합니다.
 
         Args:
@@ -161,7 +161,7 @@ class CacheService:
             CacheError: Redis 조회 실패 시.
         """
         try:
-            return self.redis_client.get(key)
+            return await self.redis_client.get(key)
         except redis.RedisError as e:
             raise CacheError(
                 message="캐시 조회 실패",
@@ -169,7 +169,7 @@ class CacheService:
                 key=key,
             ) from e
 
-    def set(self, key: str, value: str, ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: str, ttl: Optional[int] = None) -> None:
         """캐시에 값을 저장합니다.
 
         Args:
@@ -183,12 +183,50 @@ class CacheService:
         effective_ttl = ttl if ttl is not None else self.default_ttl
 
         try:
-            self.redis_client.setex(key, effective_ttl, value)
+            await self.redis_client.setex(key, effective_ttl, value)
         except redis.RedisError as e:
             raise CacheError(
                 message="캐시 저장 실패",
                 operation="set",
                 key=key,
+            ) from e
+
+    async def clear(self, pattern: str = "*") -> None:
+        """패턴에 맞는 캐시 키를 삭제합니다.
+
+        주의: 프로덕션 환경에서는 신중히 사용해야 합니다.
+
+        Args:
+            pattern: 삭제할 키 패턴 (glob 스타일).
+
+        Raises:
+            CacheError: Redis 삭제 실패 시.
+        """
+        try:
+            keys = await self.redis_client.keys(pattern)
+            if keys:
+                await self.redis_client.delete(*keys)
+        except redis.RedisError as e:
+            raise CacheError(
+                message=f"캐시 클리어 실패: {pattern}",
+                operation="clear",
+            ) from e
+
+    async def ping(self) -> bool:
+        """Redis 서버 연결 상태를 확인합니다.
+
+        Returns:
+            bool: 연결 성공 여부.
+
+        Raises:
+            CacheError: Redis Ping 실패 시.
+        """
+        try:
+            return await self.redis_client.ping()
+        except redis.RedisError as e:
+            raise CacheError(
+                message="Redis Ping 실패",
+                operation="ping",
             ) from e
 
     def generate_key(
@@ -221,24 +259,3 @@ class CacheService:
             key=CacheKey(hashed_key),
             ttl=cache_strategy.ttl,
         )
-
-    def clear(self, pattern: str = "*") -> None:
-        """패턴에 맞는 캐시 키를 삭제합니다.
-
-        주의: 프로덕션 환경에서는 신중히 사용해야 합니다.
-
-        Args:
-            pattern: 삭제할 키 패턴 (glob 스타일).
-
-        Raises:
-            CacheError: Redis 삭제 실패 시.
-        """
-        try:
-            keys = self.redis_client.keys(pattern)
-            if keys:
-                self.redis_client.delete(*keys)
-        except redis.RedisError as e:
-            raise CacheError(
-                message=f"캐시 클리어 실패: {pattern}",
-                operation="clear",
-            ) from e

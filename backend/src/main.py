@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
         from src.services.cache_service import CacheService
 
         cache_service = CacheService()
-        cache_service.redis_client.ping()
+        await cache_service.ping()
         logger.info("Redis 연결에 성공했습니다")
     except Exception as e:
         logger.error(f"Redis 연결에 실패했습니다: {e}")
@@ -92,7 +92,7 @@ async def lifespan(app: FastAPI):
     try:
         from src.services.cache_service import RedisConnectionManager
 
-        RedisConnectionManager.get_instance().close()
+        await RedisConnectionManager.get_instance().close()
         logger.info("Redis 연결이 종료되었습니다")
     except Exception as e:
         logger.warning(f"Redis 정리 중 오류가 발생했습니다: {e}")
@@ -290,7 +290,7 @@ async def health_check():
 
         cache = CacheService()
         start_time = time.time()
-        cache.redis_client.ping()
+        await cache.ping()
         latency_ms = (time.time() - start_time) * 1000
 
         pool_info = cache.redis_client.connection_pool
@@ -299,7 +299,6 @@ async def health_check():
             "latency_ms": round(latency_ms, 2),
             "connection_pool": {
                 "max_connections": pool_info.max_connections,
-                "available": pool_info.max_connections - len(pool_info._available_connections),
             },
         }
     except Exception as e:
