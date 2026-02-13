@@ -104,16 +104,9 @@ graph TB
 ```bash
 TESTER/
 ├── backend/                # FastAPI Backend Service
-│   ├── src/                # Application Source Code
-│   ├── tests/              # Backend Unit Tests
-│   └── pyproject.toml      # Poetry Dependencies
 ├── frontend/               # Vue 3 Frontend Application
-│   ├── src/                # Frontend Source Code
-│   ├── public/             # Static Assets
-│   └── package.json        # Node Dependencies
 ├── worker/                 # Isolated Execution Worker
-│   ├── Dockerfile.sandbox  # Sandboxed Environment Definition
-│   └── main.py             # Worker Entry Point
+├── docs/                   # Documentation (Changelog, Privacy, etc.)
 └── docker-compose.yml      # Local Development Orchestration
 ```
 
@@ -229,3 +222,12 @@ TESTER/
 ## 📄 라이선스
 
 MIT License
+
+---
+
+## 📚 관련 문서
+
+- [개발 로그 (Dev Log)](docs/dev_log.md)
+- [변경 사항 (Changelog)](docs/changelog.md)
+- [개인정보 처리방침 (Privacy Policy)](docs/privacy_policy.md)
+- [이용 약관 (Terms of Service)](docs/terms_of_service.md)
