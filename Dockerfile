@@ -11,9 +11,7 @@ RUN npm ci
 
 # 소스 코드 복사
 COPY frontend/ .
-COPY docs/changelog.md /app/
-COPY docs/terms_of_service.md /app/
-COPY docs/privacy_policy.md /app/
+COPY docs/ /app/docs/
 
 # List files to verify copy
 RUN ls -la /app/
