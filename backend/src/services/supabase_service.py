@@ -229,10 +229,11 @@ class SupabaseService:
         return count
 
     async def increment_quota_cache(self, user_id: str) -> None:
-        """캐시된 주간 쿼터 사용량을 1 증가시킵니다 (Atomic).
+        """캐시된 주간 쿼터 사용량을 1 증가시킵니다 (Atomic, Safe).
 
         생성 성공 시 호출되어 캐시 데이터의 정합성을 유지합니다.
-        Atomic operation을 사용하여 동시성 문제를 방지합니다.
+        캐시 키가 존재하는 경우에만 증가시킵니다.
+        키가 만료된 경우 아무 작업도 하지 않아, 다음 조회 시 DB에서 최신 값을 가져오게 합니다.
 
         Args:
             user_id: 사용자 ID.
@@ -240,10 +241,26 @@ class SupabaseService:
         cache_key = self._get_quota_cache_key(user_id)
 
         try:
-            # Atomic Increment & TTL 갱신
-            pipeline = self.cache.redis_client.pipeline()
-            pipeline.incr(cache_key)
-            pipeline.expire(cache_key, 3600)
-            await pipeline.execute()
+            # 키 존재 여부 확인 후 증가 (Race Condition 최소화를 위해 Lua 스크립트 사용 가능하지만,
+            # 여기서는 단순히 존재 여부만 체크하고 진행하거나,
+            # Redis INCR의 특성(없으면 생성)을 피하기 위해 exists 체크 후 진행)
+            # 가장 안전한 방법: 캐시를 삭제하여 다음 요청 시 강제 갱신
+            # 또는 exists -> incr (약간의 race condition 존재하나 허용 가능 범위)
+
+            # 여기서는 캐시 삭제 전략을 선택: 가장 안전하고 구현이 간단함.
+            # 하지만 빈번한 삭제는 캐시 효율을 떨어뜨리므로,
+            # "키가 있으면 증가, 없으면 무시"가 베스트.
+            # python redis client의 incr은 키가 없으면 생성해버림.
+
+            # Lua Script for "Increment only if exists"
+            lua_script = """
+            if redis.call("EXISTS", KEYS[1]) == 1 then
+                return redis.call("INCR", KEYS[1])
+            else
+                return nil
+            end
+            """
+            await self.cache.redis_client.eval(lua_script, 1, cache_key)
+
         except Exception as e:
             logger.warning(f"쿼터 캐시 증가 실패 (DB 데이터는 안전함): {e}")
