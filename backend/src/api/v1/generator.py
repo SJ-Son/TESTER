@@ -5,12 +5,14 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from src.api.v1.deps import (
     get_generation_repository,
+    get_supabase_service,
     get_test_generator_service,
     limiter,
 )
 from src.auth import get_current_user, validate_turnstile_token
 from src.exceptions import ValidationError
 from src.repositories.generation_repository import GenerationRepository
+from src.services.supabase_service import SupabaseService
 from src.services.test_generator_service import TestGeneratorService
 from src.types import AuthenticatedUser, GenerateRequest
 from src.utils.logger import get_logger
@@ -33,6 +35,7 @@ async def generate_test(
     current_user: AuthenticatedUser = Depends(get_current_user),
     service: TestGeneratorService = Depends(get_test_generator_service),
     repository: GenerationRepository = Depends(get_generation_repository),
+    supabase_service: SupabaseService = Depends(get_supabase_service),
 ):
     """테스트 코드 생성 및 스트리밍 반환 (SSE).
 
@@ -45,6 +48,7 @@ async def generate_test(
         current_user: 인증된 사용자 정보.
         service: 테스트 생성 서비스 의존성.
         repository: 생성 이력 저장소 의존성.
+        supabase_service: Supabase 서비스 의존성 (쿼터 확인용).
 
     Returns:
         SSE 스트림 응답.
@@ -60,11 +64,9 @@ async def generate_test(
 
     async def generate_stream():
         # 2. 주간 쿼터 확인 (30회/주) - 스트림 내부로 이동
+        # Redis 캐싱을 적용하여 DB 부하 최소화
         try:
-            from src.services.supabase_service import SupabaseService
-
-            supabase = SupabaseService()
-            current_usage = await run_in_threadpool(supabase.check_weekly_quota, current_user["id"])
+            current_usage = await supabase_service.get_weekly_quota(current_user["id"])
 
             WEEKLY_LIMIT = 30
             if current_usage >= WEEKLY_LIMIT:
@@ -127,6 +129,8 @@ async def generate_test(
                     )
                     if saved:
                         logger.info_ctx("이력 저장 성공", history_id=saved.id)
+                        # 이력 저장 성공 시 캐시된 쿼터 증가 (비동기)
+                        await supabase_service.increment_quota_cache(current_user["id"])
                 except Exception as e:
                     logger.error(f"이력 저장 실패: {e}")
                     # 사용자에게는 성공 응답을 보냈으므로 에러를 던지지 않음
