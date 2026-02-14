@@ -1,7 +1,9 @@
 from unittest.mock import AsyncMock, MagicMock
-from src.main import app
-from src.api.v1.deps import get_supabase_service
+
 import pytest
+from src.api.v1.deps import get_supabase_service
+from src.main import app
+
 
 @pytest.mark.asyncio
 async def test_get_user_status_success(client, mock_user_auth):

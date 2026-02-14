@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -8,10 +8,11 @@ os.environ["GEMINI_API_KEY"] = "AIzaSyFakeKey"
 os.environ["SUPABASE_SERVICE_ROLE_KEY"] = "fake_service_key"
 os.environ["SUPABASE_URL"] = "https://example.supabase.co"
 os.environ["SUPABASE_JWT_SECRET"] = "fake_jwt"
-os.environ["DATA_ENCRYPTION_KEY"] = "fake_encryption_key" # Might be needed
+os.environ["DATA_ENCRYPTION_KEY"] = "fake_encryption_key"  # Might be needed
 
 # Add backend to path
 sys.path.append(os.path.join(os.getcwd(), "backend"))
+
 
 class TestSupabaseSingleton(unittest.TestCase):
     @patch("src.services.supabase_service.create_client")
@@ -40,6 +41,7 @@ class TestSupabaseSingleton(unittest.TestCase):
         # Verify create_client called only once
         mock_create_client.assert_called_once()
         print("✅ SupabaseService Singleton Verified")
+
 
 if __name__ == "__main__":
     unittest.main()

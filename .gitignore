@@ -32,6 +32,7 @@ coverage.xml
 !tsconfig.node.json
 !tsconfig.node.json
 gcp-key.json
+.jules/
 
 # --- OS & IDE ---
 .DS_Store
@@ -43,7 +44,6 @@ gcp-key.json
 # --- 린터 & 포매터 캐시 ---
 .ruff_cache/
 .mypy_cache/
-.Jules/
 
 # --- Infrastructure ---
 .terraform/
