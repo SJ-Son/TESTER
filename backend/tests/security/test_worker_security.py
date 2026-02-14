@@ -3,7 +3,6 @@ import sys
 
 import pytest
 
-# Add worker directory to sys.path to import SecurityChecker
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../worker"))
 
 from security import SecurityChecker, SecurityViolation  # noqa: E402
@@ -17,7 +16,6 @@ def add(a, b):
     return a + b
 print(add(1, 2))
 """
-    # Should not raise exception
     checker.check_code(code)
 
 
@@ -33,7 +31,6 @@ def test_security_check_header_forbidden_import():
 def test_security_check_forbidden_import_from():
     """금지된 모듈(subprocess)에서 임포트 시 보안 위반이 발생하는지 테스트합니다."""
     checker = SecurityChecker()
-    # Unused variable removed
     with pytest.raises(SecurityViolation, match="금지된 모듈에서 임포트: subprocess"):
         checker.check_code("from subprocess import call")
 
@@ -41,7 +38,6 @@ def test_security_check_forbidden_import_from():
 def test_security_check_forbidden_function_call():
     """금지된 함수(eval) 호출 시 보안 위반이 발생하는지 테스트합니다."""
     checker = SecurityChecker()
-    # Unused variable removed
     with pytest.raises(SecurityViolation, match="금지된 함수 호출: eval"):
         checker.check_code("eval('print(1)')")
 

@@ -28,8 +28,6 @@ const jsFunc = () => console.log("JS here");
         "name": "Trap",
         "description": "Comments Only (No executable code)",
         "input_code": """
-# TODO: Implement this
-# Thinking about logic...
 /* No code here either */
 // Just a trap
 """,
@@ -67,7 +65,6 @@ def test_chaos_robustness_scenarios(case, client, mock_user_auth, mock_turnstile
         "turnstile_token": "fake_token",
     }
 
-    # API should return 200 and a stream
     with client.stream("POST", "/api/generate", json=payload) as response:
         assert response.status_code == 200
         content = "".join(response.iter_text())

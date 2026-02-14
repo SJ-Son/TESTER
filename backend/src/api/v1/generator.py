@@ -146,7 +146,6 @@ async def generate_test(
 
         except ValidationError as e:
             logger.warning(f"Validation failed: {e}")
-            # Send as error event via SSE
             yield format_sse_event(
                 "error",
                 {"code": "VALIDATION_ERROR", "message": str(e)},
@@ -154,7 +153,6 @@ async def generate_test(
 
         except Exception as e:
             logger.error(f"Streaming error: {e}", exc_info=True)
-            # Send as error event
             error_data = {
                 "type": "error",
                 "code": "GENERATION_ERROR",

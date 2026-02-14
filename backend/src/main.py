@@ -262,7 +262,6 @@ async def security_middleware(request: Request, call_next):
         }
 
 
-# Health Check Endpoint (for monitoring and load balancers)
 @app.get("/health")
 async def health_check():
     """상세 인프라 상태를 확인하는 엔드포인트.
@@ -284,7 +283,6 @@ async def health_check():
 
     overall_healthy = True
 
-    # === Redis Check ===
     try:
         from src.services.cache_service import CacheService
 
@@ -308,13 +306,11 @@ async def health_check():
             "error": str(e)[:100],  # 에러 메시지 길이 제한
         }
 
-    # === Supabase Check ===
     try:
         from src.services.supabase_service import SupabaseService
 
         supabase = SupabaseService()
         start_time = time.time()
-        # Simple table existence check
         supabase.client.table("generation_history").select("id").limit(1).execute()
         latency_ms = (time.time() - start_time) * 1000
 
@@ -327,7 +323,6 @@ async def health_check():
         overall_healthy = False
         health_status["services"]["supabase"] = {"status": "down", "error": str(e)[:100]}
 
-    # === Gemini API Check ===
     gemini_configured = bool(settings.GEMINI_API_KEY.get_secret_value())
     health_status["services"]["gemini"] = {
         "status": "configured" if gemini_configured else "not_configured",
@@ -337,30 +332,24 @@ async def health_check():
     if not gemini_configured:
         overall_healthy = False
 
-    # === Overall Status ===
     if not overall_healthy:
         health_status["status"] = "degraded"
 
     return health_status
 
 
-# API Routes
 app.include_router(api_router, prefix="/api")
 
-
-# --- Static File Serving (Production) ---
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIST = "/app/frontend/dist"
 
 if os.path.exists(FRONTEND_DIST):
     logger.info(f"프론트엔드 빌드 파일을 발견했습니다: {FRONTEND_DIST}")
-    # Mount assets
     assets_dir = os.path.join(FRONTEND_DIST, "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
-    # Serve robots.txt
     @app.get("/robots.txt")
     async def get_robots_txt():
         robots_file = os.path.join(FRONTEND_DIST, "robots.txt")
@@ -368,7 +357,6 @@ if os.path.exists(FRONTEND_DIST):
             return FileResponse(robots_file)
         return {"error": "robots.txt not found"}
 
-    # Serve sitemap.xml
     @app.get("/sitemap.xml")
     async def get_sitemap_xml():
         sitemap_file = os.path.join(FRONTEND_DIST, "sitemap.xml")
@@ -376,7 +364,6 @@ if os.path.exists(FRONTEND_DIST):
             return FileResponse(sitemap_file)
         return {"error": "sitemap.xml not found"}
 
-    # SPA Catch-all
     @app.get("/{rest_of_path:path}")
     async def serve_frontend(rest_of_path: str):
         if rest_of_path.startswith("api/"):

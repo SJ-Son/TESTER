@@ -13,7 +13,6 @@ async def test_turnstile_http_exception(client, mock_user_auth):
         "turnstile_token": "valid_token_structure",
     }
 
-    # Mock httpx to raise exception
     with patch(
         "src.auth.httpx.AsyncClient.post", side_effect=httpx.ConnectError("Connection failed")
     ):

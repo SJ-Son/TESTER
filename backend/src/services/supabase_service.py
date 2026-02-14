@@ -252,7 +252,6 @@ class SupabaseService:
             # "키가 있으면 증가, 없으면 무시"가 베스트.
             # python redis client의 incr은 키가 없으면 생성해버림.
 
-            # Lua Script for "Increment only if exists"
             lua_script = """
             if redis.call("EXISTS", KEYS[1]) == 1 then
                 return redis.call("INCR", KEYS[1])

@@ -77,7 +77,6 @@ class RedisConnectionManager:
         if self._client is None:
             # 플랫폼별 Keepalive 옵션 설정
             keepalive_options = {}
-            # Linux: TCP_KEEPIDLE, macOS: TCP_KEEPALIVE
             if hasattr(socket, "TCP_KEEPIDLE"):
                 keepalive_options[socket.TCP_KEEPIDLE] = 60
             elif hasattr(socket, "TCP_KEEPALIVE"):

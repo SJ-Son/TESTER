@@ -88,12 +88,9 @@ class Settings(BaseSettings):
     def validate_gemini_key(cls, v: SecretStr) -> SecretStr:
         """Gemini API 키 형식 검증"""
         # 필수 값 체크 (빈 문자열 허용 안 함) already handled by validate_critical_keys but good for specific field
-        # Note: field_validator for SecretStr receives SecretStr (or whatever input is before parsing if mode='before')
-        # By default mode='after', so v is SecretStr.
 
         value = v.get_secret_value() if v else ""
         if not value:
-            # We defer empty check to model_validator or let it pass here if default is allowed temporarily
             return v
 
         if value != "your_gemini_api_key_here" and not value.startswith("AI"):
@@ -114,8 +111,6 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """프로덕션 환경 여부"""
         return self.ENV.lower() == "production"
-
-    # Legacy validate() method removed in favor of Pydantic validation
 
 
 settings = Settings()
