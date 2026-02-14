@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from src.api.v1.deps import limiter
+from src.api.v1.deps import get_supabase_service, limiter
 from src.auth import get_current_user
 from src.services.supabase_service import SupabaseService
 from src.types import AuthenticatedUser
 from src.utils.logger import get_logger
-from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -15,12 +14,14 @@ logger = get_logger(__name__)
 async def get_user_status(
     request: Request,
     current_user: AuthenticatedUser = Depends(get_current_user),
+    supabase_service: SupabaseService = Depends(get_supabase_service),
 ):
     """사용자의 현재 상태 및 쿼터 사용량을 조회합니다.
 
     Args:
         request: HTTP 요청 객체 (Rate Limiting용).
         current_user: 인증된 사용자 정보.
+        supabase_service: Supabase 서비스 의존성 (쿼터 확인용).
 
     Returns:
         사용자 상태 정보 (ID, 이메일, 주간 쿼터 사용량 등).
@@ -29,8 +30,8 @@ async def get_user_status(
         HTTPException: 데이터베이스 조회 실패 등의 내부 오류 시 (500).
     """
     try:
-        supabase = SupabaseService()
-        current_usage = await run_in_threadpool(supabase.check_weekly_quota, current_user["id"])
+        # 캐싱된 쿼터 조회 (비동기)
+        current_usage = await supabase_service.get_weekly_quota(current_user["id"])
 
         # 로그에 이모지 제거 및 구조화된 컨텍스트 추가
         logger.info_ctx(
