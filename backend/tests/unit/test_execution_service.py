@@ -1,8 +1,9 @@
 """ExecutionService 단위 테스트."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
+import pytest
 from src.services.execution_service import ExecutionService
 
 

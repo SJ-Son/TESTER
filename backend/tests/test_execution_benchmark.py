@@ -1,7 +1,8 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from src.services.execution_service import ExecutionService
-import httpx
+
 
 @pytest.mark.asyncio
 async def test_execution_service_instantiation_count():
