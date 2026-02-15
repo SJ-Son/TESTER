@@ -58,6 +58,12 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app/backend
 ENV PORT=8080
 
+# Create a non-root user and switch to it
+RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
 # 포트 노출
 EXPOSE 8080
 
