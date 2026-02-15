@@ -1,9 +1,29 @@
-# Bolt's Optimization Journal
+⚡ Bolt: HTTP Client Connection Pooling & Singleton Refactor
+NOTE
 
-## 2026-02-14 - [Supabase Client & Quota Caching Optimization]
-Learning: In Python, relying on `__init__` for Singleton behavior is flawed because `__new__` handles instance creation, and `__init__` is always called afterward unless overridden carefully. The previous implementation caused the Supabase client to be re-instantiated on every request.
-Action: Always implement `__new__` for Singletons to ensure strictly one instance exists. Additionally, critical read-heavy paths (like user quota checks) should be cached in Redis to minimize database latency.
+💡 Summary: Refactored `ExecutionService` to reuse a single `httpx.AsyncClient` instance via the Singleton pattern, eliminating repetitive SSL handshakes and TCP connection overhead.
+📊 Impact: Reduced `httpx.AsyncClient` instantiations from 1 per request to 1 per application lifecycle. Estimated latency reduction of 50-100ms per execution request (SSL handshake avoidance).
 
-## 2026-02-14 - [Cache Strategy for Time-Bound Quotas]
-Learning: Caching time-bound data (e.g., weekly quotas) with simple TTLs is risky because cache expiration doesn't align with business logic boundaries (e.g., Monday reset). A user crossing the boundary might see stale data.
-Action: Include the time window identifier (e.g., week start date) in the cache key (`quota:weekly:{user_id}:{date}`) to enforce automatic invalidation at boundaries. Use atomic operations (`INCR`) to prevent race conditions during updates.
+🔍 The Bottleneck
+The `ExecutionService.execute_code` method was instantiating a new `httpx.AsyncClient` inside a context manager (`async with`) for every single request.
+This caused:
+1.  Repeated TCP 3-way handshakes.
+2.  Repeated SSL/TLS negotiation (expensive CPU/Network operation).
+3.   inability to reuse Keep-Alive connections.
+
+🛠 The Optimization
+1.  **Singleton Pattern**: Implemented `__new__` in `ExecutionService` to ensure a single instance exists application-wide.
+2.  **Persistent Client**: Initialized `self.client = httpx.AsyncClient(timeout=60.0)` in `__init__`.
+3.  **Connection Reuse**: Updated `execute_code` to use `self.client.post(...)`.
+4.  **Lifecycle Management**: Added `close()` method and hooked it into `backend/src/main.py`'s shutdown event to gracefully close the connection pool.
+
+🔬 Measurement
+Created a benchmark test `tests/test_execution_benchmark.py` that mocks `httpx.AsyncClient`.
+*   **Before**: 5 calls to `execute_code` resulted in **5** `AsyncClient` instantiations.
+*   **After**: 5 calls to `execute_code` resulted in **1** `AsyncClient` instantiation.
+*   **Regression Testing**: Updated `tests/unit/test_execution_service.py` to support the Singleton pattern and verified all 72 tests passed.
+
+📔 Bolt's Journal (Critical Learnings)
+2026-02-15 - FastAPI Dependency Injection & Singletons
+Learning: FastAPI's `Depends()` creates new instances by default unless cached. While strictly "dependency injection", for heavyweight services like HTTP clients or DB connections, manual Singleton implementation (or `@lru_cache` on the dependency provider) is crucial to prevent resource leaks and performance degradation.
+Action: Audit other services (`GeminiService`, `TestGeneratorService`) for similar instantiation patterns and apply Singleton or Lifecycle management where appropriate.
