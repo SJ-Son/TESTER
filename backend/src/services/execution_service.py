@@ -2,6 +2,7 @@ import os
 from typing import Any, Optional
 
 import httpx
+from src.config.settings import settings
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -35,7 +36,7 @@ class ExecutionService:
             return
 
         self.worker_url = os.getenv("WORKER_URL", "http://localhost:5000")
-        self.worker_token = os.getenv("WORKER_AUTH_TOKEN")
+        self.worker_token = settings.WORKER_AUTH_TOKEN.get_secret_value()
 
         # HTTP 클라이언트 초기화 (Connection Pooling, Keep-Alive)
         # 타임아웃 60초 설정

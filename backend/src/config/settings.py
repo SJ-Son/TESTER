@@ -18,6 +18,9 @@ class Settings(BaseSettings):
         default="default-secret-change-me", description="내부 API 통신용 시크릿"
     )
 
+    # 워커 인증 토큰
+    WORKER_AUTH_TOKEN: SecretStr = Field(default="", description="Worker authentication token")
+
     # CORS 설정
     ALLOWED_ORIGINS: str = Field(
         default="http://localhost:5173,http://localhost:8080",
