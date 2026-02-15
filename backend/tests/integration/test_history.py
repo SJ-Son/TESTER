@@ -8,21 +8,16 @@ def test_get_history_integration_success(client, mock_user_auth):
     /api/history 엔드포인트가 모의(Mock) SupabaseService와 함께 정상 작동하는지 검증합니다.
     BaseRepository가 self.client를 올바르게 사용하는지 확인합니다.
     """
-    # Mock SupabaseService where it is USED in BaseRepository
     with patch("src.repositories.base_repository.SupabaseService") as MockSupabaseService:
         mock_instance = MockSupabaseService.return_value
         mock_client = MagicMock()
-        # Important: SupabaseService().client property must return the mock client
         type(mock_instance).client = (
             PropertyMock(return_value=mock_client)
             if isinstance(mock_instance, MagicMock)
             else mock_client
         )
-        # Actually in the code: self.client = SupabaseService().client
-        # Mocking the class returns a MagicMock, accessing .client on it returns another MagicMock unless configured.
         mock_instance.client = mock_client
 
-        # Mock the chain: table("generation_history").select("*").eq().order().limit().execute()
         mock_response = MagicMock()
         mock_response.data = [
             {
@@ -38,7 +33,6 @@ def test_get_history_integration_success(client, mock_user_auth):
 
         mock_client.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value = mock_response
 
-        # Mock EncryptionService to avoid actual decryption errors
         with patch("src.repositories.generation_repository.EncryptionService") as MockEncryption:
             MockEncryption.return_value.decrypt.side_effect = lambda x: x.replace("encrypted_", "")
 
@@ -50,5 +44,4 @@ def test_get_history_integration_success(client, mock_user_auth):
             assert data[0]["input_code"] == "input"
             assert data[0]["language"] == "python"
 
-            # Verify BaseRepository used self.client
             mock_client.table.assert_called_with("generation_history")

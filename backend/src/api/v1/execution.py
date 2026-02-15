@@ -8,7 +8,6 @@ from src.utils.logger import get_logger
 
 router = APIRouter()
 logger = get_logger(__name__)
-# execution_service will be injected via dependency
 
 
 class ExecutionRequest(BaseModel):

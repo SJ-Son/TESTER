@@ -20,7 +20,6 @@ def test_unauthorized_access(client):
 
 def test_turnstile_failure(client, mock_user_auth):
     """Turnstile 검증 실패 시 400 에러가 발생하는지 확인."""
-    # Patch the direct function call to raise TurnstileError
     with patch("src.api.v1.generator.validate_turnstile_token", side_effect=TurnstileError()):
         payload = {
             "input_code": "def foo(): pass",
@@ -30,7 +29,6 @@ def test_turnstile_failure(client, mock_user_auth):
         }
         response = client.post("/api/generate", json=payload)
 
-        # 400 Bad Request is returned by exception handler
         assert response.status_code == 400
 
 
@@ -45,7 +43,6 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
 
     from src.api.v1.deps import limiter
 
-    # Enable limiter for this test
     limiter.enabled = True
 
     from src.api.v1.deps import get_test_generator_service
@@ -66,6 +63,5 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
         if res.status_code == 429:
             found_429 = True
             break
-        # Might return 200 (stream) or 429
 
     assert found_429 is True

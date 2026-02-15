@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# Wait for apt lock
 echo "Checking for apt locks..."
 while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 || sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
   echo "Waiting for apt lock..."
   sleep 5
 done
 
-# Update and install Docker
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -22,7 +20,6 @@ echo \
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Create Worker Files (Embed to avoid SCP issues)
 cat <<EOF > requirements.txt
 fastapi==0.109.2
 uvicorn==0.27.1
@@ -168,13 +165,11 @@ def execute_code(request: ExecutionRequest):
                 logger.warning(f"Failed to cleanup container: {e}")
 EOF
 
-# Build Worker Image
 echo "Current directory contents:"
 ls -la
 
 sudo docker build -t tester-worker .
 
-# Build Sandbox Image
 cat <<EOF > Dockerfile.sandbox
 FROM python:3.12-slim
 RUN pip install pytest
@@ -182,13 +177,11 @@ EOF
 
 sudo docker build -t tester-sandbox -f Dockerfile.sandbox .
 
-# Check if container is running and stop it
 if [ "$(sudo docker ps -q -f name=tester-worker)" ]; then
     sudo docker stop tester-worker
     sudo docker rm tester-worker
 fi
 
-# Run Worker
 export WORKER_AUTH_TOKEN="YOUR_SECRET_TOKEN_HERE" 
 
 sudo docker run -d \

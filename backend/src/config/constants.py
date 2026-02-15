@@ -176,18 +176,15 @@ class ErrorMessages:
 class NetworkConstants:
     """네트워크 및 연결 관련 상수."""
 
-    # HTTP Timeouts
     HTTP_TIMEOUT_SECONDS: Final[int] = 10
     """기본 HTTP 요청 타임아웃"""
 
     TURNSTILE_TIMEOUT_SECONDS: Final[int] = 5
     """Turnstile 검증 타임아웃"""
 
-    # Compression
     GZIP_MIN_SIZE_BYTES: Final[int] = 500
     """GZip 압축 최소 크기"""
 
-    # Redis Connection Pool
     REDIS_MAX_CONNECTIONS: Final[int] = 10
     """Redis 최대 연결 수"""
 

@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
@@ -34,13 +35,25 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
 async def verify_api_key(api_key: str = Depends(api_key_header)):
-    if not api_key or api_key != settings.TESTER_INTERNAL_SECRET.get_secret_value():
+    """제공된 API 키의 유효성을 검증합니다.
+
+    Timing Attack을 방지하기 위해 secrets.compare_digest를 사용합니다.
+
+    Args:
+        api_key (str): 헤더에서 추출한 API 키.
+
+    Returns:
+        str: 검증된 API 키.
+
+    Raises:
+        HTTPException: API 키가 유효하지 않거나 누락된 경우 (401 Unauthorized).
+    """
+    if not api_key or not secrets.compare_digest(
+        api_key, settings.TESTER_INTERNAL_SECRET.get_secret_value()
+    ):
         logger.warning(f"Unauthorized access attempt with key: {api_key}")
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid Internal API Key")
     return api_key
-
-
-# Service Dependencies
 
 
 def get_gemini_service() -> GeminiService:

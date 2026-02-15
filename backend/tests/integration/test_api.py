@@ -15,11 +15,9 @@ def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
         yield "public class "
         yield "Test {}"
 
-    # Service layer method is generate_test
     # side_effect에 비동기 제너레이터 함수를 할당하면 호출 시 코루틴/제너레이터를 반환
     mock_service.generate_test.side_effect = mock_async_generator
 
-    # Override dependency
     from src.api.v1.deps import get_test_generator_service
     from src.main import app
 
@@ -35,7 +33,6 @@ def test_generate_code_api(client, mock_user_auth, mock_turnstile_success):
     with client.stream("POST", "/api/generate", json=payload) as response:
         assert response.status_code == 200
         content = "".join(response.iter_text())
-        # Validate SSE format presence
         assert 'data: {"type": "chunk", "content": "public class "}' in content
         assert 'data: {"type": "chunk", "content": "Test {}"}' in content
 
@@ -48,7 +45,6 @@ def test_validation_error(client, mock_user_auth, mock_turnstile_success):
 
     mock_service = MagicMock()
 
-    # Mock validation error during generation
     async def mock_error_gen(*args, **kwargs):
         if False:
             yield  # make it async generator

@@ -1,18 +1,14 @@
 import os
 
-# Set up test environment variables BEFORE imports to pass strict validation
 os.environ.setdefault("GEMINI_API_KEY", "AIzaSyDummyTestKey123456789012345678")
-# Use memory:// so slowapi/limiter uses MemoryStorage and doesn't connect to Redis
 os.environ.setdefault("REDIS_URL", "memory://")
 os.environ.setdefault("TURNSTILE_SECRET_KEY", "test_turnstile_key")
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test_supabase_key")
 os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "test_service_role_key")
 os.environ.setdefault("SUPABASE_JWT_SECRET", "test_jwt_secret_min_32_chars_len!")
-# Valid Fernet key generated with Fernet.generate_key()
 os.environ.setdefault("DATA_ENCRYPTION_KEY", "6J5FNvK8aF2hq0rP3xZ9yWcN7dB1mT4vL8jG2kH5sX0=")
 os.environ.setdefault("TESTER_INTERNAL_SECRET", "test_internal_secret")
-# Disable worker auth enforce for backend tests, although backend doesn't use it directly
 os.environ.setdefault("DISABLE_WORKER_AUTH", "true")
 
 import pytest  # noqa: E402
@@ -23,7 +19,6 @@ from src.main import app  # noqa: E402
 
 def pytest_configure(config):
     """Pytest 설정 훅."""
-    # Env vars are already set above
     pass
 
 
@@ -36,12 +31,10 @@ def mock_redis_globally():
     """
     from unittest.mock import AsyncMock, Mock, patch
 
-    # Patch redis.asyncio.from_url (crucial for CacheService which uses memory://)
     with (
         patch("redis.asyncio.from_url") as mock_async_from_url,
         patch("redis.from_url") as mock_sync_from_url,
     ):
-        # Async Mock (for CacheService)
         mock_async_client = AsyncMock()
         mock_async_client.ping.return_value = True
         mock_async_client.get.return_value = None
@@ -52,7 +45,6 @@ def mock_redis_globally():
         mock_async_client.close.return_value = None
         mock_async_from_url.return_value = mock_async_client
 
-        # Sync Mock (for potential sync usage, though limiter should use MemoryStorage)
         mock_sync_client = Mock()
         mock_sync_client.ping.return_value = True
         mock_sync_client.get.return_value = None
@@ -95,7 +87,6 @@ def mock_turnstile_success():
     """테스트를 위해 Turnstile 검증을 오버라이드합니다."""
     from unittest.mock import patch
 
-    # Mock the direct function call in generator.py
     with patch("src.api.v1.generator.validate_turnstile_token") as mock:
         mock.return_value = None
         yield mock

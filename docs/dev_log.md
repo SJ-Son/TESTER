@@ -1,5 +1,12 @@
 # 개발자 작업 로그 (DEV_log)
 
+### [2026-02-15] 작업 메모
+- **성능 최적화 (ExecutionService):**
+    - **내용:** `ExecutionService`를 Singleton 패턴으로 전환하고 Connection Pooling 적용.
+    - **효과:** 인스턴스 재생성 비용 절감 및 DB 연결 관리 효율화.
+- **보안 패치 (API Security):**
+    - **내용:** API 키 검증 로직에 `secrets.compare_digest` 적용하여 Timing Attack 방지.
+
 ### [2026-02-12] 작업 메모
 - **트러블슈팅 (History Endpoint 500 Error):**
     - **증상:** `/api/history` 호출 시 500 Internal Server Error 발생.

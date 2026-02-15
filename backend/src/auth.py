@@ -15,9 +15,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = SecurityConstants.JWT_EXPIRE_MINUTES
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
-# create_access_token and verify_google_token removed as we delegate auth to Supabase
-
-
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> AuthenticatedUser:
     """
     Supabase JWT 검증 및 사용자 식별 (via Remote API)

@@ -1,4 +1,3 @@
-# Stage 1: Build Vue.js Frontend
 FROM node:20-slim AS build-stage
 
 WORKDIR /app/frontend
@@ -13,7 +12,6 @@ RUN npm ci
 COPY frontend/ .
 COPY docs/ /app/docs/
 
-# List files to verify copy
 RUN ls -la /app/
 
 # 빌드 인자
@@ -30,7 +28,6 @@ ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 # 프로덕션 빌드
 RUN npm run build
 
-# Stage 2: Serve with FastAPI Backend
 FROM python:3.12-slim
 
 WORKDIR /app
