@@ -35,20 +35,24 @@ class TestExecutionService:
     @pytest.fixture
     def service(self, mock_httpx_client):
         """ExecutionService 인스턴스 생성 (토큰 포함)."""
-        with patch.dict(
-            "os.environ",
-            {"WORKER_URL": "http://test-worker:5000", "WORKER_AUTH_TOKEN": "test-token"},
-        ):
-            # Init happens here, using the mocked httpx.AsyncClient
-            svc = ExecutionService()
-            return svc
+        with patch("src.services.execution_service.settings") as mock_settings:
+            mock_settings.WORKER_AUTH_TOKEN.get_secret_value.return_value = "test-token"
+            with patch.dict(
+                "os.environ",
+                {"WORKER_URL": "http://test-worker:5000"},
+            ):
+                # Init happens here, using the mocked httpx.AsyncClient
+                svc = ExecutionService()
+                return svc
 
     @pytest.fixture
     def service_no_token(self, mock_httpx_client):
         """인증 토큰 없는 ExecutionService."""
-        with patch.dict("os.environ", {"WORKER_URL": "http://test-worker:5000"}, clear=True):
-            svc = ExecutionService()
-            return svc
+        with patch("src.services.execution_service.settings") as mock_settings:
+            mock_settings.WORKER_AUTH_TOKEN.get_secret_value.return_value = ""
+            with patch.dict("os.environ", {"WORKER_URL": "http://test-worker:5000"}, clear=True):
+                svc = ExecutionService()
+                return svc
 
     # === 정상 실행 테스트 ===
 
