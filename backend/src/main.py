@@ -97,6 +97,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Redis 정리 중 오류가 발생했습니다: {e}")
 
+    # ExecutionService 정리
+    try:
+        from src.services.execution_service import ExecutionService
+
+        await ExecutionService().close()
+        logger.info("ExecutionService 연결이 종료되었습니다")
+    except Exception as e:
+        logger.warning(f"ExecutionService 정리 중 오류가 발생했습니다: {e}")
+
     logger.info("서버가 안전하게 종료되었습니다")
 
 
