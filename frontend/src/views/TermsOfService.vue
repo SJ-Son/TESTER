@@ -4,11 +4,13 @@
  */
 import { computed } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 // @ts-ignore
 import termsRaw from '../../../docs/terms_of_service.md?raw'
 
 const renderedContent = computed(() => {
-  return marked(termsRaw)
+  const rawHtml = marked(termsRaw)
+  return DOMPurify.sanitize(rawHtml as string)
 })
 </script>
 

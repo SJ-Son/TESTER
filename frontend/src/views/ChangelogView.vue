@@ -5,11 +5,13 @@
  */
 import { ref, onMounted, computed } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 // @ts-ignore
 import changelogRaw from '../../../docs/changelog.md?raw'
 
 const renderedMarkdown = computed(() => {
-  return marked(changelogRaw)
+  const rawHtml = marked(changelogRaw)
+  return DOMPurify.sanitize(rawHtml as string)
 })
 </script>
 

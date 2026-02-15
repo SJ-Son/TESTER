@@ -4,11 +4,13 @@
  */
 import { computed } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 // @ts-ignore
 import privacyRaw from '../../../docs/privacy_policy.md?raw'
 
 const renderedContent = computed(() => {
-  return marked(privacyRaw)
+  const rawHtml = marked(privacyRaw)
+  return DOMPurify.sanitize(rawHtml as string)
 })
 </script>
 
