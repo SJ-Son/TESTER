@@ -3,13 +3,14 @@
  * 메인 제어 패널 컴포넌트 (사이드바).
  * 인증, 모델 선택, 히스토리 관리 및 사용량 통계를 표시합니다.
  */
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, ChevronRight, X } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import type { SupportedLanguage, GeminiModel } from '../types'
 
 const store = useTesterStore()
+const showPreparationModal = ref(false)
 
 /** 지원되는 언어 목록 (아이콘 포함) */
 const languages: { id: SupportedLanguage, name: string, icon: string }[] = [
@@ -93,12 +94,20 @@ const logout = async () => {
       <div v-else class="flex flex-col space-y-3 p-3 bg-gradient-to-r from-blue-500/10 to-transparent border border-blue-500/20 rounded-xl">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-              <User class="w-4 h-4" />
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 overflow-hidden">
+              <img 
+                v-if="store.user?.user_metadata?.avatar_url" 
+                :src="store.user.user_metadata.avatar_url" 
+                alt="Profile" 
+                class="w-full h-full object-cover"
+              />
+              <User v-else class="w-4 h-4" />
             </div>
-            <div>
-              <div class="text-xs font-semibold text-white">Authenticated</div>
-              <div class="text-[10px] text-blue-300/70">Ready to test</div>
+            <div class="overflow-hidden">
+              <div class="text-xs font-semibold text-white truncate max-w-[120px]">
+                {{ store.user?.user_metadata?.full_name || store.user?.user_metadata?.name || 'User' }}
+              </div>
+              <div class="text-[10px] text-blue-300/70 truncate">{{ store.user?.email || '' }}</div>
             </div>
           </div>
           <button @click="logout" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Logout" aria-label="Logout">
@@ -106,25 +115,58 @@ const logout = async () => {
           </button>
         </div>
         
-        <!-- Weekly Quota Display -->
-        <div class="pt-2 border-t border-blue-500/10">
-            <div class="flex justify-between items-center text-[10px] text-gray-400 mb-1">
-                <span>Weekly Usage</span>
-                <span :class="{'text-red-400': store.usageStats.remaining === 0, 'text-blue-400': store.usageStats.remaining > 0}">
-                    {{ store.usageStats.weekly_usage }} / {{ store.usageStats.weekly_limit }}
+        <!-- Token Display -->
+        <div class="pt-2 border-t border-blue-500/10 space-y-2">
+            <!-- 토큰 잔액 -->
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider">Tokens</span>
+                <span 
+                    class="text-sm font-bold tabular-nums"
+                    :class="{
+                        'text-emerald-400': store.tokenInfo.current_tokens >= store.tokenInfo.cost_per_generation,
+                        'text-amber-400': store.tokenInfo.current_tokens > 0 && store.tokenInfo.current_tokens < store.tokenInfo.cost_per_generation,
+                        'text-red-400': store.tokenInfo.current_tokens === 0
+                    }"
+                >
+                    {{ store.tokenInfo.current_tokens }}
                 </span>
             </div>
-            <div class="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
-                <div 
-                    class="h-full rounded-full transition-all duration-500"
-                    :class="store.usageStats.remaining === 0 ? 'bg-red-500' : 'bg-blue-500'"
-                    :style="{ width: `${Math.min((store.usageStats.weekly_usage / store.usageStats.weekly_limit) * 100, 100)}%` }"
-                ></div>
+            <!-- 생성 가능 횟수 -->
+            <div class="text-[9px] text-gray-500 text-right">
+                {{ store.tokenInfo.cost_per_generation > 0 ? Math.floor(store.tokenInfo.current_tokens / store.tokenInfo.cost_per_generation) : 0 }}회 생성 가능 ({{ store.tokenInfo.cost_per_generation }}토큰/회)
             </div>
-            <div class="text-[9px] text-gray-500 mt-1 text-right">
-                {{ store.usageStats.remaining }} requests remaining
+            <!-- 일일 보너스 상태 -->
+            <div class="flex items-center justify-between text-[9px]">
+                <span 
+                    class="px-1.5 py-0.5 rounded-full"
+                    :class="store.tokenInfo.daily_bonus_claimed 
+                        ? 'bg-emerald-500/10 text-emerald-400' 
+                        : 'bg-amber-500/10 text-amber-400'"
+                >
+                    {{ store.tokenInfo.daily_bonus_claimed ? '✓ 일일 보너스 수령' : '보너스 확인 중...' }}
+                </span>
+                <button
+                    @click.prevent="showPreparationModal = true"
+                    class="text-gray-400 hover:text-white hover:underline transition-colors flex items-center gap-1"
+                >
+                    <span>토큰 구매</span>
+                </button>
             </div>
         </div>
+      </div>
+    </div>
+    
+    <!-- Preparation Modal (Temporary) -->
+    <div v-if="showPreparationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" @click="showPreparationModal = false">
+      <div class="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4 text-center transform transition-all scale-100" @click.stop>
+        <h3 class="text-lg font-bold text-white mb-2">서비스 준비 중</h3>
+        <p class="text-gray-400 text-sm mb-6">토큰 구매 기능은 현재 준비 중입니다.<br>잠시만 기다려주세요!</p>
+        <button 
+          @click="showPreparationModal = false"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors w-full"
+        >
+          확인
+        </button>
       </div>
     </div>
 
@@ -171,8 +213,10 @@ const logout = async () => {
         <span>|</span>
         <a href="mailto:sjson666@gmail.com" class="hover:text-blue-400 transition-colors">문의</a>
       </div>
-      <div class="text-[9px] text-gray-400 text-center font-mono">
-        <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">출시노트</router-link> &copy; TESTER
+      <div class="text-[9px] text-gray-400 text-center font-mono flex items-center justify-center gap-2">
+        <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">출시노트</router-link>
+        <span>&copy; TESTER</span>
+
       </div>
     </div>
   </aside>

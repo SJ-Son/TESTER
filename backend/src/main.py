@@ -5,13 +5,13 @@ import uuid
 from contextlib import asynccontextmanager
 
 import google.generativeai as genai
+import jwt
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from jose import jwt
 from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -20,7 +20,12 @@ from src.api.v1.deps import limiter
 from src.auth import ALGORITHM
 from src.config.constants import NetworkConstants
 from src.config.settings import settings
-from src.exceptions import TurnstileError, ValidationError
+from src.exceptions import (
+    DuplicateTransactionError,
+    InsufficientTokensError,
+    TurnstileError,
+    ValidationError,
+)
 from src.utils.logger import get_logger, setup_logging, trace_id_ctx
 
 # 로깅 설정 초기화
@@ -147,6 +152,31 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
     )
 
 
+@app.exception_handler(InsufficientTokensError)
+async def insufficient_tokens_handler(request: Request, exc: InsufficientTokensError):
+    """토큰 부족 시 402 Payment Required 응답을 반환합니다."""
+    return JSONResponse(
+        status_code=402,
+        content={
+            "detail": {
+                "code": exc.code,
+                "message": exc.message,
+                "required": exc.required,
+                "current": exc.current,
+            }
+        },
+    )
+
+
+@app.exception_handler(DuplicateTransactionError)
+async def duplicate_transaction_handler(request: Request, exc: DuplicateTransactionError):
+    """중복 보상 요청 시 409 Conflict 응답을 반환합니다."""
+    return JSONResponse(
+        status_code=409,
+        content={"detail": {"code": exc.code, "message": exc.message}},
+    )
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """전역 예외 처리기 (처리되지 않은 오류 포착).
@@ -209,11 +239,19 @@ async def attach_user_to_state(request: Request, call_next):
                 )
                 request.state.user = None
             else:
+                # audience 검증을 비활성화하여 python-jose와 동일한 동작 보장
                 payload = jwt.decode(
-                    token, settings.SUPABASE_JWT_SECRET.get_secret_value(), algorithms=[ALGORITHM]
+                    token,
+                    settings.SUPABASE_JWT_SECRET.get_secret_value(),
+                    algorithms=[ALGORITHM],
+                    options={"verify_aud": False},
                 )
                 request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
-        except Exception:
+        except jwt.PyJWTError:
+            logger.warning("Invalid JWT token detected")
+            request.state.user = None
+        except Exception as e:
+            logger.error(f"Unexpected error during JWT decoding: {e}")
             request.state.user = None
     else:
         request.state.user = None

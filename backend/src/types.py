@@ -130,3 +130,36 @@ class CacheMetadata:
         """TTL 유효성 검증."""
         if self.ttl <= 0:
             raise ValueError(f"TTL은 양수여야 합니다: {self.ttl}")
+
+
+# === 토큰 시스템 모델 ===
+
+
+class TokenInfo(BaseModel):
+    """사용자 토큰 상태 응답 모델.
+
+    Attributes:
+        current_tokens: 현재 보유 토큰.
+        daily_bonus_claimed: 금일 로그인 보너스 수령 여부.
+        cost_per_generation: 테스트 1회 생성 비용.
+    """
+
+    current_tokens: int
+    daily_bonus_claimed: bool
+    cost_per_generation: int
+
+
+class TokenDeductResult(BaseModel):
+    """토큰 차감 결과 모델.
+
+    Attributes:
+        success: 차감 성공 여부.
+        deducted: 차감된 토큰 수.
+        current_balance: 차감 후 잔액.
+        error: 에러 코드 (실패 시).
+    """
+
+    success: bool
+    deducted: int = 0
+    current_balance: int
+    error: str | None = None

@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import * as generatorApi from '../api/generator'
 import { MOBILE_BREAKPOINT, MAX_HISTORY_ITEMS } from '../utils/constants'
 import type { SupportedLanguage, GeminiModel } from '../types'
+import type { TokenInfo } from '../types/api.types'
 
 export const useTesterStore = defineStore('tester', () => {
     // State
@@ -22,8 +23,25 @@ export const useTesterStore = defineStore('tester', () => {
     const streamEnded = ref(false)
     /** 사용자의 인증 토큰 */
     const userToken = ref(localStorage.getItem('tester_token') || '')
-    /** 사용자의 주간 사용량 통계 */
-    const usageStats = ref({ weekly_usage: 0, weekly_limit: 30, remaining: 30 })
+    /** 사용자 프로필 정보 */
+    const user = ref<any>(null)
+    /** 사용자의 토큰 정보 */
+    const tokenInfo = ref<TokenInfo>({
+        current_tokens: 0,
+        daily_bonus_claimed: false,
+        cost_per_generation: 10,
+    })
+    /** 토큰 부족 모달 표시 여부 */
+    const showInsufficientTokensModal = ref(false)
+
+    /** @deprecated 하위 호환성 유지 — tokenInfo 사용 권장 */
+    const usageStats = computed(() => ({
+        weekly_usage: 0,
+        weekly_limit: 30,
+        remaining: tokenInfo.value.cost_per_generation > 0
+            ? Math.floor(tokenInfo.value.current_tokens / tokenInfo.value.cost_per_generation)
+            : 0
+    }))
 
     // 로컬 스토리지에서 히스토리 초기화 (안전하게 파싱)
     let initialHistory: any[] = []
@@ -65,6 +83,7 @@ export const useTesterStore = defineStore('tester', () => {
         supabase.auth.onAuthStateChange((event, session) => {
             if (session?.access_token) {
                 setToken(session.access_token)
+                user.value = session.user // 사용자 정보 저장
                 fetchUserStatus() // 로그인 시 상태 조회
                 // URL 해시에 인증 토큰이 포함된 경우 정리
                 if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -72,6 +91,7 @@ export const useTesterStore = defineStore('tester', () => {
                 }
             } else if (event === 'SIGNED_OUT') {
                 clearToken()
+                user.value = null
             }
         })
     })
@@ -102,7 +122,6 @@ export const useTesterStore = defineStore('tester', () => {
         if (!isLoggedIn.value) return
 
         try {
-            // 인증된 fetch 사용
             const res = await fetch('/api/user/status', {
                 headers: {
                     'Authorization': `Bearer ${userToken.value}`
@@ -111,10 +130,8 @@ export const useTesterStore = defineStore('tester', () => {
 
             if (res.ok) {
                 const data = await res.json()
-                usageStats.value = {
-                    weekly_usage: data.quota.used,
-                    weekly_limit: data.quota.limit,
-                    remaining: data.quota.remaining
+                if (data.token_info) {
+                    tokenInfo.value = data.token_info
                 }
             }
         } catch (e) {
@@ -211,10 +228,17 @@ export const useTesterStore = defineStore('tester', () => {
                     generatedCode.value += chunk
                 },
                 (errorMsg: string) => {
+                    // 토큰 부족 에러 시 모달 표시
+                    if (errorMsg.includes('INSUFFICIENT_TOKENS') || errorMsg.includes('토큰이 부족')) {
+                        showInsufficientTokensModal.value = true
+                    }
                     error.value = errorMsg
                 }
             )
         } catch (err: any) {
+            if (err.message?.includes('INSUFFICIENT_TOKENS')) {
+                showInsufficientTokensModal.value = true
+            }
             error.value = err.message
         } finally {
             isGenerating.value = false
@@ -222,7 +246,7 @@ export const useTesterStore = defineStore('tester', () => {
 
             if (generatedCode.value && !error.value) {
                 addToHistory(inputCode.value, generatedCode.value, selectedLanguage.value)
-                fetchUserStatus() // 생성 후 쿼터 업데이트
+                fetchUserStatus() // 생성 후 토큰 정보 업데이트
             }
         }
     }
@@ -247,7 +271,10 @@ export const useTesterStore = defineStore('tester', () => {
         restoreHistory,
         generateTestCode,
         executeTest,
+        tokenInfo,
+        showInsufficientTokensModal,
         usageStats,
-        fetchUserStatus
+        fetchUserStatus,
+        user
     }
 })
