@@ -209,11 +209,19 @@ async def attach_user_to_state(request: Request, call_next):
                 )
                 request.state.user = None
             else:
+                # audience 검증을 비활성화하여 python-jose와 동일한 동작 보장
                 payload = jwt.decode(
-                    token, settings.SUPABASE_JWT_SECRET.get_secret_value(), algorithms=[ALGORITHM]
+                    token,
+                    settings.SUPABASE_JWT_SECRET.get_secret_value(),
+                    algorithms=[ALGORITHM],
+                    options={"verify_aud": False},
                 )
                 request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
-        except Exception:
+        except jwt.PyJWTError:
+            logger.warning("Invalid JWT token detected")
+            request.state.user = None
+        except Exception as e:
+            logger.error(f"Unexpected error during JWT decoding: {e}")
             request.state.user = None
     else:
         request.state.user = None
