@@ -185,33 +185,37 @@ async def test_get_token_info_existing_user(token_service, mock_supabase_service
 
 @pytest.mark.asyncio
 async def test_get_token_info_new_user(token_service, mock_supabase_service):
-    """신규 사용자에게 웰컴 보너스를 지급해야 함."""
-    # Mock: 일일 보너스 RPC
+    """신규 사용자에게 웰컴 보너스와 일일 보너스를 모두 지급해야 함."""
+    from datetime import date
+
+    # 1. Mock RPC calls
+    mock_init_response = MagicMock()
+    mock_init_response.data = {"success": True, "created": True, "balance": 50}
+
     mock_bonus_response = MagicMock()
-    mock_bonus_response.data = {"success": True, "added": 10, "current_balance": 10}
-    mock_supabase_service.client.rpc.return_value.execute.return_value = mock_bonus_response
+    mock_bonus_response.data = {"success": True, "added": 30, "current_balance": 80}
 
-    # Mock: 첫 번째 조회 - 없음, 두 번째 조회 - 웰컴 보너스 후
-    mock_select_empty = MagicMock()
-    mock_select_empty.data = None
+    def rpc_side_effect(func_name, params):
+        if func_name == "initialize_user_wallet":
+            return MagicMock(execute=MagicMock(return_value=mock_init_response))
+        if func_name == "claim_daily_bonus":
+            return MagicMock(execute=MagicMock(return_value=mock_bonus_response))
+        return MagicMock()
 
-    mock_select_after_welcome = MagicMock()
-    mock_select_after_welcome.data = {
-        "balance": 60,  # 웰컴 50 + 일일 보너스 10
+    mock_supabase_service.client.rpc.side_effect = rpc_side_effect
+
+    # 2. Mock: Token Data Fetch
+    mock_select_response = MagicMock()
+    mock_select_response.data = {
+        "balance": 80,  # Welcome(50) + Daily(30)
         "daily_ad_count": 0,
-        "daily_ad_reset_at": None,
-        "last_daily_bonus_at": None,
+        "last_daily_bonus_at": str(date.today()),
     }
-
-    # 첫 호출: None, 두 번째 호출: 데이터 있음
-    mock_supabase_service.client.table.return_value.select.return_value.eq.return_value.maybe_single.return_value.execute.side_effect = [
-        mock_select_empty,
-        mock_select_after_welcome,
-    ]
+    mock_supabase_service.client.table.return_value.select.return_value.eq.return_value.maybe_single.return_value.execute.return_value = mock_select_response
 
     result = await token_service.get_token_info("new_user_123")
 
-    assert result.current_tokens == 60
+    assert result.current_tokens == 80  # 50 + 30
 
 
 # === 에러 메시지 검증 테스트 ===
