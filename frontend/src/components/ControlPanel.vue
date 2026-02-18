@@ -3,13 +3,14 @@
  * 메인 제어 패널 컴포넌트 (사이드바).
  * 인증, 모델 선택, 히스토리 관리 및 사용량 통계를 표시합니다.
  */
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
 import { Sparkles, User, LogOut, ChevronRight, X } from 'lucide-vue-next'
 import HistoryPanel from './HistoryPanel.vue'
 import type { SupportedLanguage, GeminiModel } from '../types'
 
 const store = useTesterStore()
+const showPreparationModal = ref(false)
 
 /** 지원되는 언어 목록 (아이콘 포함) */
 const languages: { id: SupportedLanguage, name: string, icon: string }[] = [
@@ -93,12 +94,20 @@ const logout = async () => {
       <div v-else class="flex flex-col space-y-3 p-3 bg-gradient-to-r from-blue-500/10 to-transparent border border-blue-500/20 rounded-xl">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-              <User class="w-4 h-4" />
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 overflow-hidden">
+              <img 
+                v-if="store.user?.user_metadata?.avatar_url" 
+                :src="store.user.user_metadata.avatar_url" 
+                alt="Profile" 
+                class="w-full h-full object-cover"
+              />
+              <User v-else class="w-4 h-4" />
             </div>
-            <div>
-              <div class="text-xs font-semibold text-white">Authenticated</div>
-              <div class="text-[10px] text-blue-300/70">Ready to test</div>
+            <div class="overflow-hidden">
+              <div class="text-xs font-semibold text-white truncate max-w-[120px]">
+                {{ store.user?.user_metadata?.full_name || store.user?.user_metadata?.name || 'User' }}
+              </div>
+              <div class="text-[10px] text-blue-300/70 truncate">{{ store.user?.email || '' }}</div>
             </div>
           </div>
           <button @click="logout" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Logout" aria-label="Logout">
@@ -134,16 +143,30 @@ const logout = async () => {
                         ? 'bg-emerald-500/10 text-emerald-400' 
                         : 'bg-amber-500/10 text-amber-400'"
                 >
-                    {{ store.tokenInfo.daily_bonus_claimed ? '✓ 일일 보너스 수령' : '보너스 미수령' }}
+                    {{ store.tokenInfo.daily_bonus_claimed ? '✓ 일일 보너스 수령' : '보너스 확인 중...' }}
                 </span>
-                <a
-                    href="https://ko-fi.com/sjson"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-gray-500 hover:text-yellow-400 transition-colors"
-                >☕ 후원</a>
+                <button
+                    @click.prevent="showPreparationModal = true"
+                    class="text-gray-400 hover:text-white hover:underline transition-colors flex items-center gap-1"
+                >
+                    <span>🪙 토큰 구매</span>
+                </button>
             </div>
         </div>
+      </div>
+    </div>
+    
+    <!-- Preparation Modal (Temporary) -->
+    <div v-if="showPreparationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" @click="showPreparationModal = false">
+      <div class="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4 text-center transform transition-all scale-100" @click.stop>
+        <h3 class="text-lg font-bold text-white mb-2">서비스 준비 중</h3>
+        <p class="text-gray-400 text-sm mb-6">토큰 구매 기능은 현재 준비 중입니다.<br>잠시만 기다려주세요!</p>
+        <button 
+          @click="showPreparationModal = false"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors w-full"
+        >
+          확인
+        </button>
       </div>
     </div>
 

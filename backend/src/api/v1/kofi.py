@@ -32,20 +32,24 @@ def _resolve_token_amount(kofi_type: str, amount: str) -> int:
     if kofi_type == "Subscription":
         return TokenConstants.KOFI_SUBSCRIPTION_TOKENS
 
-    if kofi_type == "Shop Order":
+    # Ko-fi Shop Order 또는 Donation 모두 금액 기반 처리 시도
+    if kofi_type in ("Shop Order", "Donation"):
         try:
             usd = Decimal(amount)
         except (InvalidOperation, TypeError):
-            return 0
+            # 금액 파싱 실패 시 기본 Donation 보상 지급 (Donation인 경우만)
+            return TokenConstants.KOFI_DONATION_TOKENS if kofi_type == "Donation" else 0
 
         # 금액에 따른 토큰 지급 (Decimal 비교 보장)
         for threshold, tokens in sorted(TokenConstants.KOFI_TOKEN_PACKS.items(), reverse=True):
             if usd >= Decimal(str(threshold)):
                 return tokens
-        return 0
 
-    if kofi_type == "Donation":
-        return TokenConstants.KOFI_DONATION_TOKENS
+        # 일치하는 팩이 없으면 기본 Donation 보상
+        if kofi_type == "Donation":
+            return TokenConstants.KOFI_DONATION_TOKENS
+
+        return 0
 
     return 0
 
