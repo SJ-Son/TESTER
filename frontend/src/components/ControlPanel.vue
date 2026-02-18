@@ -136,9 +136,12 @@ const logout = async () => {
                 >
                     {{ store.tokenInfo.daily_bonus_claimed ? '✓ 일일 보너스 수령' : '보너스 미수령' }}
                 </span>
-                <span class="text-gray-500">
-                    광고 {{ store.tokenInfo.daily_ad_remaining }}회 남음
-                </span>
+                <a
+                    href="https://ko-fi.com/sjson"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-gray-500 hover:text-yellow-400 transition-colors"
+                >☕ 후원</a>
             </div>
         </div>
       </div>
@@ -191,7 +194,7 @@ const logout = async () => {
         <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">출시노트</router-link>
         <span>&copy; TESTER</span>
         <a
-          href="https://ko-fi.com/tester"
+          href="https://ko-fi.com/sjson"
           target="_blank"
           rel="noopener noreferrer"
           class="text-gray-500 hover:text-yellow-400 transition-colors"

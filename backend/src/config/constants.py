@@ -214,10 +214,23 @@ class TokenConstants:
     """일일 로그인 보너스"""
 
     AD_REWARD: Final[int] = 5
-    """광고 1회 시청 보상"""
+    """광고 1회 시청 보상 (레거시, 미사용)"""
 
     MAX_DAILY_ADS: Final[int] = 10
-    """1일 최대 광고 시청 횟수"""
+    """1일 최대 광고 시청 횟수 (레거시, 미사용)"""
+
+    KOFI_DONATION_TOKENS: Final[int] = 50
+    """Ko-fi 1회 후원 보상"""
+
+    KOFI_SUBSCRIPTION_TOKENS: Final[int] = 500
+    """Ko-fi 월 구독 보상"""
+
+    KOFI_TOKEN_PACKS: Final[dict[float, int]] = {
+        1.0: 100,
+        3.0: 350,
+        5.0: 600,
+    }
+    """Ko-fi Shop 토큰 팩 (USD 금액 → 토큰)"""
 
     COST_PER_GENERATION: Final[int] = 10
     """테스트 생성 1회 비용"""

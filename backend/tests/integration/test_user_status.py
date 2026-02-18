@@ -24,7 +24,6 @@ async def test_get_user_status_success(client, mock_user_auth):
             current_tokens=40,
             daily_bonus_claimed=True,
             cost_per_generation=TokenConstants.COST_PER_GENERATION,
-            daily_ad_remaining=8,
         )
     )
 
@@ -43,7 +42,6 @@ async def test_get_user_status_success(client, mock_user_auth):
         assert data["token_info"]["current_tokens"] == 40
         assert data["token_info"]["daily_bonus_claimed"] is True
         assert data["token_info"]["cost_per_generation"] == TokenConstants.COST_PER_GENERATION
-        assert data["token_info"]["daily_ad_remaining"] == 8
 
         # 하위 호환성 quota 필드 확인
         assert "quota" in data
@@ -63,7 +61,6 @@ async def test_get_user_status_zero_tokens(client, mock_user_auth):
             current_tokens=0,
             daily_bonus_claimed=False,
             cost_per_generation=TokenConstants.COST_PER_GENERATION,
-            daily_ad_remaining=TokenConstants.MAX_DAILY_ADS,
         )
     )
 

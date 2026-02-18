@@ -71,8 +71,6 @@ export interface TokenInfo {
     daily_bonus_claimed: boolean
     /** 테스트 1회 생성 비용 */
     cost_per_generation: number
-    /** 금일 남은 광고 시청 횟수 */
-    daily_ad_remaining: number
 }
 
 /** 사용자 상태 API 응답 */
@@ -88,20 +86,6 @@ export interface UserStatusResponse {
         used: number
         remaining: number
     }
-}
-
-/** 광고 보상 요청 */
-export interface AdRewardRequest {
-    ad_network: string
-    transaction_id: string
-    timestamp: number
-}
-
-/** 광고 보상 응답 */
-export interface AdRewardResponse {
-    success: boolean
-    added_tokens: number
-    current_tokens: number
 }
 
 /** 토큰 부족 에러 응답 (HTTP 402) */

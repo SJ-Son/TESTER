@@ -1,5 +1,6 @@
 import logging
 import secrets
+from typing import TYPE_CHECKING
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
@@ -13,6 +14,9 @@ from src.services.supabase_service import SupabaseService
 from src.services.test_generator_service import TestGeneratorService
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from src.services.token_service import TokenService
 
 
 # Rate Limiting 설정
@@ -87,4 +91,3 @@ def get_token_service(
     from src.services.token_service import TokenService
 
     return TokenService(supabase_service=supabase_service)
-

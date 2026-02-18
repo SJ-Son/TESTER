@@ -7,7 +7,6 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import HomeView from './views/HomeView.vue'
 import CookieConsent from './components/CookieConsent.vue'
 import InsufficientTokensModal from './components/InsufficientTokensModal.vue'
-import AdRewardModal from './components/AdRewardModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -75,7 +74,6 @@ const closeModal = (e: MouseEvent) => {
     <CookieConsent />
     <!-- Token System Modals -->
     <InsufficientTokensModal />
-    <AdRewardModal />
   </div>
 </template>
 

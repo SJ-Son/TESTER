@@ -1,11 +1,11 @@
 <script setup lang="ts">
 /**
  * 토큰 부족 시 표시되는 모달 컴포넌트.
- * 광고 시청을 통한 토큰 획득을 유도합니다.
+ * Ko-fi를 통한 토큰 충전을 유도합니다.
  */
 import { computed } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
-import { AlertTriangle, Coins, Play, X } from 'lucide-vue-next'
+import { AlertTriangle, Coffee, Heart, ShoppingBag, X } from 'lucide-vue-next'
 
 const store = useTesterStore()
 
@@ -17,18 +17,14 @@ const shortfall = computed(() =>
     Math.max(0, requiredTokens.value - store.tokenInfo.current_tokens)
 )
 
-/** 광고 시청으로 충당 가능 여부 */
-const canEarnEnough = computed(() => store.tokenInfo.daily_ad_remaining > 0)
-
 /** 모달 닫기 */
 const close = () => {
     store.showInsufficientTokensModal = false
 }
 
-/** 광고 보상 모달 열기 */
-const openAdReward = () => {
-    close()
-    store.showAdRewardModal = true
+/** Ko-fi 링크 열기 */
+const openKofi = (path: string) => {
+    window.open(`https://ko-fi.com/sjson${path}`, '_blank', 'noopener,noreferrer')
 }
 </script>
 
@@ -86,19 +82,36 @@ const openAdReward = () => {
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
+                        <!-- Ko-fi Options -->
                         <div class="space-y-2">
                             <button
-                                v-if="canEarnEnough"
-                                @click="openAdReward"
-                                class="w-full h-11 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                                @click="openKofi('')"
+                                class="w-full h-11 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20 active:scale-[0.98]"
                             >
-                                <Play class="w-4 h-4" />
-                                <span>광고 시청하고 토큰 받기</span>
+                                <Coffee class="w-4 h-4" />
+                                <span>커피 한잔 후원하기</span>
                             </button>
-                            <p v-if="canEarnEnough" class="text-center text-[10px] text-gray-500">
-                                광고 1회 시청 시 5 토큰 획득 · 오늘 {{ store.tokenInfo.daily_ad_remaining }}회 남음
+
+                            <button
+                                @click="openKofi('/membership')"
+                                class="w-full h-11 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20 active:scale-[0.98]"
+                            >
+                                <Heart class="w-4 h-4" />
+                                <span>월 구독 (매월 500 토큰)</span>
+                            </button>
+
+                            <button
+                                @click="openKofi('/shop')"
+                                class="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                            >
+                                <ShoppingBag class="w-4 h-4" />
+                                <span>토큰 팩 구매</span>
+                            </button>
+
+                            <p class="text-center text-[10px] text-gray-500 pt-1">
+                                Ko-fi 결제 후 이메일 매칭으로 자동 충전됩니다
                             </p>
+
                             <button
                                 @click="close"
                                 class="w-full h-10 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-xl transition-all"

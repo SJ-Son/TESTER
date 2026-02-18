@@ -5,16 +5,16 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from src.api.v1.deps import (
     get_generation_repository,
-    get_token_service,
     get_test_generator_service,
+    get_token_service,
     limiter,
 )
 from src.auth import get_current_user, validate_turnstile_token
 from src.config.constants import TokenConstants
 from src.exceptions import InsufficientTokensError, ValidationError
 from src.repositories.generation_repository import GenerationRepository
-from src.services.token_service import TokenService
 from src.services.test_generator_service import TestGeneratorService
+from src.services.token_service import TokenService
 from src.types import AuthenticatedUser, GenerateRequest
 from src.utils.logger import get_logger
 from starlette.concurrency import run_in_threadpool

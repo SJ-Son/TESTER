@@ -1,9 +1,9 @@
 from fastapi import APIRouter
-from src.api.v1 import ads, execution, generator, health, history, user
+from src.api.v1 import execution, generator, health, history, kofi, user
 
 api_router = APIRouter()
 
-api_router.include_router(ads.router, prefix="/ads", tags=["ads"])
+api_router.include_router(kofi.router, prefix="/kofi", tags=["kofi"])
 api_router.include_router(execution.router, prefix="/execution", tags=["execution"])
 api_router.include_router(generator.router, tags=["generator"])
 api_router.include_router(health.router, tags=["health"])

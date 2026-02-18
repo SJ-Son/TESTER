@@ -29,12 +29,9 @@ export const useTesterStore = defineStore('tester', () => {
         current_tokens: 0,
         daily_bonus_claimed: false,
         cost_per_generation: 10,
-        daily_ad_remaining: 10
     })
     /** 토큰 부족 모달 표시 여부 */
     const showInsufficientTokensModal = ref(false)
-    /** 광고 보상 모달 표시 여부 */
-    const showAdRewardModal = ref(false)
 
     /** @deprecated 하위 호환성 유지 — tokenInfo 사용 권장 */
     const usageStats = computed(() => ({
@@ -273,7 +270,6 @@ export const useTesterStore = defineStore('tester', () => {
         executeTest,
         tokenInfo,
         showInsufficientTokensModal,
-        showAdRewardModal,
         usageStats,
         fetchUserStatus
     }

@@ -1,6 +1,5 @@
 -- ============================================================
 -- 토큰 시스템 DB 스키마 및 RPC Functions
--- 이 파일은 Supabase SQL Editor에서 실행합니다.
 -- ============================================================
 
 -- UUID 확장 활성화 (이미 활성화되어 있을 수 있음)
@@ -11,13 +10,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================================
 
 -- 사용자 토큰 잔액 관리 테이블
--- auth.users는 Supabase Auth가 관리하므로 별도 테이블로 관리
 CREATE TABLE IF NOT EXISTS public.user_tokens (
     user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     balance INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),
     last_daily_bonus_at DATE,
-    daily_ad_count INTEGER NOT NULL DEFAULT 0,
-    daily_ad_reset_at DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -204,8 +200,6 @@ BEGIN
     UPDATE public.user_tokens
     SET balance = balance + p_bonus_amount,
         last_daily_bonus_at = v_today,
-        daily_ad_count = 0,
-        daily_ad_reset_at = v_today,
         updated_at = NOW()
     WHERE user_id = p_user_id
     RETURNING balance INTO v_new_balance;

@@ -64,9 +64,8 @@ class Settings(BaseSettings):
     DATA_ENCRYPTION_KEY: SecretStr = Field(default="", description="DB 컬럼 암호화용 AES 키")
 
     # 후원 설정
-    KOFI_URL: str = Field(
-        default="", description="Ko-fi 후원 페이지 URL"
-    )
+    KOFI_URL: str = Field(default="", description="Ko-fi 후원 페이지 URL")
+    KOFI_VERIFICATION_TOKEN: SecretStr = Field(default="", description="Ko-fi Webhook 검증 토큰")
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"), env_file_encoding="utf-8", extra="ignore"

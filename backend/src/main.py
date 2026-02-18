@@ -21,7 +21,6 @@ from src.auth import ALGORITHM
 from src.config.constants import NetworkConstants
 from src.config.settings import settings
 from src.exceptions import (
-    AdRewardLimitError,
     DuplicateTransactionError,
     InsufficientTokensError,
     TurnstileError,
@@ -174,15 +173,6 @@ async def duplicate_transaction_handler(request: Request, exc: DuplicateTransact
     """중복 보상 요청 시 409 Conflict 응답을 반환합니다."""
     return JSONResponse(
         status_code=409,
-        content={"detail": {"code": exc.code, "message": exc.message}},
-    )
-
-
-@app.exception_handler(AdRewardLimitError)
-async def ad_reward_limit_handler(request: Request, exc: AdRewardLimitError):
-    """일일 광고 한도 초과 시 429 응답을 반환합니다."""
-    return JSONResponse(
-        status_code=429,
         content={"detail": {"code": exc.code, "message": exc.message}},
     )
 

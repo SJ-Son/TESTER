@@ -294,17 +294,3 @@ class DuplicateTransactionError(TesterException):
             code="DUPLICATE_TRANSACTION",
             context={"transaction_id": transaction_id[:16]},
         )
-
-
-class AdRewardLimitError(TesterException):
-    """일일 광고 시청 한도 초과 시 발생하는 예외.
-
-    사용자가 하루 최대 광고 시청 횟수를 초과했을 때 발생합니다.
-    """
-
-    def __init__(self, daily_limit: int) -> None:
-        super().__init__(
-            message=f"일일 광고 시청 한도({daily_limit}회)를 초과했습니다",
-            code="AD_REWARD_LIMIT_EXCEEDED",
-            context={"daily_limit": daily_limit},
-        )

@@ -54,7 +54,4 @@ async def get_user_status(
         }
     except Exception as e:
         logger.error(f"사용자 상태 조회 실패: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="사용자 상태를 불러오는데 실패했습니다"
-        ) from e
+        raise HTTPException(status_code=500, detail="사용자 상태를 불러오는데 실패했습니다") from e
