@@ -23,7 +23,8 @@ export const useTesterStore = defineStore('tester', () => {
     const streamEnded = ref(false)
     /** 사용자의 인증 토큰 */
     const userToken = ref(localStorage.getItem('tester_token') || '')
-    /** 사용자의 주간 사용량 통계 */
+    /** 사용자 프로필 정보 */
+    const user = ref<any>(null)
     /** 사용자의 토큰 정보 */
     const tokenInfo = ref<TokenInfo>({
         current_tokens: 0,
@@ -82,6 +83,7 @@ export const useTesterStore = defineStore('tester', () => {
         supabase.auth.onAuthStateChange((event, session) => {
             if (session?.access_token) {
                 setToken(session.access_token)
+                user.value = session.user // 사용자 정보 저장
                 fetchUserStatus() // 로그인 시 상태 조회
                 // URL 해시에 인증 토큰이 포함된 경우 정리
                 if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -89,6 +91,7 @@ export const useTesterStore = defineStore('tester', () => {
                 }
             } else if (event === 'SIGNED_OUT') {
                 clearToken()
+                user.value = null
             }
         })
     })
@@ -271,6 +274,7 @@ export const useTesterStore = defineStore('tester', () => {
         tokenInfo,
         showInsufficientTokensModal,
         usageStats,
-        fetchUserStatus
+        fetchUserStatus,
+        user
     }
 })
