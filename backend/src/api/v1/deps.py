@@ -78,3 +78,13 @@ def get_generation_repository(
     supabase_service: SupabaseService = Depends(get_supabase_service),
 ) -> GenerationRepository:
     return GenerationRepository(supabase_service=supabase_service)
+
+
+def get_token_service(
+    supabase_service: SupabaseService = Depends(get_supabase_service),
+) -> "TokenService":
+    """토큰 관리 서비스 의존성을 생성합니다."""
+    from src.services.token_service import TokenService
+
+    return TokenService(supabase_service=supabase_service)
+

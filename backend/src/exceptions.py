@@ -250,3 +250,61 @@ class DecryptionError(SecurityError):
 
     def __init__(self, message: str = "데이터 복호화에 실패했습니다") -> None:
         super().__init__(message, operation="decrypt")
+
+
+# === 토큰/결제 레이어 예외 ===
+
+
+class InsufficientTokensError(TesterException):
+    """토큰 부족 시 발생하는 예외 (HTTP 402).
+
+    테스트 생성 요청 시 사용자의 토큰 잔액이 필요량보다 적을 때 발생합니다.
+    글로벌 예외 핸들러에서 402 Payment Required로 변환됩니다.
+
+    Attributes:
+        current: 현재 보유 토큰.
+        required: 필요한 토큰.
+    """
+
+    def __init__(
+        self,
+        current: int,
+        required: int,
+    ) -> None:
+        context = {"current": current, "required": required}
+        super().__init__(
+            message="토큰이 부족합니다",
+            code="INSUFFICIENT_TOKENS",
+            context=context,
+        )
+        self.current = current
+        self.required = required
+
+
+class DuplicateTransactionError(TesterException):
+    """중복 보상 요청 시 발생하는 예외.
+
+    같은 `transaction_id`로 토큰 적립을 2회 이상 시도할 때 발생합니다.
+    Idempotency 보장을 위해 사용됩니다.
+    """
+
+    def __init__(self, transaction_id: str) -> None:
+        super().__init__(
+            message="이미 처리된 보상 요청입니다",
+            code="DUPLICATE_TRANSACTION",
+            context={"transaction_id": transaction_id[:16]},
+        )
+
+
+class AdRewardLimitError(TesterException):
+    """일일 광고 시청 한도 초과 시 발생하는 예외.
+
+    사용자가 하루 최대 광고 시청 횟수를 초과했을 때 발생합니다.
+    """
+
+    def __init__(self, daily_limit: int) -> None:
+        super().__init__(
+            message=f"일일 광고 시청 한도({daily_limit}회)를 초과했습니다",
+            code="AD_REWARD_LIMIT_EXCEEDED",
+            context={"daily_limit": daily_limit},
+        )

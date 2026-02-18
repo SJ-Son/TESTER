@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from src.api.v1.deps import get_supabase_service, limiter
+from src.api.v1.deps import get_token_service, limiter
 from src.auth import get_current_user
-from src.services.supabase_service import SupabaseService
+from src.services.token_service import TokenService
 from src.types import AuthenticatedUser
 from src.utils.logger import get_logger
 
@@ -14,40 +14,47 @@ logger = get_logger(__name__)
 async def get_user_status(
     request: Request,
     current_user: AuthenticatedUser = Depends(get_current_user),
-    supabase_service: SupabaseService = Depends(get_supabase_service),
+    token_service: TokenService = Depends(get_token_service),
 ):
-    """사용자의 현재 상태 및 쿼터 사용량을 조회합니다.
+    """사용자의 현재 상태 및 토큰 정보를 조회합니다.
+
+    일일 보너스 미수령 시 자동으로 지급 처리합니다.
 
     Args:
         request: HTTP 요청 객체 (Rate Limiting용).
         current_user: 인증된 사용자 정보.
-        supabase_service: Supabase 서비스 의존성 (쿼터 확인용).
+        token_service: 토큰 서비스 의존성.
 
     Returns:
-        사용자 상태 정보 (ID, 이메일, 주간 쿼터 사용량 등).
+        사용자 상태 정보 (ID, 이메일, 토큰 잔액, 일일 보너스 상태 등).
 
     Raises:
         HTTPException: 데이터베이스 조회 실패 등의 내부 오류 시 (500).
     """
     try:
-        # 캐싱된 쿼터 조회 (비동기)
-        current_usage = await supabase_service.get_weekly_quota(current_user["id"])
+        token_info = await token_service.get_token_info(current_user["id"])
 
-        # 로그에 이모지 제거 및 구조화된 컨텍스트 추가
         logger.info_ctx(
             "사용자 상태 조회",
             user_id=current_user["id"],
-            usage=current_usage,
+            tokens=token_info.current_tokens,
         )
 
         return {
             "user": current_user,
+            "token_info": token_info.model_dump(),
+            # 하위 호환성 유지 (Deprecated, 향후 제거 예정)
             "quota": {
-                "limit": 30,  # 주간 30회 제한 (하드코딩된 정책)
-                "used": current_usage,
-                "remaining": max(0, 30 - current_usage),
+                "limit": 30,
+                "used": 0,
+                "remaining": token_info.current_tokens // token_info.cost_per_generation
+                if token_info.cost_per_generation > 0
+                else 0,
             },
         }
     except Exception as e:
         logger.error(f"사용자 상태 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail="사용자 상태를 불러오는데 실패했습니다") from e
+        raise HTTPException(
+            status_code=500,
+            detail="사용자 상태를 불러오는데 실패했습니다"
+        ) from e

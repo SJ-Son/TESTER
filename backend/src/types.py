@@ -130,3 +130,66 @@ class CacheMetadata:
         """TTL 유효성 검증."""
         if self.ttl <= 0:
             raise ValueError(f"TTL은 양수여야 합니다: {self.ttl}")
+
+
+# === 토큰 시스템 모델 ===
+
+
+class TokenInfo(BaseModel):
+    """사용자 토큰 상태 응답 모델.
+
+    Attributes:
+        current_tokens: 현재 보유 토큰.
+        daily_bonus_claimed: 금일 로그인 보너스 수령 여부.
+        cost_per_generation: 테스트 1회 생성 비용.
+        daily_ad_remaining: 금일 남은 광고 시청 횟수.
+    """
+
+    current_tokens: int
+    daily_bonus_claimed: bool
+    cost_per_generation: int
+    daily_ad_remaining: int
+
+
+class AdRewardRequest(BaseModel):
+    """광고 보상 요청 모델.
+
+    Attributes:
+        ad_network: 광고 네트워크 식별자 (예: admob).
+        transaction_id: 중복 방지용 트랜잭션 ID.
+        timestamp: 광고 시청 완료 시각 (Unix timestamp).
+    """
+
+    ad_network: str = Field(..., description="광고 네트워크 식별자")
+    transaction_id: str = Field(..., description="중복 방지용 트랜잭션 ID")
+    timestamp: int = Field(..., description="광고 시청 완료 시각 (Unix)")
+
+
+class AdRewardResponse(BaseModel):
+    """광고 보상 응답 모델.
+
+    Attributes:
+        success: 보상 처리 성공 여부.
+        added_tokens: 적립된 토큰 수.
+        current_tokens: 현재 보유 토큰.
+    """
+
+    success: bool
+    added_tokens: int = 0
+    current_tokens: int
+
+
+class TokenDeductResult(BaseModel):
+    """토큰 차감 결과 모델.
+
+    Attributes:
+        success: 차감 성공 여부.
+        deducted: 차감된 토큰 수.
+        current_balance: 차감 후 잔액.
+        error: 에러 코드 (실패 시).
+    """
+
+    success: bool
+    deducted: int = 0
+    current_balance: int
+    error: str | None = None
