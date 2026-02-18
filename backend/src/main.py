@@ -19,7 +19,7 @@ from slowapi.errors import RateLimitExceeded
 from src.api.routers import api_router
 from src.api.v1.deps import limiter
 from src.auth import ALGORITHM
-from src.config.constants import NetworkConstants
+from src.config.constants import NetworkConstants, SecurityConstants
 from src.config.settings import settings
 from src.exceptions import TurnstileError, ValidationError
 from src.utils.logger import get_logger, setup_logging, trace_id_ctx
