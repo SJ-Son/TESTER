@@ -3,6 +3,7 @@ import os
 import time
 import uuid
 from contextlib import asynccontextmanager
+from typing import Final
 
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -28,6 +29,23 @@ setup_logging(log_level=logging.INFO)
 logger = get_logger(__name__)
 
 load_dotenv()
+
+# === 성능 최적화 상수 ===
+# Content-Length 제한 (10 MB)
+MAX_CONTENT_LENGTH: Final[int] = 10 * 1024 * 1024
+
+# Content-Security-Policy (구문 분석 경고 방지를 위해 사전 계산된 문자열)
+# 요청마다 문자열을 재생성하지 않아 CPU 오버헤드를 줄임
+CSP_POLICY: Final[str] = (
+    "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
+    "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com https://www.googletagmanager.com; "
+    "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
+    "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com; "
+    "font-src 'self' https://fonts.gstatic.com data:; "
+    "connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; "
+    "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; "
+    "frame-ancestors 'self' https://accounts.google.com;"
+)
 
 
 @asynccontextmanager
@@ -109,10 +127,9 @@ async def lifespan(app: FastAPI):
     logger.info("서버가 안전하게 종료되었습니다")
 
 
+# 기본 응답 클래스를 ORJSONResponse로 설정하여 직렬화 성능 향상
 app = FastAPI(
-    title="QA Test Code Generator API",
-    lifespan=lifespan,
-    default_response_class=ORJSONResponse,
+    title="QA Test Code Generator API", lifespan=lifespan, default_response_class=ORJSONResponse
 )
 
 # CORS 설정
@@ -185,8 +202,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def limit_content_length(request: Request, call_next):
     content_length = request.headers.get("content-length")
     if content_length:
-        limit = 10 * 1024 * 1024  # 10 MB 제한
-        if int(content_length) > limit:
+        if int(content_length) > MAX_CONTENT_LENGTH:
             return ORJSONResponse(
                 status_code=413,
                 content={"detail": "Request entity too large"},
@@ -242,8 +258,8 @@ async def security_middleware(request: Request, call_next):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
-        # Content-Security-Policy (구문 분석 경고 방지를 위해 단일 문자열로 병합)
-        response.headers["Content-Security-Policy"] = SecurityConstants.CSP_POLICY
+        # Content-Security-Policy (상수 사용)
+        response.headers["Content-Security-Policy"] = CSP_POLICY
 
         # 로깅
         process_time = time.time() - start_time
