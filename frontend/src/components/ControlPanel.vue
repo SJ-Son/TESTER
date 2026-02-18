@@ -52,6 +52,15 @@ const logout = async () => {
           <Sparkles class="w-8 h-8 text-blue-400 relative z-10 transition-transform group-hover:scale-110" />
         </div>
         <h1 class="text-xl font-bold tracking-tight text-white">TESTER</h1>
+        <a 
+          href="https://ko-fi.com/sjson" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="ml-2 px-3 py-1 bg-white hover:bg-gray-100 text-[#FF5E5B] text-[10px] font-bold rounded-full transition-colors flex items-center gap-1.5 shadow-lg shadow-white/10"
+        >
+          <img src="https://storage.ko-fi.com/cdn/cup-border.png" class="w-3 h-3" alt="Ko-fi" />
+          <span>Coffee</span>
+        </a>
       </div>
       <!-- Mobile Close Button -->
       <button 
