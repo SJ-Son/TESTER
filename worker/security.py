@@ -25,13 +25,29 @@ class SecurityChecker(ast.NodeVisitor):
         "telnetlib",
         "pickle",
         "marshal",
+        "builtins",
     }
 
-    FORBIDDEN_FUNCTIONS = {"eval", "exec", "open", "compile", "__import__", "input"}
+    FORBIDDEN_FUNCTIONS = {"eval", "exec", "open", "compile", "__import__", "input", "getattr"}
+
+    FORBIDDEN_ATTRIBUTES = {
+        "__subclasses__",
+        "__bases__",
+        "__globals__",
+        "__builtins__",
+        "__closure__",
+        "__code__",
+    }
 
     def __init__(self):
         """SecurityChecker 인스턴스를 초기화합니다."""
         self.errors = []
+
+    def visit_Attribute(self, node):
+        """속성 접근을 방문하여 금지된 속성인지 확인합니다."""
+        if node.attr in self.FORBIDDEN_ATTRIBUTES:
+            self.errors.append(f"금지된 속성 접근: {node.attr}")
+        self.generic_visit(node)
 
     def visit_Import(self, node):
         """import 구문을 방문하여 금지된 모듈인지 확인합니다."""
