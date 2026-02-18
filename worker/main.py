@@ -218,7 +218,6 @@ async def execute_code(request: ExecutionRequest):
             container = docker_client.containers.run(
                 DOCKER_IMAGE,
                 command="tail -f /dev/null",  # Keep alive
-                user="sandbox",
                 detach=True,
                 mem_limit="128m",
                 nano_cpus=500000000,  # 0.5 CPU
