@@ -63,18 +63,9 @@ class Settings(BaseSettings):
     # 데이터 암호화 키
     DATA_ENCRYPTION_KEY: SecretStr = Field(default="", description="DB 컬럼 암호화용 AES 키")
 
-    # 광고 네트워크 S2S 검증 키
-    ADMOB_SSV_KEY_URL: str = Field(
-        default="https://www.gstatic.com/admob/reward/verifier-keys.json",
-        description="AdMob 서버 간 인증(SSV) 공개 키 URL",
-    )
-    AD_REWARD_ENABLED: bool = Field(
-        default=True,
-        description="광고 보상 기능 활성화 여부",
-    )
-    AD_SSV_SKIP_VERIFICATION: bool = Field(
-        default=False,
-        description="개발 환경에서 광고 SSV 검증 건너뛰기 (Production에서는 반드시 False)",
+    # 후원 설정
+    KOFI_URL: str = Field(
+        default="", description="Ko-fi 후원 페이지 URL"
     )
 
     model_config = SettingsConfigDict(

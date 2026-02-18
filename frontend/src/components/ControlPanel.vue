@@ -187,8 +187,16 @@ const logout = async () => {
         <span>|</span>
         <a href="mailto:sjson666@gmail.com" class="hover:text-blue-400 transition-colors">문의</a>
       </div>
-      <div class="text-[9px] text-gray-400 text-center font-mono">
-        <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">출시노트</router-link> &copy; TESTER
+      <div class="text-[9px] text-gray-400 text-center font-mono flex items-center justify-center gap-2">
+        <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">출시노트</router-link>
+        <span>&copy; TESTER</span>
+        <a
+          href="https://ko-fi.com/tester"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-gray-500 hover:text-yellow-400 transition-colors"
+          title="Support"
+        >☕</a>
       </div>
     </div>
   </aside>
