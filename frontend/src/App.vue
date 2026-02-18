@@ -6,6 +6,7 @@
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import HomeView from './views/HomeView.vue'
 import CookieConsent from './components/CookieConsent.vue'
+import InsufficientTokensModal from './components/InsufficientTokensModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -71,6 +72,8 @@ const closeModal = (e: MouseEvent) => {
     </Transition>
     <!-- Global Cookie Consent Banner -->
     <CookieConsent />
+    <!-- Token System Modals -->
+    <InsufficientTokensModal />
   </div>
 </template>
 

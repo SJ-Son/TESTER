@@ -20,7 +20,12 @@ from src.api.v1.deps import limiter
 from src.auth import ALGORITHM
 from src.config.constants import NetworkConstants
 from src.config.settings import settings
-from src.exceptions import TurnstileError, ValidationError
+from src.exceptions import (
+    DuplicateTransactionError,
+    InsufficientTokensError,
+    TurnstileError,
+    ValidationError,
+)
 from src.utils.logger import get_logger, setup_logging, trace_id_ctx
 
 # 로깅 설정 초기화
@@ -144,6 +149,31 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
     return JSONResponse(
         status_code=400,
         content={"type": "error", "code": exc.code, "message": exc.message},
+    )
+
+
+@app.exception_handler(InsufficientTokensError)
+async def insufficient_tokens_handler(request: Request, exc: InsufficientTokensError):
+    """토큰 부족 시 402 Payment Required 응답을 반환합니다."""
+    return JSONResponse(
+        status_code=402,
+        content={
+            "detail": {
+                "code": exc.code,
+                "message": exc.message,
+                "required": exc.required,
+                "current": exc.current,
+            }
+        },
+    )
+
+
+@app.exception_handler(DuplicateTransactionError)
+async def duplicate_transaction_handler(request: Request, exc: DuplicateTransactionError):
+    """중복 보상 요청 시 409 Conflict 응답을 반환합니다."""
+    return JSONResponse(
+        status_code=409,
+        content={"detail": {"code": exc.code, "message": exc.message}},
     )
 
 

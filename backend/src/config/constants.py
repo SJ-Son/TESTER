@@ -196,3 +196,47 @@ class NetworkConstants:
 
     REDIS_KEEPALIVE_COUNT: Final[int] = 3
     """TCP Keepalive 최대 재시도 횟수"""
+
+
+# === 토큰 시스템 상수 ===
+
+
+class TokenConstants:
+    """토큰 시스템 관련 상수.
+
+    모든 토큰 수치를 중앙에서 관리하여, 기획 변경 시 이 클래스만 수정하면 됩니다.
+    """
+
+    WELCOME_BONUS: Final[int] = 50
+    """신규 가입 시 초기 지급 토큰"""
+
+    DAILY_BONUS: Final[int] = 10
+    """일일 로그인 보너스"""
+
+    AD_REWARD: Final[int] = 5
+    """광고 1회 시청 보상 (레거시, 미사용)"""
+
+    MAX_DAILY_ADS: Final[int] = 10
+    """1일 최대 광고 시청 횟수 (레거시, 미사용)"""
+
+    KOFI_DONATION_TOKENS: Final[int] = 50
+    """Ko-fi 1회 후원 보상"""
+
+    KOFI_SUBSCRIPTION_TOKENS: Final[int] = 500
+    """Ko-fi 월 구독 보상"""
+
+    KOFI_TOKEN_PACKS: Final[dict[float, int]] = {
+        1.0: 100,
+        3.0: 350,
+        5.0: 600,
+    }
+    """Ko-fi Shop 토큰 팩 (USD 금액 → 토큰)"""
+
+    COST_PER_GENERATION: Final[int] = 10
+    """테스트 생성 1회 비용"""
+
+    MIGRATION_BONUS: Final[int] = 30
+    """기존 사용자 마이그레이션 보너스"""
+
+    CACHE_TTL: Final[int] = 300
+    """토큰 잔액 캐시 TTL (5분)"""
