@@ -37,10 +37,12 @@ CREATE TABLE IF NOT EXISTS public.token_transactions (
 ALTER TABLE public.user_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.token_transactions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own tokens" ON public.user_tokens;
 CREATE POLICY "Users can view own tokens"
 ON public.user_tokens FOR SELECT TO authenticated
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own transactions" ON public.token_transactions;
 CREATE POLICY "Users can view own transactions"
 ON public.token_transactions FOR SELECT TO authenticated
 USING (auth.uid() = user_id);
@@ -176,14 +178,30 @@ DECLARE
     v_today DATE := CURRENT_DATE;
     v_new_balance INTEGER;
 BEGIN
-    INSERT INTO public.user_tokens (user_id, balance)
-    VALUES (p_user_id, 0)
-    ON CONFLICT (user_id) DO NOTHING;
-
+    -- 기존: INSERT ON CONFLICT DO NOTHING으로 0원 초기화 (Welcome Bonus 누락 원인)
+    -- 변경: 이 부분 삭제. 사용자가 없으면 USER_NOT_FOUND (initialize_user_wallet가 선행되어야 함)
+    
     SELECT last_daily_bonus_at INTO v_last_bonus
     FROM public.user_tokens
     WHERE user_id = p_user_id
     FOR UPDATE;
+
+    IF NOT FOUND THEN
+         -- 없을 경우 자동으로 생성해주지 않음 (환불/적립 로직과 분리)
+         -- 다만 로직의 유연성을 위해 여기서 0원으로 생성해줄 수도 있으나, 
+         -- Welcome Bonus 처리를 위해 이곳에서는 생성을 하지 않는 것이 안전함.
+         -- 하지만 안전망으로 balance=0 생성을 두되, Welcome Bonus는 initialize에서 처리 권장.
+         
+         INSERT INTO public.user_tokens (user_id, balance)
+         VALUES (p_user_id, 0)
+         ON CONFLICT (user_id) DO NOTHING;
+         
+         -- 재조회 (Lock 필요)
+         SELECT last_daily_bonus_at INTO v_last_bonus
+         FROM public.user_tokens
+         WHERE user_id = p_user_id
+         FOR UPDATE;
+    END IF;
 
     IF v_last_bonus = v_today THEN
         SELECT balance INTO v_new_balance
@@ -250,5 +268,49 @@ BEGIN
         'refunded', p_amount,
         'current_balance', v_new_balance
     );
+END;
+$$;
+
+-- [NEW] 사용자 지갑 초기화 (Welcome Bonus Atomic 처리)
+CREATE OR REPLACE FUNCTION public.initialize_user_wallet(
+    p_user_id UUID,
+    p_default_amount INTEGER,
+    p_description TEXT
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_inserted BOOLEAN;
+    v_balance INTEGER;
+BEGIN
+    INSERT INTO public.user_tokens (user_id, balance)
+    VALUES (p_user_id, p_default_amount)
+    ON CONFLICT (user_id) DO NOTHING
+    RETURNING TRUE INTO v_inserted;
+
+    IF v_inserted THEN
+        INSERT INTO public.token_transactions
+            (user_id, amount, type, description, balance_after)
+        VALUES
+            (p_user_id, p_default_amount, 'welcome', p_description, p_default_amount);
+        
+        RETURN json_build_object(
+            'success', true,
+            'created', true,
+            'balance', p_default_amount
+        );
+    ELSE
+        SELECT balance INTO v_balance
+        FROM public.user_tokens
+        WHERE user_id = p_user_id;
+
+        RETURN json_build_object(
+            'success', true,
+            'created', false,
+            'balance', v_balance
+        );
+    END IF;
 END;
 $$;

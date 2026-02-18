@@ -47,21 +47,14 @@ class TokenService:
         Returns:
             TokenInfo: 현재 토큰 상태 정보.
         """
-        # 일일 보너스 처리 (조건부 자동 지급)
+        # 1. 지갑 초기화 (신규 사용자 Atomic Welcome Bonus 지급)
+        await self._initialize_wallet(user_id)
+
+        # 2. 일일 보너스 처리 (Atomic Check & Add)
         bonus_result = await self._claim_daily_bonus_internal(user_id)
 
-        # 토큰 잔액 조회
+        # 3. 최종 상태 조회
         token_data = await run_in_threadpool(self._fetch_user_tokens, user_id)
-
-        if token_data is None:
-            # 신규 사용자: 웰컴 보너스 지급 후 재조회
-            await self.add_tokens(
-                user_id=user_id,
-                amount=TokenConstants.WELCOME_BONUS,
-                token_type="welcome",
-                description="신규 가입 웰컴 보너스",
-            )
-            token_data = await run_in_threadpool(self._fetch_user_tokens, user_id)
 
         daily_bonus_claimed = bonus_result.get("already_claimed", False) or bonus_result.get(
             "success", False
@@ -331,3 +324,38 @@ class TokenService:
         except Exception as e:
             logger.error(f"일일 보너스 처리 실패: {e}")
             return {"success": False, "error": str(e)}
+
+    async def _initialize_wallet(self, user_id: str) -> None:
+        """사용자 지갑을 초기화합니다 (신규 사용자 Welcome Bonus).
+
+        Args:
+            user_id: 사용자 ID.
+        """
+        try:
+            await run_in_threadpool(
+                self._call_initialize_wallet_rpc,
+                user_id,
+                TokenConstants.WELCOME_BONUS,
+            )
+        except Exception as e:
+            logger.error(f"지갑 초기화 실패: {e}")
+
+    def _call_initialize_wallet_rpc(self, user_id: str, amount: int) -> dict:
+        """initialize_user_wallet RPC를 호출합니다 (동기).
+
+        Args:
+            user_id: 사용자 ID.
+            amount: 웰컴 보너스 금액.
+
+        Returns:
+            dict: RPC 결과.
+        """
+        response = self._supabase.client.rpc(
+            "initialize_user_wallet",
+            {
+                "p_user_id": user_id,
+                "p_default_amount": amount,
+                "p_description": "신규 가입 웰컴 보너스",
+            },
+        ).execute()
+        return response.data
