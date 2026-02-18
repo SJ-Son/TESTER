@@ -52,15 +52,6 @@ const logout = async () => {
           <Sparkles class="w-8 h-8 text-blue-400 relative z-10 transition-transform group-hover:scale-110" />
         </div>
         <h1 class="text-xl font-bold tracking-tight text-white">TESTER</h1>
-        <a 
-          href="https://ko-fi.com/sjson" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          class="ml-2 px-3 py-1 bg-white hover:bg-gray-100 text-[#FF5E5B] text-[10px] font-bold rounded-full transition-colors flex items-center gap-1.5 shadow-lg shadow-white/10"
-        >
-          <img src="https://storage.ko-fi.com/cdn/cup-border.png" class="w-3 h-3" alt="Ko-fi" />
-          <span>Coffee</span>
-        </a>
       </div>
       <!-- Mobile Close Button -->
       <button 
@@ -158,7 +149,7 @@ const logout = async () => {
                     @click.prevent="showPreparationModal = true"
                     class="text-gray-400 hover:text-white hover:underline transition-colors flex items-center gap-1"
                 >
-                    <span>🪙 토큰 구매</span>
+                    <span>토큰 구매</span>
                 </button>
             </div>
         </div>
@@ -225,13 +216,7 @@ const logout = async () => {
       <div class="text-[9px] text-gray-400 text-center font-mono flex items-center justify-center gap-2">
         <router-link to="/changelog" class="hover:text-blue-400 transition-colors uppercase tracking-widest">출시노트</router-link>
         <span>&copy; TESTER</span>
-        <a
-          href="https://ko-fi.com/sjson"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-gray-500 hover:text-yellow-400 transition-colors"
-          title="Support"
-        >☕</a>
+
       </div>
     </div>
   </aside>
