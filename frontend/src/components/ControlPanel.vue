@@ -106,23 +106,39 @@ const logout = async () => {
           </button>
         </div>
         
-        <!-- Weekly Quota Display -->
-        <div class="pt-2 border-t border-blue-500/10">
-            <div class="flex justify-between items-center text-[10px] text-gray-400 mb-1">
-                <span>Weekly Usage</span>
-                <span :class="{'text-red-400': store.usageStats.remaining === 0, 'text-blue-400': store.usageStats.remaining > 0}">
-                    {{ store.usageStats.weekly_usage }} / {{ store.usageStats.weekly_limit }}
+        <!-- Token Display -->
+        <div class="pt-2 border-t border-blue-500/10 space-y-2">
+            <!-- 토큰 잔액 -->
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider">Tokens</span>
+                <span 
+                    class="text-sm font-bold tabular-nums"
+                    :class="{
+                        'text-emerald-400': store.tokenInfo.current_tokens >= store.tokenInfo.cost_per_generation,
+                        'text-amber-400': store.tokenInfo.current_tokens > 0 && store.tokenInfo.current_tokens < store.tokenInfo.cost_per_generation,
+                        'text-red-400': store.tokenInfo.current_tokens === 0
+                    }"
+                >
+                    {{ store.tokenInfo.current_tokens }}
                 </span>
             </div>
-            <div class="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
-                <div 
-                    class="h-full rounded-full transition-all duration-500"
-                    :class="store.usageStats.remaining === 0 ? 'bg-red-500' : 'bg-blue-500'"
-                    :style="{ width: `${Math.min((store.usageStats.weekly_usage / store.usageStats.weekly_limit) * 100, 100)}%` }"
-                ></div>
+            <!-- 생성 가능 횟수 -->
+            <div class="text-[9px] text-gray-500 text-right">
+                {{ store.tokenInfo.cost_per_generation > 0 ? Math.floor(store.tokenInfo.current_tokens / store.tokenInfo.cost_per_generation) : 0 }}회 생성 가능 ({{ store.tokenInfo.cost_per_generation }}토큰/회)
             </div>
-            <div class="text-[9px] text-gray-500 mt-1 text-right">
-                {{ store.usageStats.remaining }} requests remaining
+            <!-- 일일 보너스 & 광고 보상 -->
+            <div class="flex items-center justify-between text-[9px]">
+                <span 
+                    class="px-1.5 py-0.5 rounded-full"
+                    :class="store.tokenInfo.daily_bonus_claimed 
+                        ? 'bg-emerald-500/10 text-emerald-400' 
+                        : 'bg-amber-500/10 text-amber-400'"
+                >
+                    {{ store.tokenInfo.daily_bonus_claimed ? '✓ 일일 보너스 수령' : '보너스 미수령' }}
+                </span>
+                <span class="text-gray-500">
+                    광고 {{ store.tokenInfo.daily_ad_remaining }}회 남음
+                </span>
             </div>
         </div>
       </div>

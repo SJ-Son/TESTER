@@ -60,3 +60,56 @@ export interface HealthCheckResponse {
     /** 서비스 버전 */
     version?: string
 }
+
+// === 토큰 시스템 타입 ===
+
+/** 토큰 정보 인터페이스 */
+export interface TokenInfo {
+    /** 현재 보유 토큰 */
+    current_tokens: number
+    /** 금일 로그인 보너스 수령 여부 */
+    daily_bonus_claimed: boolean
+    /** 테스트 1회 생성 비용 */
+    cost_per_generation: number
+    /** 금일 남은 광고 시청 횟수 */
+    daily_ad_remaining: number
+}
+
+/** 사용자 상태 API 응답 */
+export interface UserStatusResponse {
+    user: {
+        id: string
+        email: string | null
+    }
+    token_info: TokenInfo
+    /** @deprecated quota 필드는 하위 호환성을 위해 유지, token_info 사용 권장 */
+    quota?: {
+        limit: number
+        used: number
+        remaining: number
+    }
+}
+
+/** 광고 보상 요청 */
+export interface AdRewardRequest {
+    ad_network: string
+    transaction_id: string
+    timestamp: number
+}
+
+/** 광고 보상 응답 */
+export interface AdRewardResponse {
+    success: boolean
+    added_tokens: number
+    current_tokens: number
+}
+
+/** 토큰 부족 에러 응답 (HTTP 402) */
+export interface InsufficientTokensErrorResponse {
+    detail: {
+        code: 'INSUFFICIENT_TOKENS'
+        message: string
+        required: number
+        current: number
+    }
+}
