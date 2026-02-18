@@ -4,7 +4,6 @@
 모든 토큰 변동은 Supabase RPC를 통해 Atomic하게 처리됩니다.
 """
 
-
 from src.config.constants import TokenConstants
 from src.exceptions import (
     DuplicateTransactionError,

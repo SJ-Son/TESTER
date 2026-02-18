@@ -126,7 +126,7 @@ const logout = async () => {
             <div class="text-[9px] text-gray-500 text-right">
                 {{ store.tokenInfo.cost_per_generation > 0 ? Math.floor(store.tokenInfo.current_tokens / store.tokenInfo.cost_per_generation) : 0 }}회 생성 가능 ({{ store.tokenInfo.cost_per_generation }}토큰/회)
             </div>
-            <!-- 일일 보너스 & 광고 보상 -->
+            <!-- 일일 보너스 상태 -->
             <div class="flex items-center justify-between text-[9px]">
                 <span 
                     class="px-1.5 py-0.5 rounded-full"

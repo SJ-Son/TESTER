@@ -5,6 +5,8 @@ Ko-fi 결제 이벤트(후원, 구독, 상품 구매)를 수신하고
 """
 
 import json
+import secrets
+from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Form, HTTPException
 from src.api.v1.deps import get_token_service
@@ -32,11 +34,13 @@ def _resolve_token_amount(kofi_type: str, amount: str) -> int:
 
     if kofi_type == "Shop Order":
         try:
-            usd = float(amount)
-        except (ValueError, TypeError):
+            usd = Decimal(amount)
+        except (InvalidOperation, TypeError):
             return 0
+
+        # 금액에 따른 토큰 지급 (Decimal 비교 보장)
         for threshold, tokens in sorted(TokenConstants.KOFI_TOKEN_PACKS.items(), reverse=True):
-            if usd >= threshold:
+            if usd >= Decimal(str(threshold)):
                 return tokens
         return 0
 
@@ -71,7 +75,7 @@ async def kofi_webhook(data: str = Form(...)):
     verification_token = payload.get("verification_token", "")
     expected_token = settings.KOFI_VERIFICATION_TOKEN.get_secret_value()
 
-    if not expected_token or verification_token != expected_token:
+    if not expected_token or not secrets.compare_digest(verification_token, expected_token):
         logger.warning("Ko-fi Webhook: 유효하지 않은 verification_token")
         raise HTTPException(status_code=403, detail="인증 실패")
 
@@ -102,6 +106,7 @@ async def kofi_webhook(data: str = Form(...)):
             "Ko-fi Webhook: 매칭되는 사용자 없음",
             extra={"email_prefix": email[:8] if email else ""},
         )
+        # 200 OK를 반환하여 Webhook 재시도를 방지 (사용자 없음은 영구적 오류일 가능성 높음)
         return {"status": "ok", "tokens_added": 0, "note": "사용자 미매칭"}
 
     token_type_map = {
@@ -110,7 +115,7 @@ async def kofi_webhook(data: str = Form(...)):
         "Shop Order": "kofi_purchase",
     }
 
-    result = await token_service.add_tokens(
+    await token_service.add_tokens(
         user_id=user_id,
         amount=tokens_to_add,
         token_type=token_type_map.get(kofi_type, "kofi_other"),
@@ -128,12 +133,13 @@ async def kofi_webhook(data: str = Form(...)):
     return {
         "status": "ok",
         "tokens_added": tokens_to_add,
-        "balance": result.get("current_balance", 0),
     }
 
 
 async def _find_user_by_email(email: str) -> str | None:
     """이메일로 Supabase 사용자를 검색합니다.
+
+    보안을 위해 RPC 함수 `get_user_id_by_email`을 사용합니다.
 
     Args:
         email: Ko-fi에서 전달된 사용자 이메일.
@@ -149,11 +155,10 @@ async def _find_user_by_email(email: str) -> str | None:
     try:
         supa = SupabaseService()
 
-        admin_response = supa.client.auth.admin.list_users()
-        for user in admin_response:
-            if hasattr(user, "email") and user.email == email:
-                return user.id
-        return None
+        # RPC 호출로 변경 (O(1) 조회)
+        response = supa.client.rpc("get_user_id_by_email", {"p_email": email}).execute()
+
+        return response.data
     except Exception as e:
         logger.error(f"사용자 이메일 검색 실패: {e}")
         return None
