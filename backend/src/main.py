@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
@@ -114,7 +114,11 @@ async def lifespan(app: FastAPI):
     logger.info("서버가 안전하게 종료되었습니다")
 
 
-app = FastAPI(title="QA Test Code Generator API", lifespan=lifespan)
+app = FastAPI(
+    title="QA Test Code Generator API",
+    lifespan=lifespan,
+    default_response_class=ORJSONResponse,
+)
 
 # CORS 설정
 app.add_middleware(
@@ -146,7 +150,7 @@ async def trace_id_middleware(request: Request, call_next):
 
 @app.exception_handler(TurnstileError)
 async def turnstile_exception_handler(request: Request, exc: TurnstileError):
-    return JSONResponse(
+    return ORJSONResponse(
         status_code=400,
         content={"type": "error", "code": exc.code, "message": exc.message},
     )
@@ -155,7 +159,7 @@ async def turnstile_exception_handler(request: Request, exc: TurnstileError):
 @app.exception_handler(InsufficientTokensError)
 async def insufficient_tokens_handler(request: Request, exc: InsufficientTokensError):
     """토큰 부족 시 402 Payment Required 응답을 반환합니다."""
-    return JSONResponse(
+    return ORJSONResponse(
         status_code=402,
         content={
             "detail": {
@@ -171,7 +175,7 @@ async def insufficient_tokens_handler(request: Request, exc: InsufficientTokensE
 @app.exception_handler(DuplicateTransactionError)
 async def duplicate_transaction_handler(request: Request, exc: DuplicateTransactionError):
     """중복 보상 요청 시 409 Conflict 응답을 반환합니다."""
-    return JSONResponse(
+    return ORJSONResponse(
         status_code=409,
         content={"detail": {"code": exc.code, "message": exc.message}},
     )
@@ -188,7 +192,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
     # HTTP 예외는 그대로 통과
     if isinstance(exc, HTTPException):
-        return JSONResponse(
+        return ORJSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
@@ -197,7 +201,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"처리되지 않은 예외 발생: {exc}", exc_info=True)
 
     # 클라이언트에게는 정보 유출 방지를 위해 일반적인 에러 메시지 반환
-    return JSONResponse(
+    return ORJSONResponse(
         status_code=500,
         content={
             "message": "Internal Server Error",
@@ -213,7 +217,7 @@ async def limit_content_length(request: Request, call_next):
     if content_length:
         limit = 10 * 1024 * 1024  # 10 MB 제한
         if int(content_length) > limit:
-            return JSONResponse(
+            return ORJSONResponse(
                 status_code=413,
                 content={"detail": "Request entity too large"},
             )
