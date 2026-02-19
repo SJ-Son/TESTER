@@ -1,8 +1,7 @@
 import json
-import time
 import random
 import string
-import sys
+import time
 from typing import Any, Dict, Union
 
 # orjson은 선택적 의존성입니다.
@@ -27,10 +26,7 @@ def generate_large_data(depth: int = 3, width: int = 5) -> Union[Dict[str, Any],
     if depth == 0:
         return "".join(random.choices(string.ascii_letters, k=50))
 
-    return {
-        f"key_{i}": generate_large_data(depth - 1, width)
-        for i in range(width)
-    }
+    return {f"key_{i}": generate_large_data(depth - 1, width) for i in range(width)}
 
 
 def measure_json() -> float:
