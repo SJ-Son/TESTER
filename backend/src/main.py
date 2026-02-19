@@ -35,6 +35,19 @@ logger = get_logger(__name__)
 load_dotenv()
 
 
+# Content-Security-Policy
+CSP_POLICY = (
+    "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
+    "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com https://www.googletagmanager.com; "
+    "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
+    "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com; "
+    "font-src 'self' https://fonts.gstatic.com data:; "
+    "connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; "
+    "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; "
+    "frame-ancestors 'self' https://accounts.google.com;"
+)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기를 관리합니다 (시작/종료).
@@ -280,18 +293,8 @@ async def security_middleware(request: Request, call_next):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
-        # Content-Security-Policy (구문 분석 경고 방지를 위해 단일 문자열로 병합)
-        csp_policy = (
-            "default-src 'self' https://accounts.google.com https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; "
-            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://challenges.cloudflare.com https://www.googletagmanager.com; "
-            "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://www.gstatic.com; "
-            "img-src 'self' data: https://*.googleusercontent.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com https://www.google-analytics.com; "
-            "font-src 'self' https://fonts.gstatic.com data:; "
-            "connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; "
-            "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; "
-            "frame-ancestors 'self' https://accounts.google.com;"
-        )
-        response.headers["Content-Security-Policy"] = csp_policy
+        # Content-Security-Policy
+        response.headers["Content-Security-Policy"] = CSP_POLICY
 
         # 로깅
         process_time = time.time() - start_time

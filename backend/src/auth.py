@@ -44,14 +44,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Authenticated
             )
 
             if response.status_code != 200:
-                logger.warning(f"Supabase Token Verification Failed: {response.text}")
+                logger.warning(f"Supabase Token Verification Failed: Status {response.status_code}")
                 raise HTTPException(status_code=401, detail=ErrorMessages.AUTH_INVALID_CREDENTIALS)
 
             try:
                 user_data = response.json()
                 return {"id": user_data["id"], "email": user_data.get("email")}
             except (ValueError, KeyError) as e:
-                logger.error(f"Invalid auth response: {e}, body: {response.text[:100]}")
+                logger.error(f"Invalid auth response: {e}")
                 raise HTTPException(
                     status_code=401, detail=ErrorMessages.AUTH_INVALID_CREDENTIALS
                 ) from e
