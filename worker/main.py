@@ -254,8 +254,8 @@ async def execute_code(request: ExecutionRequest):
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Execution failed: {e}")
-            return {"success": False, "error": str(e), "output": ""}
+            logger.error(f"Execution failed: {e}", exc_info=True)
+            return {"success": False, "error": "Internal execution error", "output": ""}
 
         finally:
             # 5. 리소스 정리
