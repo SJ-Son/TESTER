@@ -213,19 +213,6 @@ class TokenConstants:
     DAILY_BONUS: Final[int] = 30
     """일일 로그인 보너스"""
 
-    KOFI_DONATION_TOKENS: Final[int] = 50
-    """Ko-fi 1회 후원 보상 (기본)"""
-
-    KOFI_SUBSCRIPTION_TOKENS: Final[int] = 500
-    """Ko-fi 월 구독 보상"""
-
-    KOFI_TOKEN_PACKS: Final[dict[float, int]] = {
-        5.0: 600,
-        1.0: 100,
-        3.0: 350,
-    }
-    """Ko-fi Shop 토큰 팩 (USD 금액 → 토큰)"""
-
     COST_PER_GENERATION: Final[int] = 10
     """테스트 생성 1회 비용"""
 

@@ -55,7 +55,7 @@ async def verify_api_key(api_key: str = Depends(api_key_header)):
     if not api_key or not secrets.compare_digest(
         api_key, settings.TESTER_INTERNAL_SECRET.get_secret_value()
     ):
-        logger.warning(f"Unauthorized access attempt with key: {api_key}")
+        logger.warning("Unauthorized access attempt with invalid API key")
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid Internal API Key")
     return api_key
 

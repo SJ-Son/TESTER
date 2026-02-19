@@ -5,7 +5,7 @@
  */
 import { computed } from 'vue'
 import { useTesterStore } from '../stores/testerStore'
-import { AlertTriangle, Coffee, Heart, ShoppingBag, X } from 'lucide-vue-next'
+import { AlertTriangle, X } from 'lucide-vue-next'
 
 const store = useTesterStore()
 
@@ -20,11 +20,6 @@ const shortfall = computed(() =>
 /** 모달 닫기 */
 const close = () => {
     store.showInsufficientTokensModal = false
-}
-
-/** Ko-fi 링크 열기 */
-const openKofi = (path: string) => {
-    window.open(`https://ko-fi.com/sjson${path}`, '_blank', 'noopener,noreferrer')
 }
 </script>
 
@@ -82,39 +77,16 @@ const openKofi = (path: string) => {
                             </div>
                         </div>
 
-                        <!-- Ko-fi Options -->
-                        <div class="space-y-2">
-                            <button
-                                @click="openKofi('')"
-                                class="w-full h-11 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20 active:scale-[0.98]"
-                            >
-                                <Coffee class="w-4 h-4" />
-                                <span>커피 한잔 후원하기</span>
-                            </button>
-
-                            <button
-                                @click="openKofi('/membership')"
-                                class="w-full h-11 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20 active:scale-[0.98]"
-                            >
-                                <Heart class="w-4 h-4" />
-                                <span>월 구독 (매월 500 토큰)</span>
-                            </button>
-
-                            <button
-                                @click="openKofi('/shop')"
-                                class="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
-                            >
-                                <ShoppingBag class="w-4 h-4" />
-                                <span>토큰 팩 구매</span>
-                            </button>
-
-                            <p class="text-center text-[10px] text-gray-500 pt-1">
-                                Ko-fi 결제 후 이메일 매칭으로 자동 충전됩니다
-                            </p>
+                        <!-- Options -->
+                        <div class="space-y-4">
+                            <div class="p-4 bg-gray-800 rounded-xl text-center border border-gray-700">
+                                <p class="text-sm text-gray-300 font-medium">토큰 결제 서비스 준비 중입니다</p>
+                                <p class="text-xs text-gray-500 mt-1">문의: sjson666@gmail.com</p>
+                            </div>
 
                             <button
                                 @click="close"
-                                class="w-full h-10 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-xl transition-all"
+                                class="w-full h-11 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all"
                             >
                                 닫기
                             </button>
