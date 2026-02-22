@@ -278,7 +278,7 @@ async def execute_code(request: ExecutionRequest):
                 return {"success": False, "error": "코드 주입에 실패했습니다.", "output": write_err}
 
             # 4. 테스트 실행
-            run_cmd = ["timeout", "10s", "pytest", "test_run.py", "--no-header", "-q"]
+            run_cmd = ["timeout", "10s", "pytest", "test_run.py", "--no-header", "-v"]
             exec_result = container.exec_run(run_cmd, workdir="/app")
 
             output_str = exec_result.output.decode("utf-8", errors="replace")
