@@ -17,7 +17,6 @@ from src.services.test_generator_service import TestGeneratorService
 from src.services.token_service import TokenService
 from src.types import AuthenticatedUser, GenerateRequest
 from src.utils.logger import get_logger
-from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -118,8 +117,7 @@ async def generate_test(
                 )
                 try:
                     logger.info("생성 이력 저장 중...")
-                    saved = await run_in_threadpool(
-                        repository.create_history,
+                    saved = await repository.create_history(
                         user_id=current_user["id"],
                         input_code=data.input_code,
                         generated_code=full_code,
