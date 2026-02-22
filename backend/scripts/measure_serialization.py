@@ -2,7 +2,7 @@ import json
 import random
 import string
 import time
-from typing import Any, Dict, Union
+from typing import Any
 
 # orjson은 선택적 의존성입니다.
 try:
@@ -11,7 +11,7 @@ except ImportError:
     orjson = None  # type: ignore
 
 
-def generate_large_data(depth: int = 3, width: int = 5) -> Union[Dict[str, Any], str]:
+def generate_large_data(depth: int = 3, width: int = 5) -> dict[str, Any] | str:
     """API 응답을 시뮬레이션하기 위해 대용량 중첩 딕셔너리를 생성합니다.
 
     재귀적으로 호출되어 지정된 깊이와 너비를 가진 데이터를 생성합니다.
@@ -48,11 +48,11 @@ def measure_json() -> float:
     return avg_time
 
 
-def measure_orjson() -> Union[float, None]:
+def measure_orjson() -> float | None:
     """orjson 라이브러리의 직렬화 성능을 측정합니다 (설치된 경우).
 
     Returns:
-        Union[float, None]: 100회 반복 실행 시 평균 직렬화 시간(초).
+        float | None: 100회 반복 실행 시 평균 직렬화 시간(초).
             orjson이 설치되지 않은 경우 None을 반환합니다.
     """
     if orjson is None:

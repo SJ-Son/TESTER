@@ -190,9 +190,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
         # 3. 캐시 저장
         try:
             # model_dump(mode='json') handles datetime -> ISO string conversion
-            serialized = orjson.dumps(
-                [m.model_dump(mode="json") for m in history]
-            ).decode("utf-8")
+            serialized = orjson.dumps([m.model_dump(mode="json") for m in history]).decode("utf-8")
             await self.cache_service.set(cache_key, serialized, ttl=3600)
         except Exception as e:
             logger.warning(f"History Cache Set Failed: {e}")
