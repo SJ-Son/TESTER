@@ -248,9 +248,10 @@ async def execute_code(request: ExecutionRequest):
             # 2. 컨테이너 시작
             combined_code = f"{request.input_code}\n\n# --- Test Code ---\n\n{request.test_code}"
 
-            # read_only=True + tmpfs 조합은 일부 Linux 커널/Docker 버전에서
-            # 마운트 순서 문제로 /app 쓰기가 실패하는 케이스가 있음.
-            # Dockerfile.sandbox에서 sandbox 비권한 유저로 실행하므로 최소 권한은 이미 보장됨.
+            # tmpfs를 /app에 마운트: put_archive()가 /app 경로에 파일을 주입하려면
+            # 해당 경로가 writable하게 존재해야 함. tmpfs는 컨테이너 종료 시 자동 삭제되어
+            # 코드 잔류 없이 격리된 실행 환경을 보장함.
+            # (read_only=True는 tmpfs와의 마운트 순서 충돌로 제거)
             container = docker_client.containers.run(
                 DOCKER_IMAGE,
                 command="tail -f /dev/null",  # Keep alive
@@ -262,6 +263,7 @@ async def execute_code(request: ExecutionRequest):
                 pids_limit=50,
                 security_opt=["no-new-privileges"],
                 cap_drop=["ALL"],
+                tmpfs={"/app": "size=64m,noexec"},  # 코드 주입용 격리 디렉토리
                 remove=True,
                 runtime=DOCKER_RUNTIME,
             )
