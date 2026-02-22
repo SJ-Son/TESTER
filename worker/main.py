@@ -263,7 +263,7 @@ async def execute_code(request: ExecutionRequest):
                 pids_limit=50,
                 security_opt=["no-new-privileges"],
                 cap_drop=["ALL"],
-                tmpfs={"/app": "size=64m,noexec"},  # 코드 주입용 격리 디렉토리
+                tmpfs={"/app": ""},  # 코드 주입용 격리 디렉토리 (컨테이너 종료 시 자동 삭제)
                 remove=True,
                 runtime=DOCKER_RUNTIME,
             )
