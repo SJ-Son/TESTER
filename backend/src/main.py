@@ -249,21 +249,14 @@ async def attach_user_to_state(request: Request, call_next):
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
-            # 보안 수정: 빈 시크릿 사용 방지
-            if not settings.SUPABASE_JWT_SECRET.get_secret_value():
-                logger.warning(
-                    "SUPABASE_JWT_SECRET이 설정되지 않았습니다. 보안을 위해 인증 헤더를 무시합니다"
-                )
-                request.state.user = None
-            else:
-                # audience 검증을 비활성화하여 python-jose와 동일한 동작 보장
-                payload = jwt.decode(
-                    token,
-                    settings.SUPABASE_JWT_SECRET.get_secret_value(),
-                    algorithms=[ALGORITHM],
-                    options={"verify_aud": False},
-                )
-                request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
+            # audience 검증을 비활성화하여 python-jose와 동일한 동작 보장
+            payload = jwt.decode(
+                token,
+                settings.SUPABASE_JWT_SECRET.get_secret_value(),
+                algorithms=[ALGORITHM],
+                options={"verify_aud": False},
+            )
+            request.state.user = {"id": payload.get("sub"), "email": payload.get("email")}
         except jwt.PyJWTError:
             logger.warning("Invalid JWT token detected")
             request.state.user = None
