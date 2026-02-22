@@ -37,6 +37,9 @@ class SecurityChecker(ast.NodeVisitor):
         "__builtins__",
         "__closure__",
         "__code__",
+        "__mro__",
+        "__module__",
+        "__loader__",
     }
 
     def __init__(self):
