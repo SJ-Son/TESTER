@@ -6,9 +6,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y --auto-remove build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# sandbox 유저 생성 및 /app 소유권 부여
+# exec_run으로 코드를 주입할 때 sandbox 유저가 직접 /app에 쓸 수 있어야 함
+RUN useradd -m sandbox \
+    && mkdir -p /app \
+    && chown sandbox:sandbox /app
 
-RUN useradd -m sandbox
+WORKDIR /app
 USER sandbox
 
 CMD ["python", "--version"]

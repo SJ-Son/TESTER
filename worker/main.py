@@ -248,10 +248,9 @@ async def execute_code(request: ExecutionRequest):
             # 2. 컨테이너 시작
             combined_code = f"{request.input_code}\n\n# --- Test Code ---\n\n{request.test_code}"
 
-            # tmpfs를 /app에 마운트: put_archive()가 /app 경로에 파일을 주입하려면
-            # 해당 경로가 writable하게 존재해야 함. tmpfs는 컨테이너 종료 시 자동 삭제되어
-            # 코드 잔류 없이 격리된 실행 환경을 보장함.
-            # (read_only=True는 tmpfs와의 마운트 순서 충돌로 제거)
+            # Dockerfile.sandbox에서 sandbox 유저가 /app 소유권을 가짐.
+            # put_archive(tar 압축해제) 방식은 tmpfs 권한/타이밍 이슈로 불안정하므로,
+            # exec_run으로 Python이 직접 파일을 쓰는 방식으로 교체.
             container = docker_client.containers.run(
                 DOCKER_IMAGE,
                 command="tail -f /dev/null",  # Keep alive
@@ -263,18 +262,23 @@ async def execute_code(request: ExecutionRequest):
                 pids_limit=50,
                 security_opt=["no-new-privileges"],
                 cap_drop=["ALL"],
-                tmpfs={"/app": ""},  # 코드 주입용 격리 디렉토리 (컨테이너 종료 시 자동 삭제)
                 remove=True,
                 runtime=DOCKER_RUNTIME,
             )
 
-            # 3. 코드 주입 (tar 방식)
-            tar_data = create_tar_archive("test_run.py", combined_code)
-            container.put_archive("/app", tar_data)
+            # 3. 코드 주입 (exec_run + Python write 방식)
+            # put_archive 대신 Python open()으로 직접 작성 → tmpfs 불필요, 신뢰성 향상
+            write_result = container.exec_run(
+                ["python3", "-c", f"open('/app/test_run.py', 'w').write({repr(combined_code)})"],
+                workdir="/app",
+            )
+            if write_result.exit_code != 0:
+                write_err = write_result.output.decode("utf-8", errors="replace")
+                logger.error(f"코드 주입 실패: {write_err}")
+                return {"success": False, "error": "코드 주입에 실패했습니다.", "output": write_err}
 
             # 4. 테스트 실행
-            # /app은 Dockerfile에 정의된 WORKDIR
-            run_cmd = ["timeout", "10s", "pytest", "test_run.py"]
+            run_cmd = ["timeout", "10s", "pytest", "test_run.py", "-v"]
             exec_result = container.exec_run(run_cmd, workdir="/app")
 
             output_str = exec_result.output.decode("utf-8", errors="replace")
