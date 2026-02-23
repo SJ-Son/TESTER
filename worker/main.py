@@ -11,6 +11,7 @@ import docker
 from docker.client import DockerClient
 from docker.errors import ImageNotFound
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from security import SecurityChecker, SecurityViolation
 
@@ -83,7 +84,7 @@ async def lifespan(app: FastAPI):
             logger.error(f"Error closing Docker client: {e}")
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
 
 
 class ExecutionRequest(BaseModel):
