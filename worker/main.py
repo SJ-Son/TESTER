@@ -11,6 +11,7 @@ import docker
 from docker.client import DockerClient
 from docker.errors import ImageNotFound
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from security import SecurityChecker, SecurityViolation
 
@@ -116,7 +117,7 @@ def _verify_and_fallback_runtime() -> None:
         DOCKER_RUNTIME = "runc"
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
 
 
 class ExecutionRequest(BaseModel):
