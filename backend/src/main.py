@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 import google.generativeai as genai
 import jwt
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, ORJSONResponse
@@ -16,7 +16,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from src.api.routers import api_router
-from src.api.v1.deps import limiter
+from src.api.v1.deps import limiter, verify_api_key
 from src.auth import ALGORITHM
 from src.config.constants import NetworkConstants
 from src.config.settings import settings
@@ -238,8 +238,10 @@ async def limit_content_length(request: Request, call_next):
     return response
 
 
-# Prometheus 메트릭
-Instrumentator().instrument(app).expose(app)
+# Prometheus 메트릭 (내부 인증 필요 — 운영 정보 노출 방지)
+Instrumentator().instrument(app).expose(
+    app, include_in_schema=False, dependencies=[Depends(verify_api_key)]
+)
 
 
 # 미들웨어: 사용자 상태 주입 (Rate Limiting용)
@@ -309,7 +311,7 @@ async def security_middleware(request: Request, call_next):
         }
 
 
-@app.get("/health")
+@app.get("/health", dependencies=[Depends(verify_api_key)])
 async def health_check():
     """상세 인프라 상태를 확인하는 엔드포인트.
 

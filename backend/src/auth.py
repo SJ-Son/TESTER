@@ -110,11 +110,17 @@ async def validate_turnstile_token(token: str, ip: str | None = None) -> None:
 
     except httpx.RequestError as e:
         logger.error(f"Turnstile 서버 연결 실패: {e}")
-        # Fail open: 외부 서비스 장애로 인한 차단 방지
-        return
+        # Fail-Closed: 외부 서비스 장애 시도 차단 (자동화 공격 방지)
+        raise TurnstileError(
+            message="보안 검증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
+            token_preview=None,
+        ) from e
     except TurnstileError:
         raise
     except Exception as e:
         logger.error(f"Turnstile 검증 중 예기치 않은 오류: {e}")
-        # 예기치 않은 오류 시 안전하게 통과 (Fail open)
-        return
+        # Fail-Closed: 예상치 못한 오류도 차단 (Turnstile 에러는 제외)
+        raise TurnstileError(
+            message="보안 검증 중 오류가 발생했습니다.",
+            token_preview=None,
+        ) from e
