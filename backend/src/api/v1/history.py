@@ -8,7 +8,6 @@ from src.auth import get_current_user
 from src.repositories.generation_repository import GenerationRepository
 from src.types import AuthenticatedUser
 from src.utils.logger import get_logger
-from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -46,7 +45,7 @@ async def get_history(
         HTTPException: 조회 실패 시 (500).
     """
     try:
-        history = await run_in_threadpool(repository.get_user_history, current_user["id"])
+        history = await repository.get_user_history(current_user["id"])
 
         logger.info_ctx(
             "생성 이력 조회 성공",
