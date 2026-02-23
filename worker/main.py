@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 # 환경 변수 설정
 WORKER_AUTH_TOKEN = os.getenv("WORKER_AUTH_TOKEN")
 DISABLE_WORKER_AUTH = os.getenv("DISABLE_WORKER_AUTH", "false").lower() == "true"
-DOCKER_RUNTIME = os.getenv("DOCKER_RUNTIME", "runsc")  # 보안을 위해 gVisor(runsc) 기본 사용
+# gVisor(runsc) 기본 설정이나, 미설치 환경(일반 VM)에서는 runc로 자동 폴백됨.
+# 운영 환경에서는 env에서 DOCKER_RUNTIME=runsc 을 명시적으로 설정하여 gVisor를 강제하는 것을 권장.
+DOCKER_RUNTIME = os.getenv("DOCKER_RUNTIME", "runc")
 DOCKER_IMAGE = "tester-sandbox"
 
 # Docker 클라이언트 전역 변수
@@ -47,12 +49,12 @@ async def lifespan(app: FastAPI):
     """애플리케이션 수명 주기를 관리합니다.
 
     Docker 클라이언트를 초기화하고 종료 시 리소스를 정리합니다.
-    시작 시 Docker 이미지가 존재하는지 확인합니다.
+    시작 시 Docker 이미지 및 런타임 사용 가능 여부를 확인합니다.
 
     Args:
         app: FastAPI 애플리케이션 인스턴스.
     """
-    global docker_client
+    global docker_client, DOCKER_RUNTIME
     try:
         docker_client = docker.from_env()
         logger.info("Docker client initialized successfully.")
@@ -69,6 +71,9 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Failed to check Docker image: {e}")
 
+        # 설정된 런타임 사용 가능 여부 확인 후, 불가 시 runc로 자동 폴백
+        _verify_and_fallback_runtime()
+
     except Exception as e:
         logger.error(f"Failed to initialize Docker client: {e}")
         docker_client = None
@@ -81,6 +86,34 @@ async def lifespan(app: FastAPI):
             logger.info("Docker client closed.")
         except Exception as e:
             logger.error(f"Error closing Docker client: {e}")
+
+
+def _verify_and_fallback_runtime() -> None:
+    """설정된 Docker 런타임이 사용 가능한지 검증하고, 불가 시 runc로 폴백합니다.
+
+    gVisor(runsc)이 설정되어 있지만 서버에 미설치된 경우,
+    기본 런타임(runc)으로 자동 전환하여 서비스 중단을 방지합니다.
+    """
+    global DOCKER_RUNTIME
+    if DOCKER_RUNTIME == "runc":
+        logger.info("Docker runtime: runc (기본값)")
+        return
+
+    try:
+        # 경량 테스트 컨테이너로 지정된 런타임 사용 가능 여부 검증
+        docker_client.containers.run(
+            "hello-world",
+            remove=True,
+            runtime=DOCKER_RUNTIME,
+        )
+        logger.info(f"Docker runtime '{DOCKER_RUNTIME}' 사용 가능 확인 완료")
+    except Exception as e:
+        logger.warning(
+            f"Docker runtime '{DOCKER_RUNTIME}' 사용 불가 (오류: {e}). "
+            f"보안 수준이 낮은 'runc'로 폴백합니다. "
+            f"운영 환경에서는 gVisor 설치를 강력히 권고합니다."
+        )
+        DOCKER_RUNTIME = "runc"
 
 
 app = FastAPI(lifespan=lifespan)
@@ -215,6 +248,9 @@ async def execute_code(request: ExecutionRequest):
             # 2. 컨테이너 시작
             combined_code = f"{request.input_code}\n\n# --- Test Code ---\n\n{request.test_code}"
 
+            # Dockerfile.sandbox에서 sandbox 유저가 /app 소유권을 가짐.
+            # put_archive(tar 압축해제) 방식은 tmpfs 권한/타이밍 이슈로 불안정하므로,
+            # exec_run으로 Python이 직접 파일을 쓰는 방식으로 교체.
             container = docker_client.containers.run(
                 DOCKER_IMAGE,
                 command="tail -f /dev/null",  # Keep alive
@@ -226,20 +262,23 @@ async def execute_code(request: ExecutionRequest):
                 pids_limit=50,
                 security_opt=["no-new-privileges"],
                 cap_drop=["ALL"],
-                read_only=True,  # 루트 파일시스템 읽기 전용
-                # pytest 캐시 등을 위해 tmp는 쓰기 가능해야 함
-                tmpfs={"/tmp": "", "/app": ""},
                 remove=True,
                 runtime=DOCKER_RUNTIME,
             )
 
-            # 3. 코드 주입 (tar 방식)
-            tar_data = create_tar_archive("test_run.py", combined_code)
-            container.put_archive("/app", tar_data)
+            # 3. 코드 주입 (exec_run + Python write 방식)
+            # put_archive 대신 Python open()으로 직접 작성 → tmpfs 불필요, 신뢰성 향상
+            write_result = container.exec_run(
+                ["python3", "-c", f"open('/app/test_run.py', 'w').write({repr(combined_code)})"],
+                workdir="/app",
+            )
+            if write_result.exit_code != 0:
+                write_err = write_result.output.decode("utf-8", errors="replace")
+                logger.error(f"코드 주입 실패: {write_err}")
+                return {"success": False, "error": "코드 주입에 실패했습니다.", "output": write_err}
 
             # 4. 테스트 실행
-            # /app은 Dockerfile에 정의된 WORKDIR
-            run_cmd = ["timeout", "10s", "pytest", "test_run.py"]
+            run_cmd = ["timeout", "10s", "pytest", "test_run.py", "--no-header", "-v"]
             exec_result = container.exec_run(run_cmd, workdir="/app")
 
             output_str = exec_result.output.decode("utf-8", errors="replace")
@@ -255,7 +294,17 @@ async def execute_code(request: ExecutionRequest):
             raise
         except Exception as e:
             logger.error(f"Execution failed: {e}", exc_info=True)
-            return {"success": False, "error": "Internal execution error", "output": ""}
+            # 에러 유형별로 사용자에게 명확한 메시지 제공
+            error_msg = str(e)
+            if "runc" in error_msg or "runsc" in error_msg or "runtime" in error_msg.lower():
+                friendly_msg = "Docker 런타임 오류가 발생했습니다. 서버 설정을 확인해주세요."
+            elif "ImageNotFound" in type(e).__name__ or "No such image" in error_msg:
+                friendly_msg = "실행 환경 이미지를 찾을 수 없습니다. 서버 관리자에게 문의해주세요."
+            elif "permission" in error_msg.lower() or "Permission" in error_msg:
+                friendly_msg = "실행 권한 오류가 발생했습니다."
+            else:
+                friendly_msg = "코드 실행 중 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+            return {"success": False, "error": friendly_msg, "output": ""}
 
         finally:
             # 5. 리소스 정리

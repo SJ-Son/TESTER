@@ -25,7 +25,7 @@ class ExecutionRequest(BaseModel):
 
 
 @router.post("/execute")
-@limiter.limit("10/minute")
+@limiter.limit("5/minute")
 async def execute_code(
     request: Request,
     payload: ExecutionRequest,
@@ -68,5 +68,5 @@ async def execute_code(
         )
         return result
     except Exception as e:
-        logger.error(f"코드 실행 요청 실패: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.error(f"코드 실행 요청 실패: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="코드 실행 중 오류가 발생했습니다.") from e

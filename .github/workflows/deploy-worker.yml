@@ -46,7 +46,12 @@ jobs:
             tar -xzf worker.tar.gz
 
             cd worker
+
+            echo 'Building tester-worker image...'
             sudo docker build -t ${INSTANCE_NAME} .
+
+            echo 'Building tester-sandbox image...'
+            sudo docker build -t tester-sandbox -f Dockerfile.sandbox .
 
             sudo docker run -d \
               --name ${INSTANCE_NAME} \

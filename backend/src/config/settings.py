@@ -84,6 +84,8 @@ class Settings(BaseSettings):
             raise RuntimeError("❌ CRITICAL: GEMINI_API_KEY is missing!")
         if not self.SUPABASE_SERVICE_ROLE_KEY.get_secret_value():
             raise RuntimeError("❌ CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing!")
+        if not self.SUPABASE_JWT_SECRET.get_secret_value():
+            raise RuntimeError("❌ CRITICAL: SUPABASE_JWT_SECRET is missing!")
         return self
 
     @field_validator("GEMINI_API_KEY")
