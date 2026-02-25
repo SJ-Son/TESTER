@@ -1,6 +1,7 @@
-import json
 import logging
 import sys
+
+import orjson
 from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import Any
@@ -35,7 +36,8 @@ class JSONFormatter(logging.Formatter):
         if record.exc_info:
             log_data["exception"] = self.formatException(record.exc_info)
 
-        return json.dumps(log_data, ensure_ascii=False)
+        # orjson은 bytes를 반환하므로 문자열로 디코딩
+        return orjson.dumps(log_data).decode("utf-8")
 
 
 def setup_logging(log_level: int = logging.INFO) -> None:
