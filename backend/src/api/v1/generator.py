@@ -1,6 +1,6 @@
 import asyncio
-import json
 
+import orjson
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from src.api.v1.deps import (
@@ -23,8 +23,16 @@ logger = get_logger(__name__)
 
 
 def format_sse_event(event_type: str, data: dict) -> str:
-    """SSE 이벤트 데이터 포맷팅."""
-    return f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
+    """SSE 이벤트 데이터 포맷팅.
+
+    Args:
+        event_type: 이벤트 유형 (예: "chunk", "error").
+        data: 전송할 데이터 딕셔너리.
+
+    Returns:
+        SSE 포맷의 문자열.
+    """
+    return f"event: {event_type}\ndata: {orjson.dumps(data).decode('utf-8')}\n\n"
 
 
 @router.post("/generate")
@@ -73,11 +81,25 @@ async def generate_test(
             tokens_deducted = deduct_result.success
 
             if not deduct_result.success:
-                yield f"data: {json.dumps({'type': 'error', 'code': 'INSUFFICIENT_TOKENS', 'message': '토큰이 부족합니다.', 'required': TokenConstants.COST_PER_GENERATION, 'current': deduct_result.current_balance})}\n\n"
+                error_data = {
+                    "type": "error",
+                    "code": "INSUFFICIENT_TOKENS",
+                    "message": "토큰이 부족합니다.",
+                    "required": TokenConstants.COST_PER_GENERATION,
+                    "current": deduct_result.current_balance,
+                }
+                yield f"data: {orjson.dumps(error_data).decode('utf-8')}\n\n"
                 return
 
         except InsufficientTokensError as e:
-            yield f"data: {json.dumps({'type': 'error', 'code': 'INSUFFICIENT_TOKENS', 'message': str(e), 'required': e.required, 'current': e.current})}\n\n"
+            error_data = {
+                "type": "error",
+                "code": "INSUFFICIENT_TOKENS",
+                "message": str(e),
+                "required": e.required,
+                "current": e.current,
+            }
+            yield f"data: {orjson.dumps(error_data).decode('utf-8')}\n\n"
             return
         except Exception as e:
             logger.error(f"토큰 차감 실패: {e}")
@@ -103,7 +125,8 @@ async def generate_test(
             ):
                 if chunk:
                     generated_content.append(chunk)
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
+                    chunk_data = {"type": "chunk", "content": chunk}
+                    yield f"data: {orjson.dumps(chunk_data).decode('utf-8')}\n\n"
                     chunk_count += 1
                     if chunk_count % 100 == 0:
                         await asyncio.sleep(0)
