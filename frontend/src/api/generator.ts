@@ -54,6 +54,7 @@ export async function generateTestCode(
 
     const decoder = new TextDecoder()
     let buffer = ''
+    let currentEventType = 'message'
 
     while (true) {
         const { done, value } = await reader.read()
@@ -65,7 +66,7 @@ export async function generateTestCode(
 
         for (const line of lines) {
             if (line.startsWith('event:')) {
-                // 이벤트 타입 라인 (현재는 사용하지 않으나, 향후 확장을 위해 유지)
+                currentEventType = line.substring(6).trim()
                 continue
             }
 
@@ -74,11 +75,13 @@ export async function generateTestCode(
                 try {
                     const data: SSEChunk = JSON.parse(dataStr)
 
-                    if (data.type === 'chunk' && data.content) {
-                        onChunk(data.content)
-                    } else if (data.type === 'error') {
+                    if (currentEventType === 'error' || data.type === 'error') {
                         onError(data.message || 'Generation failed')
                         break
+                    } else if (currentEventType === 'status') {
+                        // 진행 상태 이벤트는 무시 (향후 진행 표시바 등에 활용 가능)
+                    } else if (data.type === 'chunk' && data.content) {
+                        onChunk(data.content)
                     } else if (data.type === 'done') {
                         break
                     }
@@ -86,6 +89,7 @@ export async function generateTestCode(
                     // JSON이 아닌 경우 평문으로 처리
                     onChunk(dataStr)
                 }
+                currentEventType = 'message'
             }
         }
     }

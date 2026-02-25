@@ -73,7 +73,7 @@ class Settings(BaseSettings):
         if self.ENV.lower() != "development":
             if self.TESTER_INTERNAL_SECRET.get_secret_value() == "default-secret-change-me":
                 raise RuntimeError(
-                    "❌ SECURITY ERROR: TESTER_INTERNAL_SECRET is set to default value in non-development environment!"
+                    "SECURITY ERROR: TESTER_INTERNAL_SECRET is set to default value in non-development environment!"
                 )
         return self
 
@@ -81,11 +81,11 @@ class Settings(BaseSettings):
     def validate_critical_keys(self):
         """Startup Validation for Critical Keys"""
         if not self.GEMINI_API_KEY.get_secret_value():
-            raise RuntimeError("❌ CRITICAL: GEMINI_API_KEY is missing!")
+            raise RuntimeError("CRITICAL: GEMINI_API_KEY is missing!")
         if not self.SUPABASE_SERVICE_ROLE_KEY.get_secret_value():
-            raise RuntimeError("❌ CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing!")
+            raise RuntimeError("CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing!")
         if not self.SUPABASE_JWT_SECRET.get_secret_value():
-            raise RuntimeError("❌ CRITICAL: SUPABASE_JWT_SECRET is missing!")
+            raise RuntimeError("CRITICAL: SUPABASE_JWT_SECRET is missing!")
         return self
 
     @field_validator("GEMINI_API_KEY")

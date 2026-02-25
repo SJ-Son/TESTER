@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from src.api.v1.deps import get_generation_repository
 from src.auth import get_current_user
 from src.repositories.generation_repository import GenerationRepository
@@ -21,8 +21,7 @@ class HistoryItem(BaseModel):
     model: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True  # Pydantic v2: orm_mode 대체
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("/", response_model=list[HistoryItem])

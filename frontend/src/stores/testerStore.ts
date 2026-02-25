@@ -4,6 +4,13 @@ import * as generatorApi from '../api/generator'
 import { MOBILE_BREAKPOINT, MAX_HISTORY_ITEMS } from '../utils/constants'
 import type { SupportedLanguage, GeminiModel } from '../types'
 import type { TokenInfo } from '../types/api.types'
+import type { HistoryItem } from '../types/domain.types'
+
+/** Supabase 세션에서 추출한 사용자 정보 */
+interface SessionUser {
+    id: string
+    email?: string | null
+}
 
 export const useTesterStore = defineStore('tester', () => {
     // State
@@ -23,8 +30,8 @@ export const useTesterStore = defineStore('tester', () => {
     const streamEnded = ref(false)
     /** 사용자의 인증 토큰 */
     const userToken = ref(localStorage.getItem('tester_token') || '')
-    /** 사용자 프로필 정보 */
-    const user = ref<any>(null)
+    /** 사용자 프로필 정보 (Supabase 세션 사용자) */
+    const user = ref<SessionUser | null>(null)
     /** 사용자의 토큰 정보 */
     const tokenInfo = ref<TokenInfo>({
         current_tokens: 0,
@@ -44,7 +51,7 @@ export const useTesterStore = defineStore('tester', () => {
     }))
 
     // 로컬 스토리지에서 히스토리 초기화 (안전하게 파싱)
-    let initialHistory: any[] = []
+    let initialHistory: HistoryItem[] = []
     try {
         const stored = localStorage.getItem('tester_history')
         if (stored) {
@@ -53,7 +60,7 @@ export const useTesterStore = defineStore('tester', () => {
     } catch (e) {
         console.error('로컬 스토리지에서 히스토리 파싱 실패', e)
     }
-    const history = ref<any[]>(initialHistory)
+    const history = ref<HistoryItem[]>(initialHistory)
 
     const isSidebarOpen = ref(false)
     const isMobile = ref(window.innerWidth < MOBILE_BREAKPOINT)

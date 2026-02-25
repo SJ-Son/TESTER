@@ -7,15 +7,22 @@ export type { SupportedLanguage, GeminiModel }
 
 /** 히스토리 아이템 인터페이스 */
 export interface HistoryItem {
-    id: number
-    /** 생성 일시 */
+    /** 아이템 식별자 (UUID 또는 로컬 임시 ID) */
+    id: string
+    /** 생성 일시 (ISO 8601) */
+    created_at: string
+    /** 표시용 시간 문자열 (HH:MM) */
     timestamp: string
-    /** 입력 코드 */
-    inputCode: string
-    /** 생성 결과 (테스트 코드) */
-    result: string
+    /** 입력 코드 (백엔드 원본 필드) */
+    input_code: string
+    /** 생성 결과 코드 (백엔드 원본 필드) */
+    generated_code: string
     /** 사용된 언어 */
     language: SupportedLanguage
+    /** 뷰 호환성: input_code의 별칭 */
+    inputCode: string
+    /** 뷰 호환성: generated_code의 별칭 */
+    result: string
 }
 
 /** 언어 선택 옵션 인터페이스 */

@@ -56,7 +56,7 @@ class SupabaseService:
                 settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY.get_secret_value()
             )
             self._cache = CacheService()
-            logger.info("✅ Supabase 클라이언트 및 캐시 서비스 초기화 성공")
+            logger.info("Supabase 클라이언트 및 캐시 서비스 초기화 성공")
         except Exception as e:
             raise ConfigurationError(
                 f"Supabase 클라이언트 생성 실패: {e}",
