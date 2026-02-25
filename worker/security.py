@@ -114,8 +114,11 @@ class SecurityChecker(ast.NodeVisitor):
                 second_arg = node.args[1]
                 # getattr(obj, "eval") 또는 getattr(obj, 'ev'+'al') 등
                 resolved = self._resolve_string_const(second_arg)
-                if resolved and resolved in self.FORBIDDEN_FUNCTIONS:
-                    self.errors.append(f"getattr을 통한 금지된 함수 동적 호출 시도: {resolved}")
+                if resolved:
+                    if resolved in self.FORBIDDEN_FUNCTIONS:
+                        self.errors.append(f"getattr을 통한 금지된 함수 동적 호출 시도: {resolved}")
+                    elif resolved in self.FORBIDDEN_ATTRIBUTES:
+                        self.errors.append(f"getattr을 통한 금지된 속성 접근 시도: {resolved}")
 
         self.generic_visit(node)
 
