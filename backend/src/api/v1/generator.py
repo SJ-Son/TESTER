@@ -81,8 +81,8 @@ async def generate_test(
             return
         except Exception as e:
             logger.error(f"토큰 차감 실패: {e}")
-            # Fail Open: 토큰 차감 실패 시에도 생성은 허용 (로그 기록)
-            pass
+            # Fail-Open 정책: 토큰 차감 실패 시에도 생성은 허용
+            # tokens_deducted=False이므로 finally에서 환불 시도 없음
 
         logger.info_ctx(
             "테스트 코드 생성 요청",

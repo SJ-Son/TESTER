@@ -45,12 +45,12 @@ const jsFunc = () => console.log("JS here");
 @pytest.mark.parametrize("case", CHAOS_CASES, ids=lambda c: c["name"])
 def test_chaos_robustness_scenarios(case, client, mock_user_auth, mock_turnstile_success):
     """잘못된 입력이나 악의적인 입력에 대해 시스템이 500 에러 없이 우아하게 처리하는지 검증합니다."""
-    from unittest.mock import AsyncMock
+    from unittest.mock import MagicMock
 
     from src.api.v1.deps import get_test_generator_service
     from src.main import app
 
-    mock_service = AsyncMock()
+    mock_service = MagicMock()
 
     async def mock_async_generator(*args, **kwargs):
         yield "Handled"

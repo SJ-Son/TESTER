@@ -303,12 +303,14 @@ async def security_middleware(request: Request, call_next):
         return response
     except ValidationError as e:
         logger.warning(f"유효성 검사 실패: {e.message}")
-        # 브라우저 콘솔 오류 방지를 위해 200 OK와 에러 페이로드 반환
-        return {
-            "type": "error",
-            "status": "validation_error",
-            "detail": {"code": e.code, "message": e.message},
-        }
+        return ORJSONResponse(
+            status_code=400,
+            content={
+                "type": "error",
+                "status": "validation_error",
+                "detail": {"code": e.code, "message": e.message},
+            },
+        )
 
 
 @app.get("/health", dependencies=[Depends(verify_api_key)])

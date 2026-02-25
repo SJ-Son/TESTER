@@ -2,6 +2,7 @@ import asyncio
 import io
 import logging
 import os
+import secrets
 import tarfile
 import time
 from contextlib import asynccontextmanager
@@ -156,8 +157,6 @@ def verify_token(authorization: Optional[str] = Header(None)):
 
     token = authorization.split(" ")[1]
     # 타이밍 공격 방지를 위한 상수 시간 비교 사용
-    import secrets
-
     if not secrets.compare_digest(token, WORKER_AUTH_TOKEN):
         raise HTTPException(status_code=403, detail="Invalid Worker Token")
 

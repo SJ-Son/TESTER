@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 class GenerationModel(BaseModel):
     id: Optional[UUID] = None
-    user_id: Optional[str] = None  # Changed to str
+    user_id: Optional[str] = None
     input_code: str
     generated_code: str
     language: str
@@ -138,9 +138,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
                     history_items.append(
                         GenerationModel(
                             id=item["id"],
-                            user_id=item[
-                                "user_id"
-                            ],  # Added user_id to maintain consistency with GenerationModel
+                            user_id=item["user_id"],
                             input_code=decrypted_input,
                             generated_code=decrypted_output,
                             language=item["language"],
@@ -189,7 +187,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
 
         # 3. 캐시 저장
         try:
-            # model_dump(mode='json') handles datetime -> ISO string conversion
+            # model_dump(mode='json')이 datetime → ISO 문자열로 자동 변환
             serialized = orjson.dumps([m.model_dump(mode="json") for m in history]).decode("utf-8")
             await self.cache_service.set(cache_key, serialized, ttl=3600)
         except Exception as e:
