@@ -48,7 +48,9 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
     from src.api.v1.deps import get_test_generator_service
     from src.main import app
 
-    mock_service = AsyncMock()
+    from unittest.mock import MagicMock
+
+    mock_service = MagicMock()
 
     async def mock_async_generator(*args, **kwargs):
         yield "Handled"
