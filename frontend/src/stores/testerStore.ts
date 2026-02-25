@@ -10,6 +10,12 @@ import type { HistoryItem } from '../types/domain.types'
 interface SessionUser {
     id: string
     email?: string | null
+    user_metadata?: {
+        avatar_url?: string
+        full_name?: string
+        name?: string
+        [key: string]: unknown
+    }
 }
 
 export const useTesterStore = defineStore('tester', () => {
