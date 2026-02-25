@@ -58,3 +58,18 @@ def reverse_shell():
 
     assert "금지된 모듈 임포트: sys" in str(excinfo.value)
     assert "금지된 모듈 임포트: socket" in str(excinfo.value)
+
+def test_security_check_getattr_bypass():
+    """getattr을 통한 금지된 속성(__subclasses__) 접근이 차단되는지 테스트합니다."""
+    checker = SecurityChecker()
+    # getattr([], "__subclasses__") bypass attempt
+    with pytest.raises(SecurityViolation, match="getattr을 통한 금지된 속성 접근 시도: __subclasses__"):
+        checker.check_code("getattr([], '__subclasses__')")
+
+
+def test_security_check_getattr_bypass_concatenation():
+    """getattr와 문자열 연결을 통한 금지된 속성 접근이 차단되는지 테스트합니다."""
+    checker = SecurityChecker()
+    # getattr([], "__sub" + "classes__") bypass attempt
+    with pytest.raises(SecurityViolation, match="getattr을 통한 금지된 속성 접근 시도: __subclasses__"):
+        checker.check_code("getattr([], '__sub' + 'classes__')")

@@ -24,12 +24,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create a non-privileged user
-RUN useradd -m -u 1000 worker
+# Create a non-privileged user and docker group
+RUN groupadd -g 999 docker && \
+    useradd -m -u 1000 -G docker worker
 
-# Note: We do not switch to USER worker by default because access to
-# /var/run/docker.sock requires specific group permissions (usually gid 999 or root).
-# In production, you should run this container with --user worker:docker or similar.
+# Switch to non-privileged user
+USER worker
 
 # Expose port
 EXPOSE 5000

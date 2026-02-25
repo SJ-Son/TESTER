@@ -1,9 +1,10 @@
-import json
 import logging
 import sys
 from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import Any
+
+import orjson
 
 # Trace ID를 저장할 ContextVar
 trace_id_ctx: ContextVar[str | None] = ContextVar("trace_id", default=None)
@@ -35,7 +36,7 @@ class JSONFormatter(logging.Formatter):
         if record.exc_info:
             log_data["exception"] = self.formatException(record.exc_info)
 
-        return json.dumps(log_data, ensure_ascii=False)
+        return orjson.dumps(log_data).decode("utf-8")
 
 
 def setup_logging(log_level: int = logging.INFO) -> None:
