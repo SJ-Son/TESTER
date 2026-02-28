@@ -190,6 +190,27 @@ class CacheService:
                 key=key,
             ) from e
 
+    async def incr(self, key: str) -> int:
+        """캐시 키의 값을 1 증가시킵니다.
+
+        Args:
+            key: 캐시 키.
+
+        Returns:
+            증가된 값.
+
+        Raises:
+            CacheError: Redis 증가 실패 시.
+        """
+        try:
+            return await self.redis_client.incr(key)
+        except redis.RedisError as e:
+            raise CacheError(
+                message="캐시 증가 실패",
+                operation="incr",
+                key=key,
+            ) from e
+
     async def clear(self, pattern: str = "*") -> None:
         """패턴에 맞는 캐시 키를 삭제합니다.
 

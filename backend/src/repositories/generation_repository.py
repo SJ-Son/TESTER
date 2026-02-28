@@ -104,12 +104,11 @@ class GenerationRepository(BaseRepository[GenerationModel]):
             model,
         )
 
-        # 캐시 무효화
-        # 키 패턴: history:{user_id}:*
+        # 캐시 버전 증가 (O(1) invalidation)
         try:
-            await self.cache_service.clear(f"history:{user_id}:*")
+            await self.cache_service.incr(f"version:history:{user_id}")
         except Exception as e:
-            logger.warning(f"Failed to clear cache for user {user_id}: {e}")
+            logger.warning(f"Failed to increment cache version for user {user_id}: {e}")
 
         return result
 
@@ -163,6 +162,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
 
         Redis 캐시를 먼저 확인하고, 없으면 DB에서 조회 후 캐싱합니다.
         캐시 TTL은 1시간(3600초)입니다.
+        버전 기반 캐싱을 사용하여 O(1) invalidation을 지원합니다.
 
         Args:
             user_id: 사용자 ID.
@@ -171,7 +171,15 @@ class GenerationRepository(BaseRepository[GenerationModel]):
         Returns:
             GenerationModel 객체 리스트.
         """
-        cache_key = f"history:{user_id}:limit:{limit}"
+        version = 0
+        try:
+            v_str = await self.cache_service.get(f"version:history:{user_id}")
+            if v_str:
+                version = int(v_str)
+        except Exception:
+            pass  # 버전 조회 실패 시 0(기본값) 사용
+
+        cache_key = f"history:{user_id}:v:{version}:limit:{limit}"
 
         # 1. 캐시 확인
         try:
