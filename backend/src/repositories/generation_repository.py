@@ -35,6 +35,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
     def __init__(self, supabase_service: SupabaseService):
         """GenerationRepository 인스턴스를 초기화합니다."""
         super().__init__("generation_history")
+        self.model_cls = GenerationModel
         self.encryption = EncryptionService()
         self.cache_service = CacheService()
 
