@@ -98,6 +98,14 @@ class SecurityChecker(ast.NodeVisitor):
             self.errors.append(f"금지된 모듈에서 임포트: {node.module}")
         self.generic_visit(node)
 
+    def visit_Name(self, node):
+        """이름(식별자) 사용을 방문하여 금지된 함수나 모듈인지 확인합니다."""
+        if node.id in self.FORBIDDEN_FUNCTIONS:
+            self.errors.append(f"금지된 함수 이름 사용: {node.id}")
+        elif node.id in self.FORBIDDEN_MODULES:
+            self.errors.append(f"금지된 모듈 이름 사용: {node.id}")
+        self.generic_visit(node)
+
     def visit_Call(self, node):
         """함수 호출을 방문하여 금지된 함수인지 확인합니다.
 
