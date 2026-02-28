@@ -81,8 +81,10 @@ class TestGeneratorService:
                         f"RAG: {len(similar_histories)}개의 우수 사례를 프롬프트에 주입합니다."
                     )
         except Exception as e:
-            logger.warning(f"RAG Few-shot 예제 검색 중 오류 발생 (무시하고 계속 진행): {e}")
-
+            error_msg = str(e).replace('"', "'").replace("\n", " ")
+            logger.warning(f"RAG Few-shot 예제 검색 중 오류 발생: {error_msg}")
+            yield f'event: warning\ndata: {{"message": "RAG 임베딩 예외 발생: {error_msg} (코드는 계속 생성됩니다)"}}\n\n'
+            
         # 4. 시스템 프롬프트 생성
         # strategy에 get_system_instruction이 few_shot_text 인자를 받도록 업데이트가 선행되거나
         # 여기에서 동적으로 문자열을 이어붙입니다.
