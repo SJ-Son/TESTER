@@ -72,16 +72,19 @@ def get_supabase_service() -> SupabaseService:
     return SupabaseService()
 
 
-def get_test_generator_service(
-    gemini_service: GeminiService = Depends(get_gemini_service),
-) -> TestGeneratorService:
-    return TestGeneratorService(gemini_service=gemini_service)
-
-
 def get_generation_repository(
     supabase_service: SupabaseService = Depends(get_supabase_service),
 ) -> GenerationRepository:
     return GenerationRepository(supabase_service=supabase_service)
+
+
+def get_test_generator_service(
+    gemini_service: GeminiService = Depends(get_gemini_service),
+    generation_repository: GenerationRepository = Depends(get_generation_repository),
+) -> TestGeneratorService:
+    return TestGeneratorService(
+        gemini_service=gemini_service, generation_repository=generation_repository
+    )
 
 
 def get_token_service(

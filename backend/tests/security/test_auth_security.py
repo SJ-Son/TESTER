@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from src.config.settings import settings
 from src.exceptions import TurnstileError
@@ -45,10 +45,10 @@ def test_rate_limiting(client, mock_user_auth, mock_turnstile_success):
 
     limiter.enabled = True
 
+    from unittest.mock import MagicMock
+
     from src.api.v1.deps import get_test_generator_service
     from src.main import app
-
-    from unittest.mock import MagicMock
 
     mock_service = MagicMock()
 

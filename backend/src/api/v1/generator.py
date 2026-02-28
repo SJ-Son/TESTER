@@ -146,6 +146,7 @@ async def generate_test(
                         generated_code=full_code,
                         language=data.language,
                         model=data.model,
+                        source_code_embedding=getattr(service, "last_embedding", None),
                     )
                     if saved:
                         logger.info_ctx("이력 저장 성공", history_id=saved.id)

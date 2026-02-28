@@ -65,6 +65,48 @@ class GeminiService:
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type(Exception),
     )
+    async def generate_embedding(self, text: str) -> list[float]:
+        """주어진 텍스트(소스 코드)를 임베딩 벡터로 변환합니다.
+
+        RAG 기반 Few-shot 프롬프팅을 위한 예제 검색에 활용됩니다.
+        API 호출 중 예외가 발생하면 앱 강제 종료를 막기 위해 빈 리스트를 반환합니다.
+
+        Args:
+            text: 임베딩할 소스 코드 또는 텍스트.
+
+        Returns:
+            768차원의 float 리스트. (에러 시 빈 리스트 반환)
+        """
+        if not text.strip():
+            return []
+
+        try:
+            embedding_model = "models/text-embedding-004"
+            self.logger.info_ctx("임베딩 생성 요청 시작", content_length=len(text))
+
+            # google-generativeai의 embed_content 또는 embed_content_async 활용
+            result = await genai.embed_content_async(
+                model=embedding_model, content=text, task_type="retrieval_document"
+            )
+
+            embedding = result.get("embedding", [])
+            if not isinstance(embedding, list):
+                # 단일 항목인 경우 리스트로 감싸거나, 객체의 내부 속성을 추출해야 할 수 있음
+                # genai_types.EmbedContentResponse 스펙에 따라 다름
+                pass  # 보통 dictionary 리턴 또는 객체 리턴이므로, 로직을 안전하게 처리
+
+            self.logger.info_ctx("임베딩 생성 성공", vector_size=len(embedding))
+            return embedding
+        except Exception as e:
+            self.logger.error_ctx("임베딩 생성 실패", error=str(e))
+            # 에러 발생 시 방어 로직으로 빈 리스트 반환
+            return []
+
+    @retry(
+        stop=stop_after_attempt(AIConstants.MAX_RETRY_ATTEMPTS),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+    )
     async def generate_test_code(
         self,
         source_code: str,

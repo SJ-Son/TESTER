@@ -21,6 +21,8 @@ class GenerationModel(BaseModel):
     generated_code: str
     language: str
     model: str
+    status: Optional[str] = "success"
+    source_code_embedding: Optional[list[float]] = None
     created_at: Optional[datetime] = None
 
 
@@ -43,6 +45,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
         generated_code: str,
         language: str,
         model: str,
+        source_code_embedding: Optional[list[float]] = None,
     ) -> Union[GenerationModel, None]:
         """생성 이력을 저장합니다 (동기)."""
         try:
@@ -56,6 +59,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
                 generated_code=encrypted_output,
                 language=language,
                 model=model,
+                source_code_embedding=source_code_embedding,
             )
             # exclude_none=True: DB 기본값(id, created_at) 사용을 위해 None 제외
             data = entry.model_dump(exclude={"id", "created_at"}, exclude_none=True)
@@ -79,6 +83,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
         generated_code: str,
         language: str,
         model: str,
+        source_code_embedding: Optional[list[float]] = None,
     ) -> Union[GenerationModel, None]:
         """생성 이력을 저장합니다 (비동기).
 
@@ -91,6 +96,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
             generated_code: 생성된 테스트 코드.
             language: 프로그래밍 언어.
             model: 사용된 모델명.
+            source_code_embedding: 저장할 임베딩 벡터.
 
         Returns:
             저장된 GenerationModel 객체 (실패 시 None).
@@ -102,6 +108,7 @@ class GenerationRepository(BaseRepository[GenerationModel]):
             generated_code,
             language,
             model,
+            source_code_embedding,
         )
 
         # 캐시 버전 증가 (O(1) invalidation)
@@ -202,3 +209,49 @@ class GenerationRepository(BaseRepository[GenerationModel]):
             logger.warning(f"History Cache Set Failed: {e}")
 
         return history
+
+    def _get_similar_sync(
+        self, embedding: list[float], limit: int = 2, language: Optional[str] = None
+    ) -> list[GenerationModel]:
+        """주어진 임베딩과 유사한 성공적인 생성 이력을 RPC를 통해 반환합니다."""
+        try:
+            # RPC 호출
+            response = self.client.rpc(
+                "match_successful_generations",
+                {"query_embedding": embedding, "match_limit": limit, "p_language": language},
+            ).execute()
+
+            history_items = []
+            if response.data:
+                for item in response.data:
+                    try:
+                        # 데이터 복호화
+                        decrypted_input = self.encryption.decrypt(item["input_code"])
+                        decrypted_output = self.encryption.decrypt(item["generated_code"])
+
+                        history_items.append(
+                            GenerationModel(
+                                input_code=decrypted_input,
+                                generated_code=decrypted_output,
+                                language=language or "unknown",
+                                model="unknown",
+                                status="success",
+                            )
+                        )
+                    except Exception as e:
+                        logger.warning(f"유사 이력 복호화 실패 (건너뜀): {str(e)}")
+                        continue
+
+            return history_items
+        except Exception as e:
+            logger.error(f"유사 이력 조회 RPC 실패: {e}", exc_info=True)
+            return []
+
+    async def get_similar_successful_generations(
+        self, embedding: list[float], limit: int = 2, language: Optional[str] = None
+    ) -> list[GenerationModel]:
+        """주어진 벡터와 유사한 성공 이력을 찾아 반환합니다 (비동기)."""
+        if not embedding:
+            return []
+
+        return await run_in_threadpool(self._get_similar_sync, embedding, limit, language)

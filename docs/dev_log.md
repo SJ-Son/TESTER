@@ -1,5 +1,17 @@
 # 개발자 작업 로그 (DEV_log)
 
+### [2026-02-28] RAG 기반 Few-shot 프롬프팅 도입
+- **작업 요약:**
+  - `generation_history` 테이블에 `source_code_embedding` (vector 768) 컬럼 및 HNSW 인덱스 생성 (Supabase `pgvector` 확장 활용).
+  - Gemini API(`text-embedding-004`)를 활용해 사용자 입력 코드의 임베딩 추출 처리.
+  - 코드 생성 시, 프롬프트 템플릿에 유사도 기반 검색된 과거 우수 생성 이력(Few-shot)을 동적 주입하는 RAG 파이프라인 완성.
+  - 관련 의존성 주입(`deps.py`) 수정 및 `TestGeneratorService`, `GeminiService` 테스트 파일 추가/보완 (테스트 Coverage 64% 달성).
+- **트러블슈팅:**
+  - **이슈:** 테스트 및 앱 실행 시 `deps.py` 함수 선언 순서 문제로 `NameError` 및 `TestGeneratorService` 초기화 인자 누락 에러(`TypeError`) 발생.
+  - **해결:** `deps.py` 내부의 DI 주입 순서를 교정하고, `test_generator_service.py` 초기화에 `GenerationRepository` Mock 객체를 주입하여 해결.
+  - **이슈:** `GeminiService` 테스트 시 Async 캐시 서비스 함수(`generate_key`) Mocking 중 `AttributeError` 및 `Coroutine` 관련 경고 발생.
+  - **해결:** 캐시 응답 객체에 `AsyncMockMixin` 대신 명시적인 `MagicMock`을 반환값으로 할당하여 해결.
+
 ### [2026-02-19] 토큰 시스템 보안 패치 및 Ko-fi 연동
 - **작업 요약:**
   - `TokenService` 리팩토링: 모든 토큰 조작을 Supabase RPC로 이관.
