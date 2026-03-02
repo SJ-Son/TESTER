@@ -203,8 +203,11 @@ class GenerationRepository(BaseRepository[GenerationModel]):
 
         # 3. 캐시 저장
         try:
-            # model_dump(mode='json')이 datetime → ISO 문자열로 자동 변환
-            serialized = orjson.dumps([m.model_dump(mode="json") for m in history]).decode("utf-8")
+            # orjson을 통해 datetime 및 UUID 직렬화를 최적화
+            serialized = orjson.dumps(
+                [m.model_dump() for m in history],
+                option=orjson.OPT_NAIVE_UTC
+            ).decode("utf-8")
             await self.cache_service.set(cache_key, serialized, ttl=3600)
         except Exception as e:
             logger.warning(f"History Cache Set Failed: {e}")

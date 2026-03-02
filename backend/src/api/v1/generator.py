@@ -22,7 +22,7 @@ router = APIRouter()
 logger = get_logger(__name__)
 
 
-def format_sse_event(event_type: str, data: dict) -> str:
+def format_sse_event(event_type: str, data: dict) -> bytes:
     """SSE 이벤트 데이터 포맷팅.
 
     Args:
@@ -30,9 +30,9 @@ def format_sse_event(event_type: str, data: dict) -> str:
         data: 전송할 데이터 딕셔너리.
 
     Returns:
-        SSE 포맷의 문자열.
+        SSE 포맷의 바이트 문자열.
     """
-    return f"event: {event_type}\ndata: {orjson.dumps(data).decode('utf-8')}\n\n"
+    return b"event: " + event_type.encode("utf-8") + b"\ndata: " + orjson.dumps(data) + b"\n\n"
 
 
 @router.post("/generate")
@@ -88,7 +88,7 @@ async def generate_test(
                     "required": TokenConstants.COST_PER_GENERATION,
                     "current": deduct_result.current_balance,
                 }
-                yield f"data: {orjson.dumps(error_data).decode('utf-8')}\n\n"
+                yield b"data: " + orjson.dumps(error_data) + b"\n\n"
                 return
 
         except InsufficientTokensError as e:
@@ -99,7 +99,7 @@ async def generate_test(
                 "required": e.required,
                 "current": e.current,
             }
-            yield f"data: {orjson.dumps(error_data).decode('utf-8')}\n\n"
+            yield b"data: " + orjson.dumps(error_data) + b"\n\n"
             return
         except Exception as e:
             logger.error(f"토큰 차감 실패: {e}")
@@ -126,7 +126,7 @@ async def generate_test(
                 if chunk:
                     generated_content.append(chunk)
                     chunk_data = {"type": "chunk", "content": chunk}
-                    yield f"data: {orjson.dumps(chunk_data).decode('utf-8')}\n\n"
+                    yield b"data: " + orjson.dumps(chunk_data) + b"\n\n"
                     chunk_count += 1
                     if chunk_count % 100 == 0:
                         await asyncio.sleep(0)
