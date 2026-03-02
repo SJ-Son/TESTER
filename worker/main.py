@@ -120,6 +120,16 @@ def _verify_and_fallback_runtime() -> None:
 
 app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
 
+from fastapi import Request
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    return response
+
 
 class ExecutionRequest(BaseModel):
     """코드 실행 요청 모델.
@@ -264,6 +274,9 @@ async def execute_code(request: ExecutionRequest):
                 cap_drop=["ALL"],
                 remove=True,
                 runtime=DOCKER_RUNTIME,
+                user="1000",
+                read_only=True,
+                tmpfs={"/tmp": "", "/app": ""},
             )
 
             # 3. 코드 주입 (exec_run + Python write 방식)
@@ -271,6 +284,7 @@ async def execute_code(request: ExecutionRequest):
             write_result = container.exec_run(
                 ["python3", "-c", f"open('/app/test_run.py', 'w').write({repr(combined_code)})"],
                 workdir="/app",
+                user="1000",
             )
             if write_result.exit_code != 0:
                 write_err = write_result.output.decode("utf-8", errors="replace")
@@ -279,7 +293,7 @@ async def execute_code(request: ExecutionRequest):
 
             # 4. 테스트 실행
             run_cmd = ["timeout", "10s", "pytest", "test_run.py", "--no-header", "-v"]
-            exec_result = container.exec_run(run_cmd, workdir="/app")
+            exec_result = container.exec_run(run_cmd, workdir="/app", user="1000")
 
             output_str = exec_result.output.decode("utf-8", errors="replace")
             success = exec_result.exit_code == 0
