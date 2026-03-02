@@ -17,7 +17,7 @@ jobs:
     
     env:
       SUPABASE_URL: "https://test-project.supabase.co"
-      SUPABASE_JWT_SECRET: "test_jwt_secret_for_ci"
+      SUPABASE_JWT_SECRET: "test_jwt_secret_for_ci_must_be_32_chars_long"
       SUPABASE_SERVICE_ROLE_KEY: "test_service_role_key_for_ci"
       SUPABASE_ANON_KEY: "test_anon_key_for_ci"
       GEMINI_API_KEY: "AI_test_key_for_ci_dummy"
